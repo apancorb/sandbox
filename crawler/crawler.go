@@ -9,7 +9,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-func Extract(url string) ([]string, error) {
+// extracts a list of links from a given url
+func extract(url string) ([]string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -54,32 +55,48 @@ func forEachNode(n *html.Node, visitNode func(n *html.Node)) {
 
 func crawl(url string) []string {
 	fmt.Println(url)
-	list, err := Extract(url)
+	list, err := extract(url)
 	if err != nil {
 		log.Print(err)
 	}
 	return list
 }
 
-// breadthFirst calls f for each item in the worklist.
-// Any items returned by f are added to the worklist.
-// f is called at most once for each item.
-func breadthFirst(f func(item string) []string, worklist []string) {
-	seen := make(map[string]bool)
-	for len(worklist) > 0 {
-		items := worklist
-		worklist = nil
-		for _, item := range items {
-			if !seen[item] {
-				seen[item] = true
-				worklist = append(worklist, f(item)...)
-			}
-		}
-	}
-}
-
+// starting from the command-line arguments,
+// crawl the web breadth-first
 func main() {
-	// Crawl the web breadth-first,
-	// starting from the command-line arguments.
-	breadthFirst(crawl, os.Args[1:])
+  args := os.Args[1:]
+  if args == nil || len(args) < 1 {
+    log.Fatalln("Initial list of web urls missing")
+  }
+
+  // worklist represnts a queue of
+  // all links found by workers
+  worklist := make(chan []string)
+  // unseen links for workers to work on
+  unseenLinks := make(chan string)
+
+  // create 20 workers
+  for i := 0; i < 20; i++ {
+    go func() {
+      for link := range unseenLinks {
+        foundLinks := crawl(link)
+        go func() { worklist <- foundLinks }()
+      }
+    }()
+  }
+
+  // provide initial list of links 
+  // to avoid deadlock in main goroutine
+  go func() { worklist <- args }()
+
+  seen := make(map[string]bool)
+  for list := range worklist {
+    for _, link := range list {
+      if !seen[link] {
+        seen[link] = true
+        unseenLinks <- link
+      }
+    }
+  }
 }
