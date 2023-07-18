@@ -6,18 +6,24 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
+// show verbose messages in stdout
 var verbose = flag.Bool("v", false, "show verbose progress messages")
+// sema is a counting semaphore for limiting concurrency in dirents
+var sema = make(chan struct{}, 20)
 
 // walkDir recursively walks the file tree rooted at dir
 // and sends the size of each found file on fileSizes
-func walkDir(dir string, fileSizes chan<- int64) {
+func walkDir(dir string, n *sync.WaitGroup, fileSizes chan<- int64) {
+  defer n.Done()
 	for _, entry := range dirents(dir) {
 		if entry.IsDir() {
+      n.Add(1)
 			subdir := filepath.Join(dir, entry.Name())
-			walkDir(subdir, fileSizes)
+			go walkDir(subdir, n, fileSizes)
 		} else {
 			fileSizes <- entry.Size()
 		}
@@ -26,6 +32,8 @@ func walkDir(dir string, fileSizes chan<- int64) {
 
 // dirents returns the entries of directory dir
 func dirents(dir string) []os.FileInfo {
+  sema <- struct{}{} // acquire token
+  defer func() { <-sema }() // release token
 	entries, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "du: %v\n", err)
@@ -48,12 +56,19 @@ func main() {
 
 	// traverse the file tree
 	fileSizes := make(chan int64)
+  var n sync.WaitGroup
 	go func() {
 		for _, root := range roots {
-			walkDir(root, fileSizes)
+      n.Add(1)
+			go walkDir(root, &n, fileSizes)
 		}
-		close(fileSizes)
 	}()
+
+  // wait for all goroutines to finish
+  go func() {
+    n.Wait()
+    close(fileSizes)
+  }()
 
 	// print the results periodically
 	var tick <-chan time.Time
