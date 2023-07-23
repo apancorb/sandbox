@@ -1,0 +1,3 @@
+[submodule "gopl.io"]
+	path = gopl.io
+	url = git@github.com:adonovan/gopl.io.git
