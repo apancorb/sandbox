@@ -190,7 +190,7 @@ func processSchedule(H [8]uint32, ws []uint32) [8]uint32 {
 // The SHA-256 hash computation which
 // results in a 256-bit message digest of
 // the message.
-func hash(m []byte) []byte {
+func Hash(m []byte) []byte {
 	// preprocessing consists of three steps: padding
 	// the message, parsing the message into message
 	// blocks, and setting the initial hash value
@@ -219,5 +219,5 @@ func main() {
 	// message to be hashed
 	m := []byte(os.Args[1])
   // SHA-256
-	fmt.Printf("%x\n", hash(m))
+	fmt.Printf("%x\n", Hash(m))
 }
