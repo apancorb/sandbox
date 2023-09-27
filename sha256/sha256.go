@@ -200,17 +200,17 @@ func Hash(m []byte) []byte {
 	mpd := padding(m)
 	bls := parsing(mpd)
 	H := [8]uint32{init0, init1, init2, init3, init4, init5, init6, init7}
-  // compute hash
+	// compute hash
 	for _, bl := range bls {
 		// prepare the message schedule
 		ws := prepareSchedule(bl)
 		// process the message schedule
 		H = processSchedule(H, ws)
 	}
-  // convert to byte slice
+	// convert to byte slice
 	hash := make([]byte, size)
 	for i, h := range H {
-    binary.BigEndian.PutUint32(hash[i*4:i*4+4], h)
+		binary.BigEndian.PutUint32(hash[i*4:i*4+4], h)
 	}
 	return hash
 }
@@ -221,6 +221,6 @@ func main() {
 	}
 	// message to be hashed
 	m := []byte(os.Args[1])
-  // SHA-256
+	// SHA-256
 	fmt.Printf("%x\n", Hash(m))
 }

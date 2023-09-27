@@ -14,12 +14,12 @@ func TestSha256(t *testing.T) {
 	tests := []string{
 		"abc",
 		"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-  }
+	}
 
 	for _, test := range tests {
-    result := Hash([]byte(test))
-    expected := expectedHash(test)
-    if !bytes.Equal(result, expected) {
+		result := Hash([]byte(test))
+		expected := expectedHash(test)
+		if !bytes.Equal(result, expected) {
 			t.Errorf("For %s, expected %x, but got %x", test, expected, result)
 		}
 	}
