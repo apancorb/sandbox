@@ -155,6 +155,9 @@ func prepareSchedule(bl []byte) []uint32 {
 	return sch
 }
 
+// Responsible for transforming the working variables
+// based on the message schedule, thus producing the intermediate
+// hash values for each round of computation.
 func processSchedule(H [8]uint32, ws []uint32) [8]uint32 {
 	// initialize the eight working vars
 	// with the (i-1) hash value
