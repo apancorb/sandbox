@@ -1,3 +1,6 @@
-[submodule "gopl.io"]
-	path = gopl.io
+[submodule "go/gopl.io"]
+	path = go/gopl.io
 	url = git@github.com:adonovan/gopl.io.git
+[submodule "libp2p/go-libp2p"]
+	path = libp2p/go-libp2p
+	url = git@github.com:libp2p/go-libp2p.git
