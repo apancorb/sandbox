@@ -1,7 +1,7 @@
 # Arcana
 
 Arcana allows configurable strategies and automatic execution of concentrated 
-liquidity pool positions for the uniswap protocol.
+liquidity pool positions for the uniswap protocol, see https://app.uniswap.org/pools.
 
 The strategies are configured as `actors`, where each actor defines
 a strategy that thinks will work best for a given uniswap liquidity
