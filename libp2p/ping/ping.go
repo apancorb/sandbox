@@ -14,26 +14,26 @@ import (
 )
 
 func main() {
-	// start a libp2p node that listens on a random local TCP port,
+	// start a libp2p host that listens on a random local TCP port,
 	// but without running the built-in ping protocol
-	node, err := libp2p.New(
+	host, err := libp2p.New(
 		libp2p.ListenAddrStrings("/ip4/127.0.0.1/tcp/0"),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	// print the node's PeerInfo in multiaddr format
+	// print the host's PeerInfo in multiaddr format
 	peerInfo := peerstore.AddrInfo{
-		ID:    node.ID(),
-		Addrs: node.Addrs(),
+		ID:    host.ID(),
+		Addrs: host.Addrs(),
 	}
 	addrs, err := peerstore.AddrInfoToP2pAddrs(&peerInfo)
-	fmt.Println("libp2p node address:", addrs[0])
+	fmt.Println("libp2p host address:", addrs[0])
 
 	// configure our own ping protocol
-	pingService := &ping.PingService{Host: node}
-	node.SetStreamHandler(ping.ID, pingService.PingHandler)
+	pingService := &ping.PingService{Host: host}
+	host.SetStreamHandler(ping.ID, pingService.PingHandler)
 
 	// if a remote peer has been passed on the command line, connect to it
 	// and send it 5 ping messages, otherwise wait for a signal to stop
@@ -46,7 +46,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if err := node.Connect(context.Background(), *peer); err != nil {
+		if err := host.Connect(context.Background(), *peer); err != nil {
 			panic(err)
 		}
 		fmt.Println("sending 5 ping messages to", addr)
@@ -62,8 +62,8 @@ func main() {
 		<-ch
 		fmt.Println("Received signal, shutting down...")
 	}
-	// shut the node down
-	if err := node.Close(); err != nil {
+	// shut the host down
+	if err := host.Close(); err != nil {
 		panic(err)
 	}
 }
