@@ -1,4 +1,4 @@
-# Go
+# libp2p
 
 ## go-libp2p 
 This repository provides example programs for libp2p, see
