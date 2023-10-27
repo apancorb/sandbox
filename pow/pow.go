@@ -75,7 +75,7 @@ loop:
 			if err != nil {
 				log.Println("Invalid Blockchain:", err.Error())
 			} else {
-				m.Blockchain = blockchain 
+				m.Blockchain = blockchain
 				log.Println("New Blockchain Discovered:", m.Blockchain)
 				mcancel()
 			}
@@ -153,10 +153,9 @@ func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 			if hashInt.Cmp(m.Target) == -1 {
 				block.Hash = hash[:]
 				out <- block
-				break
-			} else {
-				nonce++
+				return nil
 			}
+			nonce++
 		}
 	}
 
