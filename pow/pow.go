@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"math/big"
@@ -15,7 +14,7 @@ import (
 )
 
 const (
-	TargetBits = 20 // Adjust to control the difficulty of the PoW algorithm
+	TargetBits = 25 // Adjust to control the difficulty of the PoW algorithm
 	MaxNonce   = math.MaxInt64
 )
 
@@ -35,19 +34,16 @@ type Miner struct {
 	// Pow algorithm difficulty
 	Target *big.Int
 
-	// once the host receives a new block
-	// from a host in the p2p network it will
-	// be sent to this channel such that the
-	// miner can validate and process the new block
+	// once the host receives a new blockchain
+	// from a peer, it will send it in this channel
 	Discover chan Blockchain
 
 	// once the miner mines a new valid block,
-	// it will send it to the host in this channel
-	// so that other hosts in the p2p network
-	// can be notified
+	// it will send its blockchain in this channel
 	Result chan Blockchain
 }
 
+// Returns a new miner
 func New() *Miner {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-TargetBits))
@@ -59,6 +55,7 @@ func New() *Miner {
 		Result:     make(chan Blockchain)}
 }
 
+// Start initializes the mining process
 func (m *Miner) Start(ctx context.Context) {
 loop:
 	for {
@@ -87,11 +84,14 @@ loop:
 	}
 }
 
+// Shutdown cleans miner's resources
 func (m *Miner) Shutdown() {
 	close(m.Discover)
 	close(m.Result)
 }
 
+// Validates a peer's blockchain against its
+// current blockchain
 func (m *Miner) Validate(otherBlockchain Blockchain) error {
 	// skip proposed blockchain if it is smaller
 	// than ours
@@ -124,6 +124,8 @@ func (m *Miner) Validate(otherBlockchain Blockchain) error {
 	return nil
 }
 
+// Mines a block for the current blockchain
+// using the Proof-of-Work algorithm
 func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 	var hashInt big.Int
 	var hash [32]byte
@@ -132,9 +134,11 @@ func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 	if len(m.Blockchain) > 0 {
 		prevBlockHash = m.Blockchain[len(m.Blockchain)-1].Hash
 	}
+	// ideally this would be a list of transactions,
+	// here is a random string :)
 	data := randomString(10)
 
-	fmt.Printf("Mining a new block with difficulty %d\n", TargetBits)
+	log.Println("Mining a new block with difficulty", TargetBits)
 
 	for nonce < MaxNonce {
 		block := Block{
@@ -144,7 +148,6 @@ func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 
 		hash = sha256.Sum256(prepareData(block))
 		hashInt.SetBytes(hash[:])
-		fmt.Printf("\r%x", hash)
 
 		select {
 		case <-ctx.Done():
