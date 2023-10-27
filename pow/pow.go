@@ -22,12 +22,15 @@ const (
 type Block struct {
 	PrevBlockHash []byte
 	Data          []byte
-	Nonce         uint64
+	Hash          []byte
+	Nonce         int64
 }
+
+type Blockchain []Block
 
 type Miner struct {
 	// the miner's blockchain
-	Blockchain []Block
+	Blockchain Blockchain
 
 	// Pow algorithm difficulty
 	Target *big.Int
@@ -36,13 +39,13 @@ type Miner struct {
 	// from a host in the p2p network it will
 	// be sent to this channel such that the
 	// miner can validate and process the new block
-	Discover chan Block
+	Discover chan Blockchain
 
 	// once the miner mines a new valid block,
 	// it will send it to the host in this channel
 	// so that other hosts in the p2p network
 	// can be notified
-	Result chan Block
+	Result chan Blockchain
 }
 
 func New() *Miner {
@@ -50,29 +53,36 @@ func New() *Miner {
 	target.Lsh(target, uint(256-TargetBits))
 
 	return &Miner{
-		Blockchain: make([]Block, 0),
+		Blockchain: make(Blockchain, 0),
 		Target:     target,
-		Discover:   make(chan Block),
-		Result:     make(chan Block)}
+		Discover:   make(chan Blockchain),
+		Result:     make(chan Blockchain)}
 }
 
-func (m *Miner) Start() {
+func (m *Miner) Start(ctx context.Context) {
+loop:
 	for {
-		ctx, cancel := context.WithCancel(context.Background())
+		mctx, mcancel := context.WithCancel(ctx)
 		out := make(chan Block)
-		go m.Mine(ctx, out)
+		go m.Mine(mctx, out)
 
 		select {
-		case block := <-m.Discover:
-			err := m.Validate(block)
+		case <-ctx.Done():
+			mcancel()
+			break loop
+		case blockchain := <-m.Discover:
+			err := m.Validate(blockchain)
 			if err != nil {
-				log.Println(err.Error())
+				log.Println("Invalid Blockchain:", err.Error())
 			} else {
-				m.Blockchain = append(m.Blockchain, block)
-				cancel()
+				m.Blockchain = blockchain 
+				log.Println("New Blockchain Discovered:", m.Blockchain)
+				mcancel()
 			}
 		case block := <-out:
-			m.Result <- block
+			m.Blockchain = append(m.Blockchain, block)
+			log.Println("New Block Mined:", m.Blockchain)
+			m.Result <- m.Blockchain
 		}
 	}
 }
@@ -82,28 +92,33 @@ func (m *Miner) Shutdown() {
 	close(m.Result)
 }
 
-func (m *Miner) Validate(block Block) error {
-	// check if the previous block hash points
-	// to the current block in the chain
-	if len(m.Blockchain) > 0 {
-		currBlock := m.Blockchain[len(m.Blockchain)-1]
-		data := prepareData(currBlock)
-		currentHash := sha256.Sum256(data)
-
-		if !bytes.Equal(currentHash[:], block.PrevBlockHash) {
-			errors.New("Invalid Block: PrevBlockHash Mismatch")
-		}
+func (m *Miner) Validate(otherBlockchain Blockchain) error {
+	// skip proposed blockchain if it is smaller
+	// than ours
+	if len(m.Blockchain) > len(otherBlockchain) {
+		return errors.New("Smaller Blockchain")
 	}
 
-	// check if the hash (solution to the PoW algorithm)
-	// matches with the determined difficulty level
-	var hashInt big.Int
-	data := prepareData(block)
-	hash := sha256.Sum256(data)
-	hashInt.SetBytes(hash[:])
+	for i := 1; i < len(otherBlockchain); i++ {
+		currBlock := otherBlockchain[i]
+		prevBlock := otherBlockchain[i-1]
 
-	if hashInt.Cmp(m.Target) != -1 {
-		errors.New("Invalid Block: Target Mismatch")
+		// check if the previous block hash points
+		// to the current block in the chain
+		if !bytes.Equal(currBlock.PrevBlockHash, prevBlock.Hash[:]) {
+			return errors.New("PrevBlockHash Mismatch")
+		}
+
+		// check if the hash (solution to the PoW algorithm)
+		// matches with the determined difficulty level
+		var hashInt big.Int
+		data := prepareData(currBlock)
+		hash := sha256.Sum256(data)
+		hashInt.SetBytes(hash[:])
+
+		if hashInt.Cmp(m.Target) != -1 {
+			return errors.New("Target Mismatch")
+		}
 	}
 
 	return nil
@@ -112,10 +127,10 @@ func (m *Miner) Validate(block Block) error {
 func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 	var hashInt big.Int
 	var hash [32]byte
-  var nonce uint64
+	var nonce int64
 	var prevBlockHash []byte
 	if len(m.Blockchain) > 0 {
-		prevBlockHash = m.Blockchain[len(m.Blockchain)-1].PrevBlockHash
+		prevBlockHash = m.Blockchain[len(m.Blockchain)-1].Hash
 	}
 	data := randomString(10)
 
@@ -136,6 +151,7 @@ func (m *Miner) Mine(ctx context.Context, out chan<- Block) error {
 			return ctx.Err()
 		default:
 			if hashInt.Cmp(m.Target) == -1 {
+				block.Hash = hash[:]
 				out <- block
 				break
 			} else {

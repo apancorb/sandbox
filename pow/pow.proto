@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package pow;
+
+option go_package = "pb.pow";
+
+message Block {
+  bytes prevBlockHash = 1;
+  bytes data = 2;
+  bytes hash = 3;
+  int64 nonce = 4;
+}
+
+message Blockchain {
+  repeated Block blockchain = 1;
+}

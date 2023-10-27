@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	pb "pow/pb.pow"
+
 	"github.com/libp2p/go-libp2p"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// create a new PubSub service using the GossipSub router
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	gossipSub, err := pubsub.NewGossipSub(ctx, host)
 	if err != nil {
 		panic(err)
@@ -52,7 +52,7 @@ func main() {
 
 	// create PoW miner
 	miner := New()
-	go miner.Start()
+	go miner.Start(ctx)
 	defer miner.Shutdown()
 
 	go publish(ctx, pub, miner)
@@ -61,21 +61,31 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGKILL, syscall.SIGINT)
 	<-ch
+
+	// on signal cancel all running routines
+	cancel()
 }
 
 // start publisher to topic
 func publish(ctx context.Context, pub *pubsub.Topic, m *Miner) {
 	for {
 		// receive new mined block
-		block := <-m.Result
-    fmt.Println("here", block)
-		// serialize block
-		buf := &bytes.Buffer{}
-		if err := binary.Write(buf, binary.BigEndian, block); err != nil {
+		blockchain := <-m.Result
+		// serialize blockchain
+		sendBlockchain := pb.Blockchain{}
+		for _, block := range blockchain {
+			sendBlockchain.Blockchain = append(sendBlockchain.Blockchain, &pb.Block{
+				PrevBlockHash: block.PrevBlockHash,
+				Data:          block.Data,
+				Hash:          block.Hash,
+				Nonce:         block.Nonce})
+		}
+		out, err := proto.Marshal(&sendBlockchain)
+		if err != nil {
 			panic(err)
 		}
 		// propagate block in the p2p network
-		pub.Publish(ctx, buf.Bytes())
+		pub.Publish(ctx, out)
 	}
 }
 
@@ -86,26 +96,28 @@ func subscribe(ctx context.Context, sub *pubsub.Subscription, hostID peer.ID, m 
 		msg, err := sub.Next(ctx)
 		if err != nil {
 			panic(err)
-		}
-
-		// only consider messages delivered
-		// by other peers
-		if msg.ReceivedFrom == hostID {
+		} else if msg.ReceivedFrom == hostID {
+			// only consider messages delivered
+			// by other peers
 			continue
 		}
+		log.Println("Received Blockchain from:", msg.ReceivedFrom.Pretty())
 
-		// deserialize block
-		block := Block{}
-		buf := &bytes.Buffer{}
-		if _, err = buf.Write(msg.Data); err != nil {
+		// deserialize blockchain
+		recvBlockchain := &pb.Blockchain{}
+		if err := proto.Unmarshal(msg.Data, recvBlockchain); err != nil {
 			panic(err)
 		}
-		if err = binary.Read(buf, binary.BigEndian, &block); err != nil {
-			panic(err)
+		blockchain := Blockchain{}
+		for _, block := range recvBlockchain.Blockchain {
+			blockchain = append(blockchain, Block{
+				PrevBlockHash: block.PrevBlockHash,
+				Data:          block.Data,
+				Hash:          block.Hash,
+				Nonce:         block.Nonce})
 		}
 
-		log.Printf("Received Block: %s, from: %s\n", string(msg.Data), msg.ReceivedFrom.Pretty())
-
-		m.Discover <- block
+		// validate and proccess newly discoverd block
+		m.Discover <- blockchain
 	}
 }
