@@ -192,14 +192,18 @@ mod tests {
     fn test_division_3_div_24() {
         let a = FieldElement::new(3, 31).expect("init failed");
         let b = FieldElement::new(24, 31).expect("init failed");
+
         let result = a / b;
+
         assert_eq!(result, FieldElement::new(4, 31).expect("init failed"));
     }
 
     #[test]
     fn test_inverse_exponent_17_pow_neg3() {
         let base = FieldElement::new(17, 31).expect("init failed");
+
         let result = base.pow(-3);
+
         assert_eq!(result, FieldElement::new(29, 31).expect("init failed"));
     }
 
@@ -207,7 +211,9 @@ mod tests {
     fn test_inverse_pow_4_pow_neg4_times_11() {
         let inv = FieldElement::new(4, 31).expect("init failed").pow(-4);
         let eleven = FieldElement::new(11, 31).expect("init failed");
+
         let result = inv * eleven;
+
         assert_eq!(result, FieldElement::new(13, 31).expect("init failed"));
     }
 }
