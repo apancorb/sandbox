@@ -15,6 +15,10 @@ impl FieldElement {
         Ok(FieldElement { num, prime })
     }
 
+    pub fn prime(&self) -> i32 {
+        self.prime
+    }
+
     pub fn pow(self, exponent: i32) -> Self {
         let mut base = self.num.rem_euclid(self.prime) as u64;
         let mut exp = exponent.abs() as u64;

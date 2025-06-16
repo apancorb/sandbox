@@ -1,29 +1,32 @@
+use crate::finitefield::FieldElement;
 use std::ops::Add;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Point {
-    x: Option<i64>,
-    y: Option<i64>,
-    a: i64,
-    b: i64,
+    pub x: Option<FieldElement>,
+    pub y: Option<FieldElement>,
+    pub a: FieldElement,
+    pub b: FieldElement,
 }
 
 impl Point {
-    pub fn new(x: Option<i64>, y: Option<i64>, a: i64, b: i64) -> Result<Self, String> {
+    pub fn new(
+        x: Option<FieldElement>,
+        y: Option<FieldElement>,
+        a: FieldElement,
+        b: FieldElement,
+    ) -> Result<Self, String> {
         match (x, y) {
             (Some(x_val), Some(y_val)) => {
-                // Check curve equation: y^2 = x^3 + ax + b
-                let lhs = y_val.pow(2);
-                let rhs = x_val.pow(3) + a * x_val + b;
+                let lhs = y_val * y_val;
+                let rhs = x_val * x_val * x_val + a * x_val + b;
                 if lhs != rhs {
-                    return Err(format!("Point ({}, {}) is not on the curve", x_val, y_val));
+                    return Err("Point is not on the curve".to_string());
                 }
             }
-            (None, None) => {
-                // point at infinity, always allowed
-            }
+            (None, None) => {} // point at infinity
             _ => {
-                return Err("Both x and y must be Some(...) or None".to_string());
+                return Err("Either both x and y must be Some(...) or None".to_string());
             }
         }
 
@@ -34,8 +37,7 @@ impl Point {
 impl Add for Point {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
-        // Ensure both points are on the same curve
+    fn add(self, other: Self) -> Self::Output {
         if self.a != other.a || self.b != other.b {
             panic!(
                 "Points {:?} and {:?} are not on the same curve",
@@ -43,7 +45,7 @@ impl Add for Point {
             );
         }
 
-        // Handle point at infinity cases
+        // Identity
         if self.x.is_none() {
             return other;
         }
@@ -51,45 +53,38 @@ impl Add for Point {
             return self;
         }
 
-        // Unwrap safely now that we know both are Some
         let (x1, y1) = (self.x.unwrap(), self.y.unwrap());
         let (x2, y2) = (other.x.unwrap(), other.y.unwrap());
 
-        // If x1 == x2 and y1 != y2 => vertical line => return point at infinity
+        // Vertical line → point at infinity
         if x1 == x2 && y1 != y2 {
             return Point::new(None, None, self.a, self.b).unwrap();
         }
 
-        // Distinct points: x1 ≠ x2
+        // General case: x1 ≠ x2
         if x1 != x2 {
-            let s = (y2 - y1) as f64 / (x2 - x1) as f64;
-            let x3 = s * s - x1 as f64 - x2 as f64;
-            let y3 = s * (x1 as f64 - x3) - y1 as f64;
-            return Point::new(Some(x3 as i64), Some(y3 as i64), self.a, self.b).unwrap();
+            let s = (y2 - y1) / (x2 - x1);
+            let x3 = s * s - x1 - x2;
+            let y3 = s * (x1 - x3) - y1;
+            return Point::new(Some(x3), Some(y3), self.a, self.b).unwrap();
         }
 
-        // Point doubling: P1 == P2 and y1 != 0
+        // Doubling: P == P
         if self == other {
-            // If y1 == 0, the tangent line is vertical → return point at infinity
-            if y1 == 0 {
+            if y1 == FieldElement::new(0, y1.prime()).unwrap() {
                 return Point::new(None, None, self.a, self.b).unwrap();
             }
 
-            let s = (3 * x1 * x1 + self.a) as f64 / (2 * y1) as f64;
-            let x3 = s * s - 2.0 * x1 as f64;
-            let y3 = s * (x1 as f64 - x3) - y1 as f64;
+            let three = FieldElement::new(3, x1.prime()).unwrap();
+            let two = FieldElement::new(2, x1.prime()).unwrap();
 
-            return Point::new(
-                Some(x3.round() as i64),
-                Some(y3.round() as i64),
-                self.a,
-                self.b,
-            )
-            .unwrap();
+            let s = (three * x1 * x1 + self.a) / (two * y1);
+            let x3 = s * s - two * x1;
+            let y3 = s * (x1 - x3) - y1;
+            return Point::new(Some(x3), Some(y3), self.a, self.b).unwrap();
         }
 
-        // Placeholder for other addition logic (doubling, general case)
-        unimplemented!("Point addition not fully implemented yet");
+        panic!("Unhandled point addition case");
     }
 }
 
@@ -98,26 +93,146 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_point_2_4_not_on_curve() {
-        let p = Point::new(Some(2), Some(4), 5, 7);
-        assert!(p.is_err());
-    }
-
-    #[test]
-    fn test_point_minus1_minus1_on_curve() {
-        let p = Point::new(Some(-1), Some(-1), 5, 7);
+    fn test_point_192_105_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x = FieldElement::new(192, prime).unwrap();
+        let y = FieldElement::new(105, prime).unwrap();
+        let p = Point::new(Some(x), Some(y), a, b);
         assert!(p.is_ok());
     }
 
     #[test]
-    fn test_point_18_77_on_curve() {
-        let p = Point::new(Some(18), Some(77), 5, 7);
+    fn test_point_17_56_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x = FieldElement::new(17, prime).unwrap();
+        let y = FieldElement::new(56, prime).unwrap();
+        let p = Point::new(Some(x), Some(y), a, b);
         assert!(p.is_ok());
     }
 
     #[test]
-    fn test_point_5_7_not_on_curve() {
-        let p = Point::new(Some(5), Some(7), 5, 7);
+    fn test_point_200_119_not_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x = FieldElement::new(200, prime).unwrap();
+        let y = FieldElement::new(119, prime).unwrap();
+        let p = Point::new(Some(x), Some(y), a, b);
         assert!(p.is_err());
+    }
+
+    #[test]
+    fn test_point_1_193_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x = FieldElement::new(1, prime).unwrap();
+        let y = FieldElement::new(193, prime).unwrap();
+        let p = Point::new(Some(x), Some(y), a, b);
+        assert!(p.is_ok());
+    }
+
+    #[test]
+    fn test_point_42_99_not_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x = FieldElement::new(42, prime).unwrap();
+        let y = FieldElement::new(99, prime).unwrap();
+        let p = Point::new(Some(x), Some(y), a, b);
+        assert!(p.is_err());
+    }
+
+    #[test]
+    fn test_add_170_142_and_60_139() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x1 = FieldElement::new(170, prime).unwrap();
+        let y1 = FieldElement::new(142, prime).unwrap();
+        let x2 = FieldElement::new(60, prime).unwrap();
+        let y2 = FieldElement::new(139, prime).unwrap();
+        let p1 = Point::new(Some(x1), Some(y1), a, b).unwrap();
+        let p2 = Point::new(Some(x2), Some(y2), a, b).unwrap();
+        let result = p1 + p2;
+        let expected = Point::new(
+            Some(FieldElement::new(220, prime).unwrap()),
+            Some(FieldElement::new(181, prime).unwrap()),
+            a,
+            b,
+        )
+        .unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_add_47_71_and_17_56() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x1 = FieldElement::new(47, prime).unwrap();
+        let y1 = FieldElement::new(71, prime).unwrap();
+        let x2 = FieldElement::new(17, prime).unwrap();
+        let y2 = FieldElement::new(56, prime).unwrap();
+        let p1 = Point::new(Some(x1), Some(y1), a, b).unwrap();
+        let p2 = Point::new(Some(x2), Some(y2), a, b).unwrap();
+        let result = p1 + p2;
+        let expected = Point::new(
+            Some(FieldElement::new(215, prime).unwrap()),
+            Some(FieldElement::new(68, prime).unwrap()),
+            a,
+            b,
+        )
+        .unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_add_143_98_and_76_66() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+        let x1 = FieldElement::new(143, prime).unwrap();
+        let y1 = FieldElement::new(98, prime).unwrap();
+        let x2 = FieldElement::new(76, prime).unwrap();
+        let y2 = FieldElement::new(66, prime).unwrap();
+        let p1 = Point::new(Some(x1), Some(y1), a, b).unwrap();
+        let p2 = Point::new(Some(x2), Some(y2), a, b).unwrap();
+        let result = p1 + p2;
+        let expected = Point::new(
+            Some(FieldElement::new(47, prime).unwrap()),
+            Some(FieldElement::new(71, prime).unwrap()),
+            a,
+            b,
+        )
+        .unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_order_of_point_15_86_is_7() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime).unwrap();
+        let b = FieldElement::new(7, prime).unwrap();
+
+        let x = FieldElement::new(15, prime).unwrap();
+        let y = FieldElement::new(86, prime).unwrap();
+
+        let p = Point::new(Some(x), Some(y), a, b).unwrap();
+        let infinity = Point::new(None, None, a, b).unwrap();
+
+        let mut product = p;
+        let mut count = 1;
+
+        while product != infinity {
+            product = product + p;
+            count += 1;
+        }
+
+        assert_eq!(count, 7);
     }
 }
