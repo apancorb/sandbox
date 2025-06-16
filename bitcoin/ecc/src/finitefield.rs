@@ -1,75 +1,63 @@
-use std::ops::{Add, Div, Mul, Sub};
+use num_bigint::BigUint;
+use num_traits::One;
+use std::{
+    fmt,
+    ops::{Add, Div, Mul, Sub},
+};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FieldElement {
-    num: i32,
-    prime: i32,
+    pub num: BigUint,
+    pub prime: BigUint,
 }
 
 impl FieldElement {
-    pub fn new(num: i32, prime: i32) -> Result<Self, String> {
-        if num >= prime || num < 0 {
-            return Err(format!("Num {} not in field range 0 to {}", num, prime - 1));
+    pub fn new<N: Into<BigUint>, P: Into<BigUint>>(num: N, prime: P) -> Result<Self, String> {
+        let num = num.into();
+        let prime = prime.into();
+        if num >= prime {
+            return Err(format!(
+                "Num {} not in field range 0 to {}",
+                num,
+                &prime - BigUint::one()
+            ));
         }
-
         Ok(FieldElement { num, prime })
     }
 
-    pub fn prime(&self) -> i32 {
-        self.prime
+    pub fn prime(&self) -> BigUint {
+        self.prime.clone()
     }
 
-    pub fn pow(self, exponent: i32) -> Self {
-        let mut base = self.num.rem_euclid(self.prime) as u64;
-        let mut exp = exponent.abs() as u64;
-        let modulus = self.prime as u64;
-        let mut result = 1u64;
-
-        while exp > 0 {
-            if exp % 2 == 1 {
-                result = (result * base) % modulus;
-            }
-            base = (base * base) % modulus;
-            exp /= 2;
-        }
-
-        let result_num = if exponent < 0 {
-            // Modular inverse: result^-1 ≡ result^(p-2)
-            let inv = Self::mod_pow(result, modulus - 2, modulus);
-            inv as i32
+    pub fn pow(&self, exponent: i64) -> Self {
+        let n = if exponent < 0 {
+            let inv = self
+                .num
+                .modpow(&(self.prime.clone() - BigUint::from(2u32)), &self.prime);
+            inv.modpow(&BigUint::from((-exponent) as u64), &self.prime)
         } else {
-            result as i32
+            self.num
+                .modpow(&BigUint::from(exponent as u64), &self.prime)
         };
-
         FieldElement {
-            num: result_num,
-            prime: self.prime,
+            num: n,
+            prime: self.prime.clone(),
         }
     }
 
-    fn mod_pow(mut base: u64, mut exp: u64, modulus: u64) -> u64 {
-        let mut result = 1;
-        base %= modulus;
-        while exp > 0 {
-            if exp % 2 == 1 {
-                result = (result * base) % modulus;
-            }
-            base = (base * base) % modulus;
-            exp /= 2;
+    fn check_same_field(&self, other: &Self) {
+        if self.prime != other.prime {
+            panic!("Cannot operate on two numbers in different Fields");
         }
-        result
     }
 }
 
 impl Add for FieldElement {
     type Output = Self;
 
-    fn add(self, rhs: Self) -> Self {
-        if self.prime != rhs.prime {
-            panic!("Cannot add two numbers in different Fields");
-        }
-
-        let num = (self.num + rhs.num).rem_euclid(self.prime);
+    fn add(self, rhs: Self) -> Self::Output {
+        self.check_same_field(&rhs);
+        let num = (self.num + rhs.num) % &self.prime;
         FieldElement {
             num,
             prime: self.prime,
@@ -80,12 +68,9 @@ impl Add for FieldElement {
 impl Sub for FieldElement {
     type Output = Self;
 
-    fn sub(self, rhs: Self) -> Self {
-        if self.prime != rhs.prime {
-            panic!("Cannot subtract two numbers in different Fields");
-        }
-
-        let num = (self.num - rhs.num).rem_euclid(self.prime);
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.check_same_field(&rhs);
+        let num = (self.num + &self.prime - rhs.num) % &self.prime;
         FieldElement {
             num,
             prime: self.prime,
@@ -96,12 +81,9 @@ impl Sub for FieldElement {
 impl Mul for FieldElement {
     type Output = Self;
 
-    fn mul(self, rhs: Self) -> Self {
-        if self.prime != rhs.prime {
-            panic!("Cannot multiply two numbers in different Fields");
-        }
-
-        let num = (self.num * rhs.num).rem_euclid(self.prime);
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.check_same_field(&rhs);
+        let num = (self.num * rhs.num) % &self.prime;
         FieldElement {
             num,
             prime: self.prime,
@@ -112,112 +94,82 @@ impl Mul for FieldElement {
 impl Div for FieldElement {
     type Output = Self;
 
-    fn div(self, rhs: Self) -> Self {
-        if self.prime != rhs.prime {
-            panic!("Cannot divide two numbers in different Fields");
-        }
-
-        // Fermat’s Little Theorem: b^-1 ≡ b^(p-2) mod p
-        let inv = rhs.pow((self.prime - 2) as i32);
+    fn div(self, rhs: Self) -> Self::Output {
+        self.check_same_field(&rhs);
+        let inv = rhs.pow(-1);
         self * inv
+    }
+}
+
+impl fmt::Display for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "FieldElement({} mod {})", self.num, self.prime)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
+
+    fn fe(num: u32, prime: u32) -> FieldElement {
+        FieldElement::new(BigUint::from(num), BigUint::from(prime)).unwrap()
+    }
 
     #[test]
     fn test_addition_44_plus_33() {
-        let a = FieldElement::new(44, 57).expect("init failed");
-        let b = FieldElement::new(33, 57).expect("init failed");
-        let result = a + b;
-        assert_eq!(result, FieldElement::new(20, 57).expect("init failed"));
+        assert_eq!(fe(44, 57) + fe(33, 57), fe(20, 57));
     }
 
     #[test]
     fn test_subtraction_9_minus_29() {
-        let a = FieldElement::new(9, 57).expect("init failed");
-        let b = FieldElement::new(29, 57).expect("init failed");
-        let result = a - b;
-        assert_eq!(result, FieldElement::new(37, 57).expect("init failed"));
+        assert_eq!(fe(9, 57) - fe(29, 57), fe(37, 57));
     }
 
     #[test]
     fn test_addition_17_plus_42_plus_49() {
-        let a = FieldElement::new(17, 57).expect("init failed");
-        let b = FieldElement::new(42, 57).expect("init failed");
-        let c = FieldElement::new(49, 57).expect("init failed");
-        let result = a + b + c;
-        assert_eq!(result, FieldElement::new(51, 57).expect("init failed"));
+        assert_eq!(fe(17, 57) + fe(42, 57) + fe(49, 57), fe(51, 57));
     }
 
     #[test]
     fn test_subtraction_52_minus_30_minus_38() {
-        let a = FieldElement::new(52, 57).expect("init failed");
-        let b = FieldElement::new(30, 57).expect("init failed");
-        let c = FieldElement::new(38, 57).expect("init failed");
-        let result = a - b - c;
-        assert_eq!(result, FieldElement::new(41, 57).expect("init failed"));
+        assert_eq!(fe(52, 57) - fe(30, 57) - fe(38, 57), fe(41, 57));
     }
 
     #[test]
     fn test_multiplication_95_45_31() {
-        let a = FieldElement::new(95, 97).expect("init failed");
-        let b = FieldElement::new(45, 97).expect("init failed");
-        let c = FieldElement::new(31, 97).expect("init failed");
-
-        let result = a * b * c;
-
-        assert_eq!(result, FieldElement::new(23, 97).expect("init failed"));
+        assert_eq!(fe(95, 97) * fe(45, 97) * fe(31, 97), fe(23, 97));
     }
 
     #[test]
     fn test_multiplication_17_13_19_44() {
-        let a = FieldElement::new(17, 97).expect("init failed");
-        let b = FieldElement::new(13, 97).expect("init failed");
-        let c = FieldElement::new(19, 97).expect("init failed");
-        let d = FieldElement::new(44, 97).expect("init failed");
-
-        let result = a * b * c * d;
-
-        assert_eq!(result, FieldElement::new(68, 97).expect("init failed"));
+        assert_eq!(
+            fe(17, 97) * fe(13, 97) * fe(19, 97) * fe(44, 97),
+            fe(68, 97)
+        );
     }
 
     #[test]
     fn test_exponentiation_12_pow_7_times_77_pow_49() {
-        let a = FieldElement::new(12, 97).expect("init failed").pow(7);
-        let b = FieldElement::new(77, 97).expect("init failed").pow(49);
-        let result = a * b;
-        assert_eq!(result, FieldElement::new(63, 97).expect("init failed"));
+        let a = fe(12, 97).pow(7);
+        let b = fe(77, 97).pow(49);
+        assert_eq!(a * b, fe(63, 97));
     }
 
     #[test]
     fn test_division_3_div_24() {
-        let a = FieldElement::new(3, 31).expect("init failed");
-        let b = FieldElement::new(24, 31).expect("init failed");
-
-        let result = a / b;
-
-        assert_eq!(result, FieldElement::new(4, 31).expect("init failed"));
+        assert_eq!(fe(3, 31) / fe(24, 31), fe(4, 31));
     }
 
     #[test]
     fn test_inverse_exponent_17_pow_neg3() {
-        let base = FieldElement::new(17, 31).expect("init failed");
-
-        let result = base.pow(-3);
-
-        assert_eq!(result, FieldElement::new(29, 31).expect("init failed"));
+        assert_eq!(fe(17, 31).pow(-3), fe(29, 31));
     }
 
     #[test]
     fn test_inverse_pow_4_pow_neg4_times_11() {
-        let inv = FieldElement::new(4, 31).expect("init failed").pow(-4);
-        let eleven = FieldElement::new(11, 31).expect("init failed");
-
-        let result = inv * eleven;
-
-        assert_eq!(result, FieldElement::new(13, 31).expect("init failed"));
+        let inv = fe(4, 31).pow(-4);
+        let eleven = fe(11, 31);
+        assert_eq!(inv * eleven, fe(13, 31));
     }
 }
