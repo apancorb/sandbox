@@ -3,9 +3,5 @@
 version = 4
 
 [[package]]
-name = "ellipticcurve"
-version = "0.1.0"
-
-[[package]]
-name = "finitefield"
+name = "ecc"
 version = "0.1.0"
