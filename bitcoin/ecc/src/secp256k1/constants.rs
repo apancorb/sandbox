@@ -1,6 +1,6 @@
+use crate::secp256k1::s256point::S256Point;
 use lazy_static::lazy_static;
 use num_bigint::BigUint;
-use crate::secp256k1::s256point::S256Point;
 
 lazy_static! {
     pub static ref P: BigUint = {
