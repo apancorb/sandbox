@@ -4,6 +4,6 @@ fn main() {
     call_me(); // Don't change this line
 }
 
-fn call_me() -> u32 {
-    return 3;
+fn call_me() {
+    println!("hey");
 }
