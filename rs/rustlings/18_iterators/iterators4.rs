@@ -1,4 +1,9 @@
 fn factorial(num: u64) -> u64 {
+    match num {
+        0 => 1,
+        n => (1..=n).product(),
+    }
+
     // TODO: Complete this function to return the factorial of `num` which is
     // defined as `1 * 2 * 3 * … * num`.
     // https://en.wikipedia.org/wiki/Factorial
