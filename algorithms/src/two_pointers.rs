@@ -41,6 +41,24 @@ pub fn pair_sum(nums: &[i32], target: i32) -> Vec<usize> {
     vec![]
 }
 
+/// Triplet Sum
+///
+/// Given an array of integers, return all triplets [a, b, c] such that a + b + c = 0. The
+/// solution must not contain duplicate triplets (e.g., [1, 2, 3] and [2, 3, 1] are considered
+/// duplicate triplets). If no such triplets are found, return an empty array.
+///
+/// Each triplet can be arranged in any order, and the output can be returned in any order.
+///
+/// # Example
+///
+/// ```
+/// Input: nums = [0, -1, 2, -3, 1]
+/// Output: [[-3, 1, 2], [-1, 0, 1]]
+/// ```
+pub fn triplet_sum(nums: &[i32]) -> Vec<Vec<i32>> {
+    todo!("Implement triplet_sum function")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,5 +130,59 @@ mod tests {
         let target = 0;
         let result = pair_sum(&nums, target);
         assert_eq!(result, vec![0, 2]);
+    }
+
+    #[test]
+    fn test_triplet_sum_example() {
+        let nums = vec![0, -1, 2, -3, 1];
+        let mut result = triplet_sum(&nums);
+        result.sort();
+        let mut expected = vec![vec![-3, 1, 2], vec![-1, 0, 1]];
+        expected.sort();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_triplet_sum_empty_array() {
+        let nums = vec![];
+        let result = triplet_sum(&nums);
+        assert_eq!(result, Vec::<Vec<i32>>::new());
+    }
+
+    #[test]
+    fn test_triplet_sum_single_element() {
+        let nums = vec![0];
+        let result = triplet_sum(&nums);
+        assert_eq!(result, Vec::<Vec<i32>>::new());
+    }
+
+    #[test]
+    fn test_triplet_sum_two_elements() {
+        let nums = vec![1, -1];
+        let result = triplet_sum(&nums);
+        assert_eq!(result, Vec::<Vec<i32>>::new());
+    }
+
+    #[test]
+    fn test_triplet_sum_all_zeros() {
+        let nums = vec![0, 0, 0];
+        let result = triplet_sum(&nums);
+        assert_eq!(result, vec![vec![0, 0, 0]]);
+    }
+
+    #[test]
+    fn test_triplet_sum_no_solution() {
+        let nums = vec![1, 0, 1];
+        let result = triplet_sum(&nums);
+        assert_eq!(result, Vec::<Vec<i32>>::new());
+    }
+
+    #[test]
+    fn test_triplet_sum_with_duplicates() {
+        let nums = vec![0, 0, 1, -1, 1, -1];
+        let mut result = triplet_sum(&nums);
+        // Should only return one triplet [-1, 0, 1] without duplicates
+        result.sort();
+        assert_eq!(result, vec![vec![-1, 0, 1]]);
     }
 }
