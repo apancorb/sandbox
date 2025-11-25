@@ -128,7 +128,33 @@ pub fn triplet_sum(nums: &mut [i32]) -> Vec<Vec<i32>> {
 /// Output: false
 /// ```
 pub fn is_palindrome_valid(s: &str) -> bool {
-    todo!("Implement is_palindrome_valid function")
+    let s: Vec<char> = s.chars().collect();
+
+    if s.is_empty() {
+        return true;
+    }
+
+    let mut left = 0;
+    let mut right = s.len() - 1;
+
+    while left < right {
+        while left < right && !s[left].is_alphanumeric() {
+            left += 1;
+        }
+
+        while left < right && !s[right].is_alphanumeric() {
+            right -= 1;
+        }
+
+        if s[left].to_ascii_lowercase() != s[right].to_ascii_lowercase() {
+            return false;
+        }
+
+        left += 1;
+        right -= 1;
+    }
+
+    true
 }
 
 #[cfg(test)]
@@ -263,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_is_palindrome_valid_example_1() {
-        assert!(is_palindrome_valid("a dog I a panic in a pagoda"));
+        assert!(is_palindrome_valid("a dog, a panic in a pagoda"));
     }
 
     #[test]
