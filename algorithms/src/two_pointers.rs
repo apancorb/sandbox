@@ -157,6 +157,42 @@ pub fn is_palindrome_valid(s: &str) -> bool {
     true
 }
 
+/// Largest Container
+///
+/// You are given an array of numbers, each representing the height of a vertical line on a graph.
+/// A container can be formed with any pair of these lines, along with the x-axis of the graph.
+/// Return the amount of water which the largest container can hold.
+///
+/// # Example
+///
+/// ```
+/// Input: heights = [2, 7, 8, 3, 7, 6]
+/// Output: 24
+/// ```
+pub fn largest_container(heights: &[u32]) -> u32 {
+    if heights.is_empty() {
+        return 0;
+    }
+
+    let mut left = 0;
+    let mut right = heights.len() - 1;
+    let mut max_water = 0;
+
+    while left < right {
+        let min_height = heights[right].min(heights[left]);
+        let curr_water = (right - left) as u32 * min_height;
+        max_water = max_water.max(curr_water);
+
+        if heights[left] < heights[right] {
+            left += 1;
+        } else {
+            right -= 1;
+        }
+    }
+
+    max_water
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -335,5 +371,40 @@ mod tests {
     #[test]
     fn test_is_palindrome_valid_hello_world() {
         assert!(!is_palindrome_valid("hello, world!"));
+    }
+
+    #[test]
+    fn test_largest_container_example() {
+        assert_eq!(largest_container(&[2, 7, 8, 3, 7, 6]), 24);
+    }
+
+    #[test]
+    fn test_largest_container_empty() {
+        assert_eq!(largest_container(&[]), 0);
+    }
+
+    #[test]
+    fn test_largest_container_single_element() {
+        assert_eq!(largest_container(&[1]), 0);
+    }
+
+    #[test]
+    fn test_largest_container_no_water() {
+        assert_eq!(largest_container(&[0, 1, 0]), 0);
+    }
+
+    #[test]
+    fn test_largest_container_same_heights() {
+        assert_eq!(largest_container(&[3, 3, 3, 3]), 9);
+    }
+
+    #[test]
+    fn test_largest_container_increasing() {
+        assert_eq!(largest_container(&[1, 2, 3]), 2);
+    }
+
+    #[test]
+    fn test_largest_container_decreasing() {
+        assert_eq!(largest_container(&[3, 2, 1]), 2);
     }
 }
