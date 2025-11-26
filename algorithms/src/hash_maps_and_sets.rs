@@ -1,0 +1,275 @@
+use std::collections::{HashMap, HashSet};
+
+/// Pair Sum - Unsorted
+///
+/// Given an array of integers, return the indexes of any two numbers that add up to a target.
+/// The order of the indexes in the result doesn't matter. If no pair is found, return an empty
+/// array.
+///
+/// # Example
+///
+/// ```
+/// Input: nums = [-1, 3, 4, 2], target = 3
+/// Output: [0, 2]
+/// Explanation: nums[0] + nums[2] = -1 + 4 = 3
+/// ```
+///
+/// # Constraints
+///
+/// - The same index cannot be used twice in the result
+pub fn pair_sum(nums: &[i32], target: i32) -> Vec<usize> {
+    let mut map = HashMap::new();
+
+    for (i, &num) in nums.iter().enumerate() {
+        let val = target - num;
+        if let Some(&index) = map.get(&val) {
+            return vec![index, i];
+        }
+        map.insert(num, i);
+    }
+
+    vec![]
+}
+
+/// Verify Sudoku Board
+///
+/// Given a partially completed 9x9 Sudoku board, determine if the current state of the board
+/// adheres to the rules of the game:
+///
+/// - Each row and column must contain unique numbers between 1 and 9, or be empty (represented as 0).
+/// - Each of the nine 3x3 subgrids that compose the grid must contain unique numbers between 1 and 9, or be empty.
+///
+/// Note: You are asked to determine whether the current state of the board is valid given
+/// these rules, not whether the board is solvable.
+///
+/// # Constraints
+///
+/// - Assume each integer on the board falls in the range of [0, 9].
+pub fn verify_sudoku(board: &[[i32; 9]; 9]) -> bool {
+    let mut set_rows = vec![HashSet::<i32>::new(); 9];
+    let mut set_cols = vec![HashSet::<i32>::new(); 9];
+    let mut set_subgrids = vec![vec![HashSet::<i32>::new(); 3]; 3];
+
+    for i in 0..9 {
+        for j in 0..9 {
+            let num = board[i][j];
+            if num == 0 {
+                continue;
+            }
+
+            if set_rows[i].contains(&num) {
+                return false;
+            }
+
+            if set_cols[j].contains(&num) {
+                return false;
+            }
+
+            let ii: usize = i / 3;
+            let jj: usize = j / 3;
+            if set_subgrids[ii][jj].contains(&num) {
+                return false;
+            }
+
+            set_rows[i].insert(num);
+            set_cols[j].insert(num);
+            set_subgrids[ii][jj].insert(num);
+        }
+    }
+
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pair_sum_example() {
+        let nums = vec![-1, 3, 4, 2];
+        let target = 3;
+        let result = pair_sum(&nums, target);
+        assert_eq!(result, vec![0, 2]);
+    }
+
+    #[test]
+    fn test_pair_sum_basic() {
+        let nums = vec![-5, -2, 3, 4, 6];
+        let target = 7;
+        let result = pair_sum(&nums, target);
+        // Valid pairs: indices where sum = 7: 3+4=7 or -2+6=7 (if exists), etc.
+        assert!(result.len() == 2);
+        assert_eq!(nums[result[0]] + nums[result[1]], target);
+    }
+
+    #[test]
+    fn test_pair_sum_duplicates() {
+        let nums = vec![1, 1, 1];
+        let target = 2;
+        let result = pair_sum(&nums, target);
+        // Any valid pair where indices are different
+        assert!(result.len() == 2);
+        assert_ne!(result[0], result[1]);
+        assert_eq!(nums[result[0]] + nums[result[1]], target);
+    }
+
+    #[test]
+    fn test_pair_sum_no_solution() {
+        let nums = vec![1, 2, 3];
+        let target = 10;
+        let result = pair_sum(&nums, target);
+        assert_eq!(result, vec![]);
+    }
+
+    #[test]
+    fn test_pair_sum_negative_numbers() {
+        let nums = vec![-10, -5, 0, 5, 10];
+        let target = 0;
+        let result = pair_sum(&nums, target);
+        assert!(result.len() == 2);
+        assert_eq!(nums[result[0]] + nums[result[1]], target);
+    }
+
+    #[test]
+    fn test_pair_sum_two_elements() {
+        let nums = vec![1, 9];
+        let target = 10;
+        let result = pair_sum(&nums, target);
+        assert_eq!(result, vec![0, 1]);
+    }
+
+    #[test]
+    fn test_pair_sum_empty_array() {
+        let nums = vec![];
+        let target = 5;
+        let result = pair_sum(&nums, target);
+        assert_eq!(result, vec![]);
+    }
+
+    #[test]
+    fn test_pair_sum_single_element() {
+        let nums = vec![5];
+        let target = 5;
+        let result = pair_sum(&nums, target);
+        assert_eq!(result, vec![]);
+    }
+
+    #[test]
+    fn test_pair_sum_large_numbers() {
+        let nums = vec![-1000000, 0, 1000000];
+        let target = 0;
+        let result = pair_sum(&nums, target);
+        assert!(result.len() == 2);
+        assert_eq!(nums[result[0]] + nums[result[1]], target);
+    }
+
+    #[test]
+    fn test_verify_sudoku_valid_board() {
+        let board = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9],
+        ];
+        assert!(verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_invalid_row() {
+        let board = [
+            [5, 3, 0, 0, 7, 0, 0, 3, 0], // duplicate 3 in row
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9],
+        ];
+        assert!(!verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_invalid_column() {
+        let board = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [5, 0, 0, 0, 8, 0, 0, 7, 9], // duplicate 5 in column 0
+        ];
+        assert!(!verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_invalid_subgrid() {
+        let board = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 5, 0, 0, 0, 0, 6, 0], // duplicate 5 in top-left 3x3
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9],
+        ];
+        assert!(!verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_empty_board() {
+        let board = [[0; 9]; 9];
+        assert!(verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_full_valid_board() {
+        let board = [
+            [5, 3, 4, 6, 7, 8, 9, 1, 2],
+            [6, 7, 2, 1, 9, 5, 3, 4, 8],
+            [1, 9, 8, 3, 4, 2, 5, 6, 7],
+            [8, 5, 9, 7, 6, 1, 4, 2, 3],
+            [4, 2, 6, 8, 5, 3, 7, 9, 1],
+            [7, 1, 3, 9, 2, 4, 8, 5, 6],
+            [9, 6, 1, 5, 3, 7, 2, 8, 4],
+            [2, 8, 7, 4, 1, 9, 6, 3, 5],
+            [3, 4, 5, 2, 8, 6, 1, 7, 9],
+        ];
+        assert!(verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_single_value() {
+        let mut board = [[0; 9]; 9];
+        board[0][0] = 5;
+        assert!(verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_verify_sudoku_duplicate_zeros_ok() {
+        // Zeros (empty cells) can repeat
+        let board = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ];
+        assert!(verify_sudoku(&board));
+    }
+}
