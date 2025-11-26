@@ -80,6 +80,61 @@ pub fn verify_sudoku(board: &[[i32; 9]; 9]) -> bool {
     true
 }
 
+/// Zero Striping
+///
+/// For each zero in an m x n matrix, set its entire row and column to zero in place.
+pub fn zero_striping(matrix: &mut [Vec<i32>]) {
+    if matrix.len() == 0 {
+        return;
+    }
+
+    let mut has_zero_first_row = false;
+    for i in 0..matrix[0].len() {
+        if matrix[0][i] == 0 {
+            has_zero_first_row = true;
+            break;
+        }
+    }
+
+    let mut has_zero_first_col = false;
+    for i in 0..matrix.len() {
+        if matrix[i][0] == 0 {
+            has_zero_first_col = true;
+            break;
+        }
+    }
+
+    for i in 0..matrix.len() {
+        for j in 0..matrix[i].len() {
+            let val = matrix[i][j];
+            if val == 0 {
+                matrix[0][j] = 0;
+                matrix[i][0] = 0;
+            }
+        }
+    }
+
+    for i in 1..matrix.len() {
+        for j in 1..matrix[i].len() {
+            if matrix[0][j] == 0 || matrix[i][0] == 0 {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+
+    if has_zero_first_row {
+        for i in 0..matrix[0].len() {
+            matrix[0][i] = 0;
+        }
+    }
+
+    if has_zero_first_col {
+        for i in 0..matrix.len() {
+            matrix[i][0] = 0;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -271,5 +326,78 @@ mod tests {
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
         ];
         assert!(verify_sudoku(&board));
+    }
+
+    #[test]
+    fn test_zero_striping_basic() {
+        let mut matrix = vec![vec![1, 2, 3], vec![4, 0, 6], vec![7, 8, 9]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![1, 0, 3], vec![0, 0, 0], vec![7, 0, 9],]);
+    }
+
+    #[test]
+    fn test_zero_striping_multiple_zeros() {
+        let mut matrix = vec![vec![0, 2, 3], vec![4, 5, 6], vec![7, 8, 0]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![0, 0, 0], vec![0, 5, 0], vec![0, 0, 0],]);
+    }
+
+    #[test]
+    fn test_zero_striping_no_zeros() {
+        let mut matrix = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9],]);
+    }
+
+    #[test]
+    fn test_zero_striping_all_zeros() {
+        let mut matrix = vec![vec![0, 0], vec![0, 0]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![0, 0], vec![0, 0],]);
+    }
+
+    #[test]
+    fn test_zero_striping_single_element_zero() {
+        let mut matrix = vec![vec![0]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![0]]);
+    }
+
+    #[test]
+    fn test_zero_striping_single_element_nonzero() {
+        let mut matrix = vec![vec![5]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![5]]);
+    }
+
+    #[test]
+    fn test_zero_striping_empty() {
+        let mut matrix: Vec<Vec<i32>> = vec![];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, Vec::<Vec<i32>>::new());
+    }
+
+    #[test]
+    fn test_zero_striping_single_row() {
+        let mut matrix = vec![vec![1, 0, 3, 4]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![0, 0, 0, 0]]);
+    }
+
+    #[test]
+    fn test_zero_striping_single_column() {
+        let mut matrix = vec![vec![1], vec![0], vec![3]];
+        zero_striping(&mut matrix);
+        assert_eq!(matrix, vec![vec![0], vec![0], vec![0],]);
+    }
+
+    #[test]
+    fn test_zero_striping_rectangular() {
+        let mut matrix = vec![vec![1, 2, 3, 4], vec![5, 0, 7, 8], vec![9, 10, 11, 12]];
+        zero_striping(&mut matrix);
+        assert_eq!(
+            matrix,
+            vec![vec![1, 0, 3, 4], vec![0, 0, 0, 0], vec![9, 0, 11, 12],]
+        );
     }
 }
