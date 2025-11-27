@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 /// Singly linked list node
 #[derive(Debug, PartialEq, Clone)]
 pub struct ListNode {
@@ -105,6 +107,43 @@ pub fn remove_kth_from_end(mut head: Option<Box<ListNode>>, k: usize) -> Option<
     head
 }
 
+/// Linked List Intersection
+///
+/// Return the value of the node where two singly linked lists intersect. If the linked lists
+/// don't intersect, return None. Intersection is determined by pointer address (same memory location).
+///
+/// # Example
+///
+/// ```
+/// List A: 1 -> 2 -> 3 \
+///                      -> 6 -> 7 -> None
+/// List B:      4 -> 5 /
+///
+/// Output: 6
+/// ```
+pub fn linked_list_intersection(
+    head_a: &Option<Box<ListNode>>,
+    head_b: &Option<Box<ListNode>>,
+) -> Option<i32> {
+    let mut seen = HashSet::<i32>::new();
+    let mut curr = head_a;
+
+    while let Some(node) = curr {
+        seen.insert(node.val);
+        curr = &node.next;
+    }
+
+    curr = head_b;
+    while let Some(node) = curr {
+        if seen.contains(&node.val) {
+            return Some(node.val);
+        }
+        curr = &node.next;
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -200,5 +239,37 @@ mod tests {
         let head = ListNode::from_vec(vec![1, 2]);
         let result = remove_kth_from_end(head, 1);
         assert_eq!(ListNode::to_vec(&result), vec![1]);
+    }
+
+    #[test]
+    fn test_linked_list_intersection_no_intersection() {
+        let head_a = ListNode::from_vec(vec![1, 2, 3]);
+        let head_b = ListNode::from_vec(vec![4, 5, 6]);
+        let result = linked_list_intersection(&head_a, &head_b);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_linked_list_intersection_both_empty() {
+        let head_a: Option<Box<ListNode>> = None;
+        let head_b: Option<Box<ListNode>> = None;
+        let result = linked_list_intersection(&head_a, &head_b);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_linked_list_intersection_one_empty() {
+        let head_a = ListNode::from_vec(vec![1, 2, 3]);
+        let head_b: Option<Box<ListNode>> = None;
+        let result = linked_list_intersection(&head_a, &head_b);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_linked_list_intersection_same_list() {
+        // When both pointers point to the same list, intersection is at head
+        let head = ListNode::from_vec(vec![1, 2, 3]);
+        let result = linked_list_intersection(&head, &head);
+        assert_eq!(result, Some(1));
     }
 }
