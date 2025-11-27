@@ -161,7 +161,7 @@ pub fn linked_list_intersection(
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// let mut cache = LRUCache::new(3);
 /// cache.put(1, 100);  // cache is [1: 100]
 /// cache.put(2, 250);  // cache is [1: 100, 2: 250]

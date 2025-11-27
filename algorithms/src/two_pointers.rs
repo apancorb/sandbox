@@ -7,14 +7,14 @@
 /// # Examples
 ///
 /// Example 1:
-/// ```
+/// ```text
 /// Input: nums = [-5, -2, 3, 4, 6], target = 7
 /// Output: [2, 3]
 /// Explanation: nums[2] + nums[3] = 3 + 4 = 7
 /// ```
 ///
 /// Example 2:
-/// ```
+/// ```text
 /// Input: nums = [1, 1, 1], target = 2
 /// Output: [0, 1]
 /// Explanation: Other valid outputs could be [1, 0], [0, 2], [2, 0], [1, 2] or [2, 1]
@@ -51,7 +51,7 @@ pub fn pair_sum(nums: &[i32], target: i32) -> Vec<usize> {
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// Input: nums = [0, -1, 2, -3, 1]
 /// Output: [[-3, 1, 2], [-1, 0, 1]]
 /// ```
@@ -117,13 +117,13 @@ pub fn triplet_sum(nums: &mut [i32]) -> Vec<Vec<i32>> {
 /// # Examples
 ///
 /// Example 1:
-/// ```
+/// ```text
 /// Input: s = "a]dog I a panic in a pagoda..."
 /// Output: true
 /// ```
 ///
 /// Example 2:
-/// ```
+/// ```text
 /// Input: s = "abc123"
 /// Output: false
 /// ```
@@ -165,7 +165,7 @@ pub fn is_palindrome_valid(s: &str) -> bool {
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// Input: heights = [2, 7, 8, 3, 7, 6]
 /// Output: 24
 /// ```

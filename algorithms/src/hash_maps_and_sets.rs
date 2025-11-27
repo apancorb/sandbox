@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// Input: nums = [-1, 3, 4, 2], target = 3
 /// Output: [0, 2]
 /// Explanation: nums[0] + nums[2] = -1 + 4 = 3
