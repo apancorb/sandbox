@@ -1,4 +1,8 @@
-use std::collections::HashSet;
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 /// Singly linked list node
 #[derive(Debug, PartialEq, Clone)]
@@ -41,7 +45,7 @@ impl ListNode {
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// Input: 1 -> 2 -> 3 -> 4 -> 5 -> None
 /// Output: 5 -> 4 -> 3 -> 2 -> 1 -> None
 /// ```
@@ -73,7 +77,7 @@ pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// Input: 1 -> 2 -> 3 -> 4 -> 5, k = 2
 /// Output: 1 -> 2 -> 3 -> 5
 /// Explanation: Removed the 2nd node from the end (which is 4)
@@ -114,7 +118,7 @@ pub fn remove_kth_from_end(mut head: Option<Box<ListNode>>, k: usize) -> Option<
 ///
 /// # Example
 ///
-/// ```
+/// ```text
 /// List A: 1 -> 2 -> 3 \
 ///                      -> 6 -> 7 -> None
 /// List B:      4 -> 5 /
@@ -142,6 +146,150 @@ pub fn linked_list_intersection(
     }
 
     None
+}
+
+/// LRU Cache
+///
+/// Design and implement a data structure for the Least Recently Used (LRU) cache that
+/// supports the following operations:
+///
+/// - `LRUCache::new(capacity)`: Initialize an LRU cache with the specified capacity.
+/// - `get(key) -> Option<i32>`: Return the value associated with a key. Return None if the key doesn't exist.
+/// - `put(key, value)`: Add a key and its value to the cache. If adding the key would result in
+///   the cache exceeding its capacity, evict the least recently used element. If the key already
+///   exists in the cache, update its value.
+///
+/// # Example
+///
+/// ```
+/// let mut cache = LRUCache::new(3);
+/// cache.put(1, 100);  // cache is [1: 100]
+/// cache.put(2, 250);  // cache is [1: 100, 2: 250]
+/// cache.get(2);       // returns Some(250)
+/// cache.put(4, 300);  // cache is [1: 100, 2: 250, 4: 300]
+/// cache.put(3, 200);  // cache is [2: 250, 4: 300, 3: 200], evicts key 1
+/// cache.get(4);       // returns Some(300)
+/// cache.get(1);       // returns None (was evicted)
+/// ```
+struct LRUCache {
+    capacity: usize,
+    map: HashMap<i32, Rc<RefCell<Node>>>,
+    head: Option<Rc<RefCell<Node>>>, // dummy head
+    tail: Option<Rc<RefCell<Node>>>, // dummy tail
+}
+
+struct Node {
+    key: i32,
+    val: i32,
+    prev: Option<Rc<RefCell<Node>>>,
+    next: Option<Rc<RefCell<Node>>>,
+}
+
+impl LRUCache {
+    pub fn new(capacity: usize) -> Self {
+        let head = Rc::new(RefCell::new(Node {
+            key: -1,
+            val: -1,
+            prev: None,
+            next: None,
+        }));
+        let tail = Rc::new(RefCell::new(Node {
+            key: -1,
+            val: -1,
+            prev: None,
+            next: None,
+        }));
+
+        // Link head <-> tail
+        head.borrow_mut().next = Some(Rc::clone(&tail));
+        tail.borrow_mut().prev = Some(Rc::clone(&head));
+
+        LRUCache {
+            capacity,
+            map: HashMap::new(),
+            head: Some(head),
+            tail: Some(tail),
+        }
+    }
+
+    pub fn get(&mut self, key: i32) -> Option<i32> {
+        if let Some(node) = self.map.get(&key).cloned() {
+            let val = node.borrow().val;
+
+            self.remove_node(&node);
+            self.add_node(&node);
+
+            return Some(val);
+        }
+
+        None
+    }
+
+    pub fn put(&mut self, key: i32, val: i32) {
+        let node = Rc::new(RefCell::new(Node {
+            key,
+            val,
+            prev: None,
+            next: None,
+        }));
+
+        if !self.map.contains_key(&key) && self.map.len() >= self.capacity {
+            let least_node = self
+                .head
+                .as_ref()
+                .unwrap()
+                .borrow()
+                .next
+                .as_ref()
+                .map(|n| Rc::clone(n))
+                .unwrap();
+
+            self.map.remove(&least_node.borrow().key);
+            self.remove_node(&least_node);
+        }
+
+        self.map.insert(key, Rc::clone(&node));
+        self.add_node(&node);
+    }
+
+    fn add_node(&mut self, node: &Rc<RefCell<Node>>) {
+        let prev_node = self
+            .tail
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .prev
+            .as_ref()
+            .map(|n| Rc::clone(n));
+
+        // Link prev -> node
+        if let Some(prev) = &prev_node {
+            prev.as_ref().borrow_mut().next = Some(Rc::clone(node));
+            node.borrow_mut().prev = Some(Rc::clone(&prev));
+        }
+
+        // Link tail -> node
+        if let Some(tail) = &self.tail {
+            node.as_ref().borrow_mut().next = Some(Rc::clone(&tail));
+            tail.as_ref().borrow_mut().prev = Some(Rc::clone(&node));
+        }
+    }
+
+    fn remove_node(&mut self, node: &Rc<RefCell<Node>>) {
+        // Get prev and next of the node to remove
+        let prev_node = node.borrow().prev.as_ref().map(|n| Rc::clone(n));
+        let next_node = node.borrow().next.as_ref().map(|n| Rc::clone(n));
+
+        // Link prev -> next
+        if let Some(prev) = &prev_node {
+            prev.borrow_mut().next = next_node.clone();
+        }
+
+        // Link next -> prev
+        if let Some(next) = &next_node {
+            next.borrow_mut().prev = prev_node;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -271,5 +419,54 @@ mod tests {
         let head = ListNode::from_vec(vec![1, 2, 3]);
         let result = linked_list_intersection(&head, &head);
         assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_lru_cache_example() {
+        let mut cache = LRUCache::new(3);
+        cache.put(1, 100);
+        cache.put(2, 250);
+        assert_eq!(cache.get(2), Some(250));
+        cache.put(4, 300);
+        cache.put(3, 200); // evicts key 1
+        assert_eq!(cache.get(4), Some(300));
+        assert_eq!(cache.get(1), None); // was evicted
+    }
+
+    #[test]
+    fn test_lru_cache_update_existing() {
+        let mut cache = LRUCache::new(2);
+        cache.put(1, 100);
+        cache.put(1, 200); // update value
+        assert_eq!(cache.get(1), Some(200));
+    }
+
+    #[test]
+    fn test_lru_cache_get_updates_recency() {
+        let mut cache = LRUCache::new(2);
+        cache.put(1, 100);
+        cache.put(2, 200);
+        cache.get(1); // makes key 1 most recently used
+        cache.put(3, 300); // should evict key 2, not key 1
+        assert_eq!(cache.get(1), Some(100));
+        assert_eq!(cache.get(2), None);
+        assert_eq!(cache.get(3), Some(300));
+    }
+
+    #[test]
+    fn test_lru_cache_capacity_one() {
+        let mut cache = LRUCache::new(1);
+        cache.put(1, 100);
+        cache.put(2, 200); // evicts key 1
+        assert_eq!(cache.get(1), None);
+        assert_eq!(cache.get(2), Some(200));
+    }
+
+    #[test]
+    fn test_lru_cache_get_nonexistent() {
+        let mut cache = LRUCache::new(2);
+        assert_eq!(cache.get(1), None);
+        cache.put(1, 100);
+        assert_eq!(cache.get(2), None);
     }
 }
