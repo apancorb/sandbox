@@ -86,8 +86,20 @@ pub fn has_cycle(head: Option<Rc<RefCell<Node>>>) -> bool {
 ///
 /// - The linked list contains at least one node.
 /// - The linked list contains unique values.
-pub fn find_middle(head: Option<Rc<RefCell<Node>>>) -> i32 {
-    todo!("Implement find_middle")
+pub fn find_middle(head: Option<Rc<RefCell<Node>>>) -> Option<Rc<RefCell<Node>>> {
+    let mut slow = head.clone();
+    let mut fast = head.clone();
+
+    while let Some(fast_node) = fast {
+        if let Some(fast_node_next) = fast_node.borrow().next.clone() {
+            fast = fast_node_next.borrow().next.clone();
+        } else {
+            break;
+        }
+        slow = slow.unwrap().borrow().next.clone();
+    }
+
+    slow
 }
 
 #[cfg(test)]
@@ -181,7 +193,8 @@ mod tests {
         for i in 0..6 {
             nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
         }
-        assert_eq!(find_middle(Some(Rc::clone(&nodes[0]))), 4);
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 4);
     }
 
     #[test]
@@ -190,13 +203,15 @@ mod tests {
         for i in 0..5 {
             nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
         }
-        assert_eq!(find_middle(Some(Rc::clone(&nodes[0]))), 4);
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 4);
     }
 
     #[test]
     fn test_find_middle_single_node() {
         let node = Node::new(42);
-        assert_eq!(find_middle(Some(node)), 42);
+        let middle = find_middle(Some(node));
+        assert_eq!(middle.unwrap().borrow().val, 42);
     }
 
     #[test]
@@ -204,7 +219,8 @@ mod tests {
         let node1 = Node::new(1);
         let node2 = Node::new(2);
         node1.borrow_mut().next = Some(Rc::clone(&node2));
-        assert_eq!(find_middle(Some(node1)), 2);
+        let middle = find_middle(Some(node1));
+        assert_eq!(middle.unwrap().borrow().val, 2);
     }
 
     #[test]
@@ -214,7 +230,8 @@ mod tests {
         let node3 = Node::new(3);
         node1.borrow_mut().next = Some(Rc::clone(&node2));
         node2.borrow_mut().next = Some(Rc::clone(&node3));
-        assert_eq!(find_middle(Some(node1)), 2);
+        let middle = find_middle(Some(node1));
+        assert_eq!(middle.unwrap().borrow().val, 2);
     }
 
     #[test]
@@ -223,6 +240,7 @@ mod tests {
         for i in 0..3 {
             nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
         }
-        assert_eq!(find_middle(Some(Rc::clone(&nodes[0]))), 3);
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 3);
     }
 }
