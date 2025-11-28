@@ -102,6 +102,46 @@ pub fn find_middle(head: Option<Rc<RefCell<Node>>>) -> Option<Rc<RefCell<Node>>>
     slow
 }
 
+/// Happy Number
+///
+/// A happy number is defined as a number that, when repeatedly subjected to the process of
+/// squaring its digits and summing those squares, eventually leads to 1.
+/// An unhappy number will never reach 1 during this process, and will get stuck in an infinite loop.
+///
+/// Given an integer, determine if it's a happy number.
+///
+/// # Example
+///
+/// ```text
+/// Input: n = 23
+/// Output: true
+/// Explanation: 2² + 3² = 13 → 1² + 3² = 10 → 1² + 0² = 1
+/// ```
+pub fn is_happy_number(num: u32) -> bool {
+    let get_next_num = |mut curr_num: u32| -> u32 {
+        let mut next_num = 0;
+        while curr_num > 0 {
+            let digit = curr_num % 10;
+            curr_num = curr_num / 10;
+            next_num += digit * digit;
+        }
+        next_num
+    };
+
+    let mut slow = num;
+    let mut fast = num;
+
+    loop {
+        slow = get_next_num(slow);
+        fast = get_next_num(get_next_num(fast));
+        if fast == 1 {
+            return true;
+        } else if slow == fast {
+            return false;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,5 +282,51 @@ mod tests {
         }
         let middle = find_middle(Some(Rc::clone(&nodes[0])));
         assert_eq!(middle.unwrap().borrow().val, 3);
+    }
+
+    // is_happy_number tests
+
+    #[test]
+    fn test_is_happy_number_23() {
+        assert!(is_happy_number(23));
+    }
+
+    #[test]
+    fn test_is_happy_number_1() {
+        assert!(is_happy_number(1));
+    }
+
+    #[test]
+    fn test_is_happy_number_7() {
+        // 7 -> 49 -> 97 -> 130 -> 10 -> 1
+        assert!(is_happy_number(7));
+    }
+
+    #[test]
+    fn test_is_happy_number_19() {
+        // 19 -> 82 -> 68 -> 100 -> 1
+        assert!(is_happy_number(19));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_2() {
+        assert!(!is_happy_number(2));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_4() {
+        // 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 (cycle)
+        assert!(!is_happy_number(4));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_20() {
+        assert!(!is_happy_number(20));
+    }
+
+    #[test]
+    fn test_is_happy_number_100() {
+        // 100 -> 1
+        assert!(is_happy_number(100));
     }
 }
