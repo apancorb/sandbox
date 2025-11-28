@@ -264,14 +264,14 @@ impl LRUCache {
 
         // Link prev -> node
         if let Some(prev) = &prev_node {
-            prev.as_ref().borrow_mut().next = Some(Rc::clone(node));
+            prev.borrow_mut().next = Some(Rc::clone(node));
             node.borrow_mut().prev = Some(Rc::clone(&prev));
         }
 
         // Link tail -> node
         if let Some(tail) = &self.tail {
-            node.as_ref().borrow_mut().next = Some(Rc::clone(&tail));
-            tail.as_ref().borrow_mut().prev = Some(Rc::clone(&node));
+            node.borrow_mut().next = Some(Rc::clone(&tail));
+            tail.borrow_mut().prev = Some(Rc::clone(&node));
         }
     }
 
