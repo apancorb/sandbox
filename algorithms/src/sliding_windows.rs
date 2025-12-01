@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 /// Substring Anagrams
 ///
 /// Given two strings, s and t, both consisting of lowercase English letters, return the number
@@ -47,6 +49,39 @@ pub fn count_anagrams(s: &str, t: &str) -> usize {
     }
 
     res
+}
+
+/// Longest Substring With Unique Characters
+///
+/// Given a string, determine the length of its longest substring that consists only of unique
+/// characters.
+///
+/// # Example
+///
+/// ```text
+/// Input: s = "abcba"
+/// Output: 3
+/// Explanation: Substring "abc" is the longest substring of length 3 that contains unique
+/// characters ("cba" also fits this description)
+/// ```
+pub fn longest_unique_substring(s: &str) -> usize {
+    let mut map = HashMap::new();
+    let mut max = 0;
+    let mut left = 0;
+    let mut right = 0;
+
+    while right < s.len() {
+        let char = s.chars().nth(right).unwrap();
+        if let Some(&prev_index) = map.get(&char) {
+            left = left.max(prev_index + 1);
+        }
+
+        max = max.max(right - left + 1);
+        map.insert(char, right);
+        right += 1;
+    }
+
+    max
 }
 
 #[cfg(test)]
@@ -102,5 +137,52 @@ mod tests {
     #[test]
     fn test_count_anagrams_overlapping() {
         assert_eq!(count_anagrams("cbaebabacd", "abc"), 2);
+    }
+
+    // longest_unique_substring tests
+
+    #[test]
+    fn test_longest_unique_substring_example() {
+        assert_eq!(longest_unique_substring("abcba"), 3);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_all_unique() {
+        assert_eq!(longest_unique_substring("abcdef"), 6);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_all_same() {
+        assert_eq!(longest_unique_substring("aaaa"), 1);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_empty() {
+        assert_eq!(longest_unique_substring(""), 0);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_single_char() {
+        assert_eq!(longest_unique_substring("a"), 1);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_two_chars() {
+        assert_eq!(longest_unique_substring("ab"), 2);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_repeating_pattern() {
+        assert_eq!(longest_unique_substring("abcabcbb"), 3);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_end_longest() {
+        assert_eq!(longest_unique_substring("aabcdef"), 6);
+    }
+
+    #[test]
+    fn test_longest_unique_substring_middle_longest() {
+        assert_eq!(longest_unique_substring("aaabcdefa"), 6);
     }
 }
