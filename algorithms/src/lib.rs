@@ -1,4 +1,5 @@
 pub mod fast_and_slow_pointers;
 pub mod hash_maps_and_sets;
 pub mod linked_lists;
+pub mod sliding_windows;
 pub mod two_pointers;
