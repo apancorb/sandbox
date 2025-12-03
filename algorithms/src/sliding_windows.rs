@@ -84,6 +84,49 @@ pub fn longest_unique_substring(s: &str) -> usize {
     max
 }
 
+/// Longest Uniform Substring After Replacements
+///
+/// A uniform substring is one in which all characters are identical. Given a string, determine the
+/// length of the longest uniform substring that can be formed by replacing up to k characters.
+///
+/// # Example
+///
+/// ```text
+/// Input: s = "aabcdcca", k = 2
+/// Output: 5
+/// Explanation: If we can only replace 2 characters, the longest uniform substring we can
+/// achieve is "ccccc", obtained by replacing b and d with c.
+/// ```
+pub fn longest_uniform_substring(s: &str, k: usize) -> usize {
+    let s: Vec<char> = s.chars().collect();
+
+    if s.is_empty() {
+        return 0;
+    }
+
+    let mut max = 0;
+    let mut right = 0;
+    let mut left = 0;
+    let mut highest_freq = 0;
+    let mut freqs = HashMap::new();
+
+    while right < s.len() {
+        let curr_freq = freqs.entry(&s[right]).and_modify(|c| *c += 1).or_insert(1);
+        highest_freq = highest_freq.max(*curr_freq);
+
+        let num_chars_to_replace = right - left + 1 - highest_freq;
+        if num_chars_to_replace > k {
+            freqs.entry(&s[left]).and_modify(|c| *c -= 1);
+            left += 1;
+        }
+
+        max = right - left + 1;
+        right += 1;
+    }
+
+    max
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,5 +227,52 @@ mod tests {
     #[test]
     fn test_longest_unique_substring_middle_longest() {
         assert_eq!(longest_unique_substring("aaabcdefa"), 6);
+    }
+
+    // longest_uniform_substring tests
+
+    #[test]
+    fn test_longest_uniform_substring_example() {
+        assert_eq!(longest_uniform_substring("aabcdcca", 2), 5);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_no_replacements() {
+        assert_eq!(longest_uniform_substring("aaabbb", 0), 3);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_all_same() {
+        assert_eq!(longest_uniform_substring("aaaa", 2), 4);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_all_different() {
+        assert_eq!(longest_uniform_substring("abcd", 2), 3);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_k_equals_len() {
+        assert_eq!(longest_uniform_substring("abcd", 4), 4);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_empty() {
+        assert_eq!(longest_uniform_substring("", 2), 0);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_single_char() {
+        assert_eq!(longest_uniform_substring("a", 2), 1);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_two_chars() {
+        assert_eq!(longest_uniform_substring("ab", 1), 2);
+    }
+
+    #[test]
+    fn test_longest_uniform_substring_alternating() {
+        assert_eq!(longest_uniform_substring("ababab", 2), 5);
     }
 }
