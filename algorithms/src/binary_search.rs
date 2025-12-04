@@ -24,7 +24,7 @@ pub fn find_insertion_index(nums: &[i32], target: i32) -> usize {
     let mut left = 0;
     let mut right = nums.len();
 
-    while left != right {
+    while left < right {
         let mid = (right + left) / 2;
         if nums[mid] >= target {
             right = mid;
@@ -49,7 +49,57 @@ pub fn find_insertion_index(nums: &[i32], target: i32) -> usize {
 /// Explanation: The first and last occurrences of number 4 are indexes 3 and 5, respectively.
 /// ```
 pub fn find_first_and_last(nums: &[i32], target: i32) -> [i32; 2] {
-    todo!("Implement find_first_and_last")
+    if nums.is_empty() {
+        return [-1, -1];
+    }
+
+    let find_lower_bound = |nums: &[i32], target: i32| -> i32 {
+        let mut left = 0;
+        let mut right = nums.len() - 1;
+
+        while left < right {
+            let mid = (right + left) / 2;
+            if nums[mid] < target {
+                left = mid + 1;
+            } else if nums[mid] > target {
+                right = mid - 1;
+            } else {
+                right = mid;
+            }
+        }
+
+        if nums[left] == target {
+            left as i32
+        } else {
+            -1
+        }
+    };
+    let find_upper_bound = |nums: &[i32], target: i32| -> i32 {
+        let mut left = 0;
+        let mut right = nums.len() - 1;
+
+        while left < right {
+            let mid = ((right + left) / 2) + 1;
+            if nums[mid] < target {
+                left = mid + 1;
+            } else if nums[mid] > target {
+                right = mid - 1;
+            } else {
+                left = mid;
+            }
+        }
+
+        if nums[left] == target {
+            left as i32
+        } else {
+            -1
+        }
+    };
+
+    [
+        find_lower_bound(nums, target),
+        find_upper_bound(nums, target),
+    ]
 }
 
 #[cfg(test)]
