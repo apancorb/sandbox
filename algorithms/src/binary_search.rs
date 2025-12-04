@@ -21,7 +21,35 @@
 /// [1, 2, 4, 5, 6, 7, 8, 9].
 /// ```
 pub fn find_insertion_index(nums: &[i32], target: i32) -> usize {
-    todo!("Implement find_insertion_index")
+    let mut left = 0;
+    let mut right = nums.len();
+
+    while left != right {
+        let mid = (right + left) / 2;
+        if nums[mid] >= target {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    left
+}
+
+/// First and Last Occurrences of a Number
+///
+/// Given an array of integers sorted in non-decreasing order, return the first and last indexes
+/// of a target number. If the target is not found, return [-1, -1].
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11], target = 4
+/// Output: [3, 5]
+/// Explanation: The first and last occurrences of number 4 are indexes 3 and 5, respectively.
+/// ```
+pub fn find_first_and_last(nums: &[i32], target: i32) -> [i32; 2] {
+    todo!("Implement find_first_and_last")
 }
 
 #[cfg(test)]
@@ -86,5 +114,60 @@ mod tests {
     #[test]
     fn test_find_insertion_index_two_elements() {
         assert_eq!(find_insertion_index(&[1, 3], 2), 1);
+    }
+
+    // find_first_and_last tests
+
+    #[test]
+    fn test_find_first_and_last_example() {
+        assert_eq!(
+            find_first_and_last(&[1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11], 4),
+            [3, 5]
+        );
+    }
+
+    #[test]
+    fn test_find_first_and_last_not_found() {
+        assert_eq!(find_first_and_last(&[1, 2, 3, 5, 6], 4), [-1, -1]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_single_occurrence() {
+        assert_eq!(find_first_and_last(&[1, 2, 3, 4, 5], 3), [2, 2]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_all_same() {
+        assert_eq!(find_first_and_last(&[4, 4, 4, 4, 4], 4), [0, 4]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_at_start() {
+        assert_eq!(find_first_and_last(&[1, 1, 1, 2, 3, 4], 1), [0, 2]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_at_end() {
+        assert_eq!(find_first_and_last(&[1, 2, 3, 4, 4, 4], 4), [3, 5]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_empty_array() {
+        assert_eq!(find_first_and_last(&[], 4), [-1, -1]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_single_element_found() {
+        assert_eq!(find_first_and_last(&[4], 4), [0, 0]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_single_element_not_found() {
+        assert_eq!(find_first_and_last(&[5], 4), [-1, -1]);
+    }
+
+    #[test]
+    fn test_find_first_and_last_two_occurrences() {
+        assert_eq!(find_first_and_last(&[1, 2, 2, 3], 2), [1, 2]);
     }
 }
