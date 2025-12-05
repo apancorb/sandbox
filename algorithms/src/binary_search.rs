@@ -102,6 +102,35 @@ pub fn find_first_and_last(nums: &[i32], target: i32) -> [i32; 2] {
     ]
 }
 
+pub fn cutting_wood(heights: &[i32], k: i32) -> usize {
+    let has_enough_wood = |heights: &[i32], target_height: i32, k: i32| -> bool {
+        let mut wood_collected = 0;
+
+        for &height in heights {
+            if height > target_height {
+                wood_collected += height - target_height;
+            }
+        }
+
+        wood_collected >= k
+    };
+
+    let mut left = 0;
+    let mut right = *heights.iter().max().unwrap() as usize;
+
+    while left <= right {
+        let mid = ((right + left) / 2) + 1;
+
+        if has_enough_wood(heights, mid as i32, k) {
+            left = mid;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    left
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
