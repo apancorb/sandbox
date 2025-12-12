@@ -1,3 +1,23 @@
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
+};
+
+#[derive(Eq, PartialEq)]
+struct Pair(String, usize);
+
+impl Ord for Pair {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.1.cmp(&other.1).then_with(|| other.0.cmp(&self.0))
+    }
+}
+
+impl PartialOrd for Pair {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 /// K Most Frequent Strings
 ///
 /// Find the k most frequently occurring strings in an array, and return them sorted by
@@ -17,7 +37,17 @@
 ///
 /// - k <= n, where n denotes the length of the array.
 pub fn k_most_frequent_strings(strs: &[&str], k: usize) -> Vec<String> {
-    todo!("Implement k_most_frequent_strings")
+    let mut counter = HashMap::new();
+    for &s in strs {
+        *counter.entry(s.to_string()).or_insert(0) += 1;
+    }
+
+    let mut heap: BinaryHeap<Pair> = counter
+        .into_iter()
+        .map(|(s, count)| Pair(s, count))
+        .collect();
+
+    (0..k).filter_map(|_| heap.pop()).map(|p| p.0).collect()
 }
 
 #[cfg(test)]
@@ -46,10 +76,7 @@ mod tests {
     #[test]
     fn test_k_most_frequent_strings_all_same_freq() {
         // When frequencies are equal, sort lexicographically
-        assert_eq!(
-            k_most_frequent_strings(&["c", "b", "a"], 2),
-            vec!["a", "b"]
-        );
+        assert_eq!(k_most_frequent_strings(&["c", "b", "a"], 2), vec!["a", "b"]);
     }
 
     #[test]
@@ -71,7 +98,10 @@ mod tests {
 
     #[test]
     fn test_k_most_frequent_strings_empty_k_zero() {
-        assert_eq!(k_most_frequent_strings(&["a", "b", "c"], 0), Vec::<String>::new());
+        assert_eq!(
+            k_most_frequent_strings(&["a", "b", "c"], 0),
+            Vec::<String>::new()
+        );
     }
 
     #[test]
