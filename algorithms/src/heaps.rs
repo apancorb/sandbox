@@ -1,5 +1,5 @@
 use std::{
-    cmp::Ordering,
+    cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap},
 };
 
@@ -80,6 +80,66 @@ impl Ord for Pair {
 impl PartialOrd for Pair {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+/// Median of an Integer Stream
+///
+/// Design a data structure that supports adding integers from a data stream and retrieving the
+/// median of all elements received at any point.
+///
+/// - `add(num: i32)`: adds an integer to the data structure.
+/// - `get_median() -> f64`: returns the median of all integers so far.
+///
+/// # Example
+///
+/// ```text
+/// Input: [add(3), add(6), get_median(), add(1), get_median()]
+/// Output: [4.5, 3.0]
+/// Explanation:
+///   add(3)        # data structure contains [3] when sorted
+///   add(6)        # data structure contains [3, 6] when sorted
+///   get_median()  # median is (3 + 6) / 2 = 4.5
+///   add(1)        # data structure contains [1, 3, 6] when sorted
+///   get_median()  # median is 3.0
+/// ```
+///
+/// # Constraints
+///
+/// - At least one value will have been added before get_median is called.
+struct MedianFinder {
+    left: BinaryHeap<i32>,
+    right: BinaryHeap<Reverse<i32>>,
+}
+
+impl MedianFinder {
+    pub fn new() -> Self {
+        Self {
+            left: BinaryHeap::new(),
+            right: BinaryHeap::new(),
+        }
+    }
+
+    pub fn add(&mut self, num: i32) {
+        if self.left.is_empty() || *self.left.peek().unwrap() >= num {
+            self.left.push(num);
+            if self.left.len() - self.right.len() > 1 {
+                self.right.push(Reverse(self.left.pop().unwrap()));
+            }
+        } else {
+            self.right.push(Reverse(num));
+            if self.right.len() - self.left.len() > 0 {
+                self.left.push(self.right.pop().unwrap().0);
+            }
+        }
+    }
+
+    pub fn get_median(&self) -> f64 {
+        if self.left.len() == self.right.len() {
+            (self.left.peek().unwrap() + self.right.peek().unwrap().0) as f64 / 2.0
+        } else {
+            *self.left.peek().unwrap() as f64
+        }
     }
 }
 
@@ -196,6 +256,70 @@ mod tests {
             list_to_vec(combine_sorted_lists(lists)),
             vec![-3, -2, -1, 0, 2, 3]
         );
+    }
+
+    #[test]
+    fn test_median_finder_example() {
+        let mut mf = MedianFinder::new();
+        mf.add(3);
+        mf.add(6);
+        assert_eq!(mf.get_median(), 4.5);
+        mf.add(1);
+        assert_eq!(mf.get_median(), 3.0);
+    }
+
+    #[test]
+    fn test_median_finder_single() {
+        let mut mf = MedianFinder::new();
+        mf.add(5);
+        assert_eq!(mf.get_median(), 5.0);
+    }
+
+    #[test]
+    fn test_median_finder_two_elements() {
+        let mut mf = MedianFinder::new();
+        mf.add(1);
+        mf.add(2);
+        assert_eq!(mf.get_median(), 1.5);
+    }
+
+    #[test]
+    fn test_median_finder_odd_count() {
+        let mut mf = MedianFinder::new();
+        mf.add(1);
+        mf.add(2);
+        mf.add(3);
+        mf.add(4);
+        mf.add(5);
+        assert_eq!(mf.get_median(), 3.0);
+    }
+
+    #[test]
+    fn test_median_finder_even_count() {
+        let mut mf = MedianFinder::new();
+        mf.add(1);
+        mf.add(2);
+        mf.add(3);
+        mf.add(4);
+        assert_eq!(mf.get_median(), 2.5);
+    }
+
+    #[test]
+    fn test_median_finder_negative_numbers() {
+        let mut mf = MedianFinder::new();
+        mf.add(-5);
+        mf.add(-3);
+        mf.add(-1);
+        assert_eq!(mf.get_median(), -3.0);
+    }
+
+    #[test]
+    fn test_median_finder_duplicates() {
+        let mut mf = MedianFinder::new();
+        mf.add(5);
+        mf.add(5);
+        mf.add(5);
+        assert_eq!(mf.get_median(), 5.0);
     }
 
     #[test]
