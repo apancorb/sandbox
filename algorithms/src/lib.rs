@@ -4,6 +4,7 @@ pub mod hash_maps_and_sets;
 pub mod heaps;
 pub mod intervals;
 pub mod linked_lists;
+pub mod prefix_sums;
 pub mod sliding_windows;
 pub mod stacks;
 pub mod two_pointers;
