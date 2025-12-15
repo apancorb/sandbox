@@ -46,9 +46,80 @@ impl RangeSum {
     }
 }
 
+/// K-Sum Subarrays
+///
+/// Find the number of subarrays in an integer array that sum to k.
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [1, 2, -1, 1, 2], k = 3
+/// Input: nums = [0, 1, 2, -1, 1, 2], k = 3
+/// Output: 3
+/// Explanation: The subarrays that sum to 3 are:
+///   [1, 2] (indices 0-1)
+///   [1, 2, -1, 1] (indices 0-3)
+///   [1, 2] (indices 3-4)
+/// ```
+pub fn k_sum_subarrays(nums: &[i32], k: i32) -> usize {
+    let mut prefix_sum = vec![0];
+    let mut sum = 0;
+    for num in nums {
+        sum += num;
+        prefix_sum.push(sum);
+    }
+
+    let mut ans = 0;
+    for j in 1..prefix_sum.len() {
+        for i in 1..=j {
+            if prefix_sum[j] - prefix_sum[i - 1] == k {
+                ans += 1;
+            }
+        }
+    }
+
+    ans
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_k_sum_subarrays_example() {
+        assert_eq!(k_sum_subarrays(&[1, 2, -1, 1, 2], 3), 3);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_single() {
+        assert_eq!(k_sum_subarrays(&[3], 3), 1);
+        assert_eq!(k_sum_subarrays(&[5], 3), 0);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_all_zeros() {
+        assert_eq!(k_sum_subarrays(&[0, 0, 0], 0), 6);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_negative_k() {
+        assert_eq!(k_sum_subarrays(&[1, -1, -1, 1], -1), 4);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_whole_array() {
+        assert_eq!(k_sum_subarrays(&[1, 2, 3], 6), 1);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_no_match() {
+        assert_eq!(k_sum_subarrays(&[1, 2, 3], 10), 0);
+    }
+
+    #[test]
+    fn test_k_sum_subarrays_multiple_same() {
+        assert_eq!(k_sum_subarrays(&[1, 1, 1], 2), 2);
+    }
 
     #[test]
     fn test_range_sum_example() {
