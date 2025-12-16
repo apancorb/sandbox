@@ -46,8 +46,8 @@ pub fn invert_tree(root: TreeNode) -> TreeNode {
     // 1st solution:
     //
     // if let Some(node) = &root {
-    //     let left_node = node.borrow().left.clone();
-    //     let right_node = node.borrow().right.clone();
+    //     let left_node = node.borrow_mut().left.take();
+    //     let right_node = node.borrow_mut().right.take();
     //
     //     node.borrow_mut().left = right_node.clone();
     //     node.borrow_mut().right = left_node.clone();
@@ -57,6 +57,28 @@ pub fn invert_tree(root: TreeNode) -> TreeNode {
     // }
     //
     // root
+    //
+    // 2nd solution:
+    //
+    let mut stack = vec![root.clone()];
+
+    while let Some(Some(node)) = stack.pop() {
+        let left = node.borrow_mut().left.take();
+        let right = node.borrow_mut().right.take();
+
+        node.borrow_mut().left = right.clone();
+        node.borrow_mut().right = left.clone();
+
+        if !left.is_none() {
+            stack.push(left);
+        }
+
+        if !right.is_none() {
+            stack.push(right);
+        }
+    }
+
+    root
 }
 
 #[cfg(test)]
