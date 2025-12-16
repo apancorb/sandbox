@@ -81,6 +81,32 @@ pub fn invert_tree(root: TreeNode) -> TreeNode {
     root
 }
 
+/// Balanced Binary Tree Validation
+///
+/// Determine if a binary tree is height-balanced, meaning no node's left subtree and right
+/// subtree have a height difference greater than 1.
+///
+/// # Example
+///
+/// ```text
+/// Balanced:
+///        1
+///       / \
+///      2   3
+///     / \
+///    4   5
+///
+/// Not Balanced:
+///        1
+///       /
+///      2
+///     /
+///    3
+/// ```
+pub fn is_balanced(root: TreeNode) -> bool {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -91,6 +117,79 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_is_balanced_empty() {
+        assert!(is_balanced(None));
+    }
+
+    #[test]
+    fn test_is_balanced_single() {
+        assert!(is_balanced(leaf(1)));
+    }
+
+    #[test]
+    fn test_is_balanced_true() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \
+        //    4   5
+        let root = tree_node(1, tree_node(2, leaf(4), leaf(5)), leaf(3));
+        assert!(is_balanced(root));
+    }
+
+    #[test]
+    fn test_is_balanced_false() {
+        //        1
+        //       /
+        //      2
+        //     /
+        //    3
+        let root = tree_node(1, tree_node(2, leaf(3), None), None);
+        assert!(!is_balanced(root));
+    }
+
+    #[test]
+    fn test_is_balanced_perfect() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \ / \
+        //    4  5 6  7
+        let root = tree_node(
+            1,
+            tree_node(2, leaf(4), leaf(5)),
+            tree_node(3, leaf(6), leaf(7)),
+        );
+        assert!(is_balanced(root));
+    }
+
+    #[test]
+    fn test_is_balanced_unbalanced_deep() {
+        //        1
+        //       / \
+        //      2   3
+        //     /
+        //    4
+        //   /
+        //  5
+        let root = tree_node(
+            1,
+            tree_node(2, tree_node(4, leaf(5), None), None),
+            leaf(3),
+        );
+        assert!(!is_balanced(root));
+    }
+
+    #[test]
+    fn test_is_balanced_one_child_each() {
+        //      1
+        //     / \
+        //    2   3
+        let root = tree_node(1, leaf(2), leaf(3));
+        assert!(is_balanced(root));
     }
 
     #[test]
