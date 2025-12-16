@@ -7,4 +7,5 @@ pub mod linked_lists;
 pub mod prefix_sums;
 pub mod sliding_windows;
 pub mod stacks;
+pub mod trees;
 pub mod two_pointers;
