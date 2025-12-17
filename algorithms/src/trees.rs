@@ -176,6 +176,30 @@ pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
     ans
 }
 
+/// Widest Binary Tree Level
+///
+/// Return the width of the widest level in a binary tree, where the width of a level is defined
+/// as the distance between its leftmost and rightmost non-null nodes.
+///
+/// The width includes any null nodes that would be between the leftmost and rightmost nodes.
+///
+/// # Example
+///
+/// ```text
+/// Input:
+///        1
+///       / \
+///      2   3
+///     /     \
+///    4       5
+///
+/// Output: 4
+/// Explanation: Level 2 has nodes 4 and 5. The width is 4 (positions: 4, null, null, 5).
+/// ```
+pub fn widest_level(root: TreeNode) -> usize {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,6 +210,66 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_widest_level_example() {
+        //        1
+        //       / \
+        //      2   3
+        //     /     \
+        //    4       5
+        let root = tree_node(
+            1,
+            tree_node(2, leaf(4), None),
+            tree_node(3, None, leaf(5)),
+        );
+        assert_eq!(widest_level(root), 4);
+    }
+
+    #[test]
+    fn test_widest_level_empty() {
+        assert_eq!(widest_level(None), 0);
+    }
+
+    #[test]
+    fn test_widest_level_single() {
+        assert_eq!(widest_level(leaf(1)), 1);
+    }
+
+    #[test]
+    fn test_widest_level_full() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \ / \
+        //    4  5 6  7
+        let root = tree_node(
+            1,
+            tree_node(2, leaf(4), leaf(5)),
+            tree_node(3, leaf(6), leaf(7)),
+        );
+        assert_eq!(widest_level(root), 4);
+    }
+
+    #[test]
+    fn test_widest_level_left_heavy() {
+        //        1
+        //       /
+        //      2
+        //     /
+        //    3
+        let root = tree_node(1, tree_node(2, leaf(3), None), None);
+        assert_eq!(widest_level(root), 1);
+    }
+
+    #[test]
+    fn test_widest_level_two_levels() {
+        //      1
+        //     / \
+        //    2   3
+        let root = tree_node(1, leaf(2), leaf(3));
+        assert_eq!(widest_level(root), 2);
     }
 
     #[test]
