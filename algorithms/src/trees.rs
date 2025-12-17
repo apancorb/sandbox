@@ -104,7 +104,26 @@ pub fn invert_tree(root: TreeNode) -> TreeNode {
 ///    3
 /// ```
 pub fn is_balanced(root: TreeNode) -> bool {
-    todo!()
+    fn helper(node: &TreeNode) -> i32 {
+        let Some(node) = node else {
+            return 0;
+        };
+
+        let left = helper(&node.borrow().left);
+        let right = helper(&node.borrow().right);
+
+        if left == -1 || right == -1 {
+            return -1;
+        }
+
+        if (left - right).abs() > 1 {
+            return -1;
+        }
+
+        1 + left.max(right)
+    }
+
+    helper(&root) != -1
 }
 
 #[cfg(test)]
@@ -175,11 +194,7 @@ mod tests {
         //    4
         //   /
         //  5
-        let root = tree_node(
-            1,
-            tree_node(2, tree_node(4, leaf(5), None), None),
-            leaf(3),
-        );
+        let root = tree_node(1, tree_node(2, tree_node(4, leaf(5), None), None), leaf(3));
         assert!(!is_balanced(root));
     }
 
