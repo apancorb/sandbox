@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::rc::Rc;
 
 type TreeNode = Option<Rc<RefCell<Node>>>;
@@ -126,6 +127,55 @@ pub fn is_balanced(root: TreeNode) -> bool {
     helper(&root) != -1
 }
 
+/// Rightmost Nodes of a Binary Tree
+///
+/// Return an array containing the values of the rightmost nodes at each level of a binary tree.
+///
+/// # Example
+///
+/// ```text
+/// Input:
+///        1
+///       / \
+///      2   3
+///     / \   \
+///    4   5   6
+///
+/// Output: [1, 3, 6]
+/// Explanation: The rightmost nodes at each level are 1 (level 0), 3 (level 1), and 6 (level 2).
+/// ```
+pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
+    let Some(root) = root else {
+        return Vec::new();
+    };
+
+    let mut ans = Vec::new();
+    let mut queue = VecDeque::new();
+    queue.push_back(root);
+
+    while !queue.is_empty() {
+        let level_size = queue.len();
+
+        for i in 0..level_size {
+            let node = queue.pop_front().unwrap();
+
+            if i == level_size - 1 {
+                ans.push(node.borrow().val);
+            }
+
+            if let Some(left) = &node.borrow().left {
+                queue.push_back(left.clone());
+            }
+
+            if let Some(right) = &node.borrow().right {
+                queue.push_back(right.clone());
+            }
+        }
+    }
+
+    ans
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,6 +186,64 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_rightmost_nodes_example() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \   \
+        //    4   5   6
+        let root = tree_node(
+            1,
+            tree_node(2, leaf(4), leaf(5)),
+            tree_node(3, None, leaf(6)),
+        );
+        assert_eq!(rightmost_nodes(root), vec![1, 3, 6]);
+    }
+
+    #[test]
+    fn test_rightmost_nodes_empty() {
+        assert_eq!(rightmost_nodes(None), Vec::<i32>::new());
+    }
+
+    #[test]
+    fn test_rightmost_nodes_single() {
+        assert_eq!(rightmost_nodes(leaf(1)), vec![1]);
+    }
+
+    #[test]
+    fn test_rightmost_nodes_left_only() {
+        //      1
+        //     /
+        //    2
+        //   /
+        //  3
+        let root = tree_node(1, tree_node(2, leaf(3), None), None);
+        assert_eq!(rightmost_nodes(root), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_rightmost_nodes_right_only() {
+        //  1
+        //   \
+        //    2
+        //     \
+        //      3
+        let root = tree_node(1, None, tree_node(2, None, leaf(3)));
+        assert_eq!(rightmost_nodes(root), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_rightmost_nodes_zigzag() {
+        //      1
+        //     /
+        //    2
+        //     \
+        //      3
+        let root = tree_node(1, tree_node(2, None, leaf(3)), None);
+        assert_eq!(rightmost_nodes(root), vec![1, 2, 3]);
     }
 
     #[test]
