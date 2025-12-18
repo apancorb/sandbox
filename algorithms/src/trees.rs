@@ -176,6 +176,45 @@ pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
     ans
 }
 
+/// Binary Search Tree Validation
+///
+/// Verify whether a binary tree is a valid binary search tree (BST). A BST is a binary tree where
+/// each node meets the following criteria:
+/// - A node's left subtree contains only nodes of lower values than the node's value.
+/// - A node's right subtree contains only nodes of greater values than the node's value.
+///
+/// # Example
+///
+/// ```text
+/// Input:
+///        5
+///       / \
+///      3   7
+///     / \ / \
+///    2  6 7  8
+///
+/// Output: false
+/// Explanation: This tree has two violations of the BST criteria:
+/// - Node 5's left subtree contains node 6, and node 6's value is greater than 5.
+/// - Node 7 has a left child with the same value of 7.
+/// ```
+pub fn is_valid_bst(root: TreeNode) -> bool {
+    fn helper(node: &TreeNode, lower_bound: i32, upper_bound: i32) -> bool {
+        let Some(node) = node else {
+            return true;
+        };
+
+        if lower_bound >= node.borrow().val || node.borrow().val >= upper_bound {
+            return false;
+        }
+
+        helper(&node.borrow().left, lower_bound, node.borrow().val)
+            && helper(&node.borrow().right, node.borrow().val, upper_bound)
+    }
+
+    helper(&root, i32::MIN, i32::MAX)
+}
+
 /// Widest Binary Tree Level
 ///
 /// Return the width of the widest level in a binary tree, where the width of a level is defined
@@ -239,6 +278,104 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_is_valid_bst_example() {
+        //        5
+        //       / \
+        //      3   7
+        //     / \ / \
+        //    2  6 7  8
+        let root = tree_node(
+            5,
+            tree_node(3, leaf(2), leaf(6)),
+            tree_node(7, leaf(7), leaf(8)),
+        );
+        assert!(!is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_valid() {
+        //        5
+        //       / \
+        //      3   7
+        //     / \ / \
+        //    2  4 6  8
+        let root = tree_node(
+            5,
+            tree_node(3, leaf(2), leaf(4)),
+            tree_node(7, leaf(6), leaf(8)),
+        );
+        assert!(is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_empty() {
+        assert!(is_valid_bst(None));
+    }
+
+    #[test]
+    fn test_is_valid_bst_single() {
+        assert!(is_valid_bst(leaf(1)));
+    }
+
+    #[test]
+    fn test_is_valid_bst_left_only_valid() {
+        //      5
+        //     /
+        //    3
+        let root = tree_node(5, leaf(3), None);
+        assert!(is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_left_only_invalid() {
+        //      5
+        //     /
+        //    7
+        let root = tree_node(5, leaf(7), None);
+        assert!(!is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_right_only_valid() {
+        //    5
+        //     \
+        //      7
+        let root = tree_node(5, None, leaf(7));
+        assert!(is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_right_only_invalid() {
+        //    5
+        //     \
+        //      3
+        let root = tree_node(5, None, leaf(3));
+        assert!(!is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_subtree_violation() {
+        // The tricky case: 6 is valid as right child of 3,
+        // but violates 5's left subtree constraint
+        //        5
+        //       /
+        //      3
+        //       \
+        //        6
+        let root = tree_node(5, tree_node(3, None, leaf(6)), None);
+        assert!(!is_valid_bst(root));
+    }
+
+    #[test]
+    fn test_is_valid_bst_equal_values() {
+        //      5
+        //     /
+        //    5
+        let root = tree_node(5, leaf(5), None);
+        assert!(!is_valid_bst(root));
     }
 
     #[test]
