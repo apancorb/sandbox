@@ -197,7 +197,36 @@ pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
 /// Explanation: Level 2 has nodes 4 and 5. The width is 4 (positions: 4, null, null, 5).
 /// ```
 pub fn widest_level(root: TreeNode) -> usize {
-    todo!()
+    let Some(root) = root else {
+        return 0;
+    };
+
+    let mut max_width = 0;
+    let mut queue = VecDeque::new();
+    queue.push_back((root, 0));
+
+    while !queue.is_empty() {
+        let size = queue.len();
+
+        let left_index = queue[0].1;
+        let right_index = queue[size - 1].1;
+
+        max_width = max_width.max(right_index - left_index + 1);
+
+        for _ in 0..size {
+            let (node, i) = queue.pop_front().unwrap();
+
+            if let Some(left_node) = &node.borrow().left {
+                queue.push_back((left_node.clone(), 2 * i + 1));
+            }
+
+            if let Some(right_node) = &node.borrow().right {
+                queue.push_back((right_node.clone(), 2 * i + 2));
+            }
+        }
+    }
+
+    max_width
 }
 
 #[cfg(test)]
@@ -219,11 +248,7 @@ mod tests {
         //      2   3
         //     /     \
         //    4       5
-        let root = tree_node(
-            1,
-            tree_node(2, leaf(4), None),
-            tree_node(3, None, leaf(5)),
-        );
+        let root = tree_node(1, tree_node(2, leaf(4), None), tree_node(3, None, leaf(5)));
         assert_eq!(widest_level(root), 4);
     }
 
