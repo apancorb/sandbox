@@ -215,6 +215,58 @@ pub fn is_valid_bst(root: TreeNode) -> bool {
     helper(&root, i32::MIN, i32::MAX)
 }
 
+/// Lowest Common Ancestor
+///
+/// Return the lowest common ancestor (LCA) of two nodes, p and q, in a binary tree. The LCA is
+/// defined as the lowest node that has both p and q as descendants. A node can be considered an
+/// ancestor of itself.
+///
+/// # Example
+///
+/// ```text
+/// Input:
+///        1
+///       / \
+///      2   3
+///     / \
+///    4   5
+///
+/// p = 4, q = 5
+/// Output: 2
+/// Explanation: The LCA of nodes 4 and 5 is node 2.
+///
+/// p = 4, q = 3
+/// Output: 1
+/// Explanation: The LCA of nodes 4 and 3 is node 1.
+/// ```
+///
+/// # Constraints
+///
+/// - The tree contains at least two nodes.
+/// - All node values are unique.
+/// - p and q represent different nodes in the tree.
+pub fn lowest_common_ancestor(root: TreeNode, p: i32, q: i32) -> TreeNode {
+    fn helper(node: &TreeNode, p: i32, q: i32) -> TreeNode {
+        let Some(n) = node else {
+            return None;
+        };
+
+        if n.borrow().val == p || n.borrow().val == q {
+            return node.clone();
+        }
+
+        let left = helper(&n.borrow().left, p, q);
+        let right = helper(&n.borrow().right, p, q);
+
+        if left.is_some() && right.is_some() {
+            return node.clone();
+        }
+
+        if left.is_some() { left } else { right }
+    }
+    helper(&root, p, q)
+}
+
 /// Widest Binary Tree Level
 ///
 /// Return the width of the widest level in a binary tree, where the width of a level is defined
@@ -278,6 +330,78 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_lca_example_siblings() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \
+        //    4   5
+        let root = tree_node(1, tree_node(2, leaf(4), leaf(5)), leaf(3));
+        let result = lowest_common_ancestor(root, 4, 5);
+        assert_eq!(result.unwrap().borrow().val, 2);
+    }
+
+    #[test]
+    fn test_lca_example_different_subtrees() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \
+        //    4   5
+        let root = tree_node(1, tree_node(2, leaf(4), leaf(5)), leaf(3));
+        let result = lowest_common_ancestor(root, 4, 3);
+        assert_eq!(result.unwrap().borrow().val, 1);
+    }
+
+    #[test]
+    fn test_lca_ancestor_is_node() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \
+        //    4   5
+        let root = tree_node(1, tree_node(2, leaf(4), leaf(5)), leaf(3));
+        let result = lowest_common_ancestor(root, 2, 4);
+        assert_eq!(result.unwrap().borrow().val, 2);
+    }
+
+    #[test]
+    fn test_lca_root_is_answer() {
+        //      1
+        //     / \
+        //    2   3
+        let root = tree_node(1, leaf(2), leaf(3));
+        let result = lowest_common_ancestor(root, 2, 3);
+        assert_eq!(result.unwrap().borrow().val, 1);
+    }
+
+    #[test]
+    fn test_lca_deep_tree() {
+        //        1
+        //       /
+        //      2
+        //     /
+        //    3
+        //   /
+        //  4
+        let root = tree_node(1, tree_node(2, tree_node(3, leaf(4), None), None), None);
+        let result = lowest_common_ancestor(root, 3, 4);
+        assert_eq!(result.unwrap().borrow().val, 3);
+    }
+
+    #[test]
+    fn test_lca_right_subtree() {
+        //    1
+        //     \
+        //      2
+        //     / \
+        //    3   4
+        let root = tree_node(1, None, tree_node(2, leaf(3), leaf(4)));
+        let result = lowest_common_ancestor(root, 3, 4);
+        assert_eq!(result.unwrap().borrow().val, 2);
     }
 
     #[test]
