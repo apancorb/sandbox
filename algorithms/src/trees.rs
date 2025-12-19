@@ -352,6 +352,50 @@ pub fn build_tree(preorder: &[i32], inorder: &[i32]) -> TreeNode {
     )
 }
 
+/// Maximum Sum of a Continuous Path in a Binary Tree
+///
+/// Return the maximum sum of a continuous path in a binary tree. A path is defined by the
+/// following characteristics:
+/// - Consists of a sequence of nodes that can begin and end at any node in the tree
+/// - Each consecutive pair of nodes in the sequence is connected by an edge
+/// - The path must be a single continuous sequence of nodes that doesn't split into multiple paths
+///
+/// # Example
+///
+/// ```text
+/// Input:
+///        5
+///       / \
+///      3   8
+///     / \   \
+///    4  -2   6
+///
+/// Output: 22
+/// Explanation: The path 4 -> 3 -> 5 -> 8 -> 6 = 26? Or 3 + 5 + 8 + 6 = 22
+/// ```
+///
+/// # Constraints
+///
+/// - The tree contains at least one node.
+pub fn max_path_sum(root: TreeNode) -> i32 {
+    fn max_path_sum_helper(node: &TreeNode, max_path_sum: &mut i32) -> i32 {
+        let Some(node) = node else {
+            return 0;
+        };
+
+        let left = max_path_sum_helper(&node.borrow().left, max_path_sum).max(0);
+        let right = max_path_sum_helper(&node.borrow().right, max_path_sum).max(0);
+
+        *max_path_sum = (*max_path_sum).max(node.borrow().val + left + right);
+
+        node.borrow().val + left.max(right)
+    }
+
+    let mut max_path_sum = i32::MIN;
+    max_path_sum_helper(&root, &mut max_path_sum);
+    max_path_sum
+}
+
 /// Widest Binary Tree Level
 ///
 /// Return the width of the widest level in a binary tree, where the width of a level is defined
@@ -415,6 +459,74 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_max_path_sum_example() {
+        //        5
+        //       / \
+        //      3   8
+        //     / \   \
+        //    4  -2   6
+        // Path: 4 -> 3 -> 5 -> 8 -> 6 = 26
+        let root = tree_node(
+            5,
+            tree_node(3, leaf(4), leaf(-2)),
+            tree_node(8, None, leaf(6)),
+        );
+        assert_eq!(max_path_sum(root), 26);
+    }
+
+    #[test]
+    fn test_max_path_sum_single() {
+        assert_eq!(max_path_sum(leaf(5)), 5);
+    }
+
+    #[test]
+    fn test_max_path_sum_negative_single() {
+        assert_eq!(max_path_sum(leaf(-3)), -3);
+    }
+
+    #[test]
+    fn test_max_path_sum_all_negative() {
+        //      -3
+        //     /  \
+        //   -2   -1
+        let root = tree_node(-3, leaf(-2), leaf(-1));
+        assert_eq!(max_path_sum(root), -1);
+    }
+
+    #[test]
+    fn test_max_path_sum_skip_subtree() {
+        //        10
+        //       /  \
+        //      2   -25
+        //          /  \
+        //         3    4
+        // Best path is just 10 + 2 = 12, skip the right subtree
+        let root = tree_node(10, leaf(2), tree_node(-25, leaf(3), leaf(4)));
+        assert_eq!(max_path_sum(root), 12);
+    }
+
+    #[test]
+    fn test_max_path_sum_through_root() {
+        //      1
+        //     / \
+        //    2   3
+        let root = tree_node(1, leaf(2), leaf(3));
+        assert_eq!(max_path_sum(root), 6);
+    }
+
+    #[test]
+    fn test_max_path_sum_not_through_root() {
+        //        -10
+        //       /   \
+        //      9     20
+        //           /  \
+        //          15   7
+        // Best path: 15 -> 20 -> 7 = 42
+        let root = tree_node(-10, leaf(9), tree_node(20, leaf(15), leaf(7)));
+        assert_eq!(max_path_sum(root), 42);
     }
 
     #[test]
