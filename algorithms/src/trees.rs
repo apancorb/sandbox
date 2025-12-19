@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
 type TreeNode = Option<Rc<RefCell<Node>>>;
@@ -267,6 +267,91 @@ pub fn lowest_common_ancestor(root: TreeNode, p: i32, q: i32) -> TreeNode {
     helper(&root, p, q)
 }
 
+/// Build a Binary Tree From Preorder and Inorder Traversals
+///
+/// Construct a binary tree using arrays of values obtained after a preorder traversal and an
+/// inorder traversal of the tree.
+///
+/// # Example
+///
+/// ```text
+/// Input: preorder = [5, 9, 2, 3, 4, 7], inorder = [2, 9, 5, 4, 3, 7]
+///
+/// Output:
+///        5
+///       / \
+///      9   3
+///     /   / \
+///    2   4   7
+/// ```
+///
+/// # Constraints
+///
+/// - The tree consists of unique values.
+pub fn build_tree(preorder: &[i32], inorder: &[i32]) -> TreeNode {
+    if preorder.is_empty() {
+        return None;
+    }
+
+    let mut inorder_indexes = HashMap::new();
+    for (i, &val) in inorder.iter().enumerate() {
+        inorder_indexes.insert(val, i);
+    }
+
+    fn build_tree_helper(
+        preorder: &[i32],
+        inorder: &[i32],
+        left: usize,
+        right: usize,
+        inorder_indexes: &HashMap<i32, usize>,
+        preorder_index: &mut usize,
+    ) -> TreeNode {
+        if left > right {
+            return None;
+        }
+
+        let val = preorder[*preorder_index];
+
+        let inorder_index = *inorder_indexes.get(&val).unwrap();
+        *preorder_index += 1;
+
+        let mut node = Node::new(val);
+
+        if inorder_index > 0 {
+            node.left = build_tree_helper(
+                preorder,
+                inorder,
+                left,
+                inorder_index - 1,
+                inorder_indexes,
+                preorder_index,
+            );
+        }
+
+        if inorder_index < inorder.len() - 1 {
+            node.right = build_tree_helper(
+                preorder,
+                inorder,
+                inorder_index + 1,
+                right,
+                inorder_indexes,
+                preorder_index,
+            );
+        }
+
+        Some(Rc::new(RefCell::new(node)))
+    }
+
+    build_tree_helper(
+        preorder,
+        inorder,
+        0,
+        inorder.len() - 1,
+        &inorder_indexes,
+        &mut 0,
+    )
+}
+
 /// Widest Binary Tree Level
 ///
 /// Return the width of the widest level in a binary tree, where the width of a level is defined
@@ -330,6 +415,74 @@ mod tests {
 
     fn leaf(val: i32) -> TreeNode {
         tree_node(val, None, None)
+    }
+
+    #[test]
+    fn test_build_tree_example() {
+        //        5
+        //       / \
+        //      9   3
+        //     /   / \
+        //    2   4   7
+        let expected = tree_node(
+            5,
+            tree_node(9, leaf(2), None),
+            tree_node(3, leaf(4), leaf(7)),
+        );
+        assert_eq!(
+            build_tree(&[5, 9, 2, 3, 4, 7], &[2, 9, 5, 4, 3, 7]),
+            expected
+        );
+    }
+
+    #[test]
+    fn test_build_tree_empty() {
+        assert_eq!(build_tree(&[], &[]), None);
+    }
+
+    #[test]
+    fn test_build_tree_single() {
+        assert_eq!(build_tree(&[1], &[1]), leaf(1));
+    }
+
+    #[test]
+    fn test_build_tree_left_only() {
+        //      1
+        //     /
+        //    2
+        //   /
+        //  3
+        let expected = tree_node(1, tree_node(2, leaf(3), None), None);
+        assert_eq!(build_tree(&[1, 2, 3], &[3, 2, 1]), expected);
+    }
+
+    #[test]
+    fn test_build_tree_right_only() {
+        //  1
+        //   \
+        //    2
+        //     \
+        //      3
+        let expected = tree_node(1, None, tree_node(2, None, leaf(3)));
+        assert_eq!(build_tree(&[1, 2, 3], &[1, 2, 3]), expected);
+    }
+
+    #[test]
+    fn test_build_tree_balanced() {
+        //        1
+        //       / \
+        //      2   3
+        //     / \ / \
+        //    4  5 6  7
+        let expected = tree_node(
+            1,
+            tree_node(2, leaf(4), leaf(5)),
+            tree_node(3, leaf(6), leaf(7)),
+        );
+        assert_eq!(
+            build_tree(&[1, 2, 4, 5, 3, 6, 7], &[4, 2, 5, 1, 6, 3, 7]),
+            expected
+        );
     }
 
     #[test]
