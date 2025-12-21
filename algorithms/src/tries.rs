@@ -85,9 +85,120 @@ impl Trie {
     }
 }
 
+/// Insert and Search Words with Wildcards
+///
+/// Design and implement a data structure that supports the following operations:
+/// - `insert(word)`: Inserts a word into the data structure.
+/// - `search(word)`: Returns true if a word exists in the data structure and false if not.
+///   The word may contain wildcards (`.`) that can represent any letter.
+///
+/// # Example
+///
+/// ```text
+/// Input: [insert("band"), insert("rat"), search("ra."), search("b.."), insert("ran"), search(".an")]
+/// Output: [true, false, true]
+///
+/// Explanation:
+/// insert("band")   // data structure has: "band"
+/// insert("rat")    // data structure has: "band" and "rat"
+/// search("ra.")    // "ra." matches "rat": return true
+/// search("b..")    // no three-letter word starting with 'b': return false
+/// insert("ran")    // data structure has: "band", "rat", and "ran"
+/// search(".an")    // ".an" matches "ran": return true
+/// ```
+///
+/// # Constraints
+///
+/// - Words will only contain lowercase English letters and (`.`) characters.
+
+pub struct WildcardTrie {
+    root: TrieNode,
+}
+
+impl WildcardTrie {
+    pub fn new() -> Self {
+        todo!()
+    }
+
+    pub fn insert(&mut self, word: &str) {
+        todo!()
+    }
+
+    pub fn search(&self, word: &str) -> bool {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_wildcard_trie_example() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("band");
+        trie.insert("rat");
+        assert!(trie.search("ra."));   // matches "rat"
+        assert!(!trie.search("b.."));  // no 3-letter word starting with 'b'
+        trie.insert("ran");
+        assert!(trie.search(".an"));   // matches "ran"
+    }
+
+    #[test]
+    fn test_wildcard_trie_no_wildcard() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("hello");
+        assert!(trie.search("hello"));
+        assert!(!trie.search("hell"));
+        assert!(!trie.search("helloo"));
+    }
+
+    #[test]
+    fn test_wildcard_trie_all_wildcards() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("cat");
+        trie.insert("car");
+        assert!(trie.search("...")); // matches any 3-letter word
+        assert!(!trie.search("..")); // no 2-letter words
+    }
+
+    #[test]
+    fn test_wildcard_trie_wildcard_at_start() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("cat");
+        trie.insert("bat");
+        trie.insert("rat");
+        assert!(trie.search(".at"));
+        assert!(!trie.search(".it"));
+    }
+
+    #[test]
+    fn test_wildcard_trie_wildcard_in_middle() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("bad");
+        trie.insert("bed");
+        trie.insert("bid");
+        assert!(trie.search("b.d"));
+        assert!(!trie.search("b.t"));
+    }
+
+    #[test]
+    fn test_wildcard_trie_empty() {
+        let trie = WildcardTrie::new();
+        assert!(!trie.search("..."));
+        assert!(!trie.search("a"));
+    }
+
+    #[test]
+    fn test_wildcard_trie_multiple_matches() {
+        let mut trie = WildcardTrie::new();
+        trie.insert("dad");
+        trie.insert("mad");
+        trie.insert("pad");
+        assert!(trie.search(".ad"));
+        assert!(trie.search("..d"));
+        assert!(trie.search("..."));
+    }
 
     #[test]
     fn test_trie_example() {
