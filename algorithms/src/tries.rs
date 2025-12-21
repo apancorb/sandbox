@@ -117,15 +117,47 @@ pub struct WildcardTrie {
 
 impl WildcardTrie {
     pub fn new() -> Self {
-        todo!()
+        Self {
+            root: TrieNode::default(),
+        }
     }
 
     pub fn insert(&mut self, word: &str) {
-        todo!()
+        let mut node = &mut self.root;
+
+        for c in word.chars() {
+            if !node.children.contains_key(&c) {
+                node.children.insert(c, TrieNode::default());
+            }
+            node = node.children.get_mut(&c).unwrap();
+        }
+
+        node.is_word = true;
     }
 
     pub fn search(&self, word: &str) -> bool {
-        todo!()
+        let node = &self.root;
+        self.search_helper(node, 0, word)
+    }
+
+    fn search_helper(&self, mut node: &TrieNode, start_index: usize, word: &str) -> bool {
+        let words: Vec<char> = word.chars().collect();
+        for i in start_index..words.len() {
+            let c = words[i];
+            if c == '.' {
+                for next_node in node.children.values() {
+                    if self.search_helper(next_node, i + 1, word) {
+                        return true;
+                    }
+                }
+                return false;
+            } else if !node.children.contains_key(&c) {
+                return false;
+            } else {
+                node = node.children.get(&c).unwrap();
+            }
+        }
+        node.is_word
     }
 }
 
@@ -138,10 +170,10 @@ mod tests {
         let mut trie = WildcardTrie::new();
         trie.insert("band");
         trie.insert("rat");
-        assert!(trie.search("ra."));   // matches "rat"
-        assert!(!trie.search("b.."));  // no 3-letter word starting with 'b'
+        assert!(trie.search("ra.")); // matches "rat"
+        assert!(!trie.search("b..")); // no 3-letter word starting with 'b'
         trie.insert("ran");
-        assert!(trie.search(".an"));   // matches "ran"
+        assert!(trie.search(".an")); // matches "ran"
     }
 
     #[test]
