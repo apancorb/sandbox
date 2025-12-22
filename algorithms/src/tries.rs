@@ -161,9 +161,182 @@ impl WildcardTrie {
     }
 }
 
+/// Find All Words on a Board
+///
+/// Given a 2D board of characters and an array of words, find all the words in the array that
+/// can be formed by tracing a path through adjacent cells in the board. Adjacent cells are those
+/// which horizontally or vertically neighbor each other. We can't use the same cell more than
+/// once for a single word.
+///
+/// # Example
+///
+/// ```text
+/// Input: board = [['b', 'y', 's'],
+///                 ['r', 't', 'e'],
+///                 ['a', 'i', 'n']],
+///        words = ["byte", "bytes", "rat", "rain", "trait", "train"]
+///
+/// Output: ["byte", "bytes", "rain", "train"]
+///
+/// Explanation:
+/// - "byte": b(0,0) -> y(0,1) -> t(1,1) -> e(1,2) ✓
+/// - "bytes": b(0,0) -> y(0,1) -> t(1,1) -> e(1,2) -> s(0,2) ✓
+/// - "rat": no valid path
+/// - "rain": r(1,0) -> a(2,0) -> i(2,1) -> n(2,2) ✓
+/// - "trait": no valid path
+/// - "train": t(1,1) -> r(1,0) -> a(2,0) -> i(2,1) -> n(2,2) ✓
+/// ```
+///
+/// # Constraints
+///
+/// - The board contains only lowercase English letters.
+/// - Words contain only lowercase English letters.
+
+#[derive(Default)]
+pub struct TrieNodeWithWord {
+    children: HashMap<char, TrieNodeWithWord>,
+    word: Option<String>,
+}
+
+impl TrieNodeWithWord {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+pub fn find_words(board: &mut [&mut [char]], words: &[&str]) -> Vec<String> {
+    fn find_words_helper(
+        board: &mut [&mut [char]],
+        node: &mut TrieNodeWithWord,
+        r: usize,
+        c: usize,
+        res: &mut Vec<String>,
+    ) {
+        if let Some(word) = node.word.take() {
+            res.push(word);
+        }
+
+        let tmp = board[r][c];
+        board[r][c] = '#';
+
+        const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        for (dr, dc) in DIRS {
+            let Some(next_r) = r.checked_add_signed(dr) else { continue };
+            let Some(next_c) = c.checked_add_signed(dc) else { continue };
+
+            if next_r < board.len()
+                && next_c < board[0].len()
+                && node.children.contains_key(&board[next_r][next_c])
+            {
+                find_words_helper(
+                    board,
+                    node.children.get_mut(&board[next_r][next_c]).unwrap(),
+                    next_r,
+                    next_c,
+                    res,
+                );
+            }
+        }
+
+        board[r][c] = tmp;
+    }
+
+    let mut root = TrieNodeWithWord::new();
+    for word in words {
+        let mut node = &mut root;
+        for c in word.chars() {
+            if !node.children.contains_key(&c) {
+                node.children.insert(c, TrieNodeWithWord::new());
+            }
+            node = node.children.get_mut(&c).unwrap();
+        }
+        node.word = Some(word.to_string());
+    }
+
+    let mut res = Vec::new();
+    for r in 0..board.len() {
+        for c in 0..board[0].len() {
+            if let Some(child) = root.children.get_mut(&board[r][c]) {
+                find_words_helper(board, child, r, c, &mut res);
+            }
+        }
+    }
+
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_find_words_example() {
+        let mut row0 = ['b', 'y', 's'];
+        let mut row1 = ['r', 't', 'e'];
+        let mut row2 = ['a', 'i', 'n'];
+        let board: &mut [&mut [char]] = &mut [&mut row0, &mut row1, &mut row2];
+        let words = &["byte", "bytes", "rat", "rain", "trait", "train"];
+        let mut result = find_words(board, words);
+        result.sort();
+        assert_eq!(result, vec!["byte", "bytes", "rain", "train"]);
+    }
+
+    #[test]
+    fn test_find_words_no_matches() {
+        let mut row0 = ['a', 'b'];
+        let mut row1 = ['c', 'd'];
+        let board: &mut [&mut [char]] = &mut [&mut row0, &mut row1];
+        let words = &["xyz", "hello"];
+        let result = find_words(board, words);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_find_words_single_cell() {
+        let mut row0 = ['a'];
+        let board: &mut [&mut [char]] = &mut [&mut row0];
+        let words = &["a", "b", "ab"];
+        let result = find_words(board, words);
+        assert_eq!(result, vec!["a"]);
+    }
+
+    #[test]
+    fn test_find_words_all_match() {
+        // Board:
+        //   a  b
+        //   c  d
+        // "ab": a(0,0) -> b(0,1) ✓
+        // "abc": a -> b -> c? b(0,1) not adjacent to c(1,0) - diagonal ✗
+        // "abdc": a(0,0) -> b(0,1) -> d(1,1) -> c(1,0) ✓
+        // "acd": a(0,0) -> c(1,0) -> d(1,1) ✓
+        let mut row0 = ['a', 'b'];
+        let mut row1 = ['c', 'd'];
+        let board: &mut [&mut [char]] = &mut [&mut row0, &mut row1];
+        let words = &["ab", "abc", "abdc", "acd"];
+        let mut result = find_words(board, words);
+        result.sort();
+        assert_eq!(result, vec!["ab", "abdc", "acd"]);
+    }
+
+    #[test]
+    fn test_find_words_no_reuse() {
+        // Can't use same cell twice
+        let mut row0 = ['a', 'a'];
+        let board: &mut [&mut [char]] = &mut [&mut row0];
+        let words = &["aa", "aaa"];
+        let result = find_words(board, words);
+        assert_eq!(result, vec!["aa"]);
+    }
+
+    #[test]
+    fn test_find_words_empty_words() {
+        let mut row0 = ['a', 'b'];
+        let mut row1 = ['c', 'd'];
+        let board: &mut [&mut [char]] = &mut [&mut row0, &mut row1];
+        let words: &[&str] = &[];
+        let result = find_words(board, words);
+        assert!(result.is_empty());
+    }
 
     #[test]
     fn test_wildcard_trie_example() {
