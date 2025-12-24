@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
 /// Graph Deep Copy
@@ -129,9 +129,132 @@ pub fn count_islands(matrix: &mut [&mut [i32]]) -> i32 {
     counter
 }
 
+/// Matrix Infection
+///
+/// You are given a matrix where each cell is either:
+/// - 0: Empty
+/// - 1: Uninfected
+/// - 2: Infected
+///
+/// With each passing second, every infected cell (2) infects its uninfected neighboring cells
+/// (1) that are 4-directionally adjacent. Determine the number of seconds required for all
+/// uninfected cells to become infected. If this is impossible, return -1.
+///
+/// # Example
+///
+/// ```text
+/// Input: matrix = [[1, 1, 1, 0],
+///                  [0, 0, 2, 1],
+///                  [0, 1, 1, 0]]
+///
+/// Second 0:    Second 1:    Second 2:    Second 3:
+/// 1 1 1 0      1 1 2 0      1 2 2 0      2 2 2 0
+/// 0 0 2 1  ->  0 0 2 2  ->  0 0 2 2  ->  0 0 2 2
+/// 0 1 1 0      0 1 2 0      0 2 2 0      0 2 2 0
+///
+/// Output: 3
+/// ```
+pub fn matrix_infection(matrix: &mut [&mut [i32]]) -> i32 {
+    const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    let mut ones = 0;
+    let mut deque = VecDeque::new();
+
+    for r in 0..matrix.len() {
+        for c in 0..matrix[0].len() {
+            if matrix[r][c] == 1 {
+                ones += 1;
+            } else if matrix[r][c] == 2 {
+                deque.push_back((r, c));
+            }
+        }
+    }
+
+    let mut seconds = 0;
+    while ones != 0 && !deque.is_empty() {
+        let level_size = deque.len();
+        for _ in 0..level_size {
+            let (r, c) = deque.pop_front().unwrap();
+            for (dr, dc) in DIRS {
+                let Some(next_r) = r.checked_add_signed(dr) else {
+                    continue;
+                };
+                let Some(next_c) = c.checked_add_signed(dc) else {
+                    continue;
+                };
+
+                if next_r < matrix.len() && next_c < matrix[0].len() && matrix[next_r][next_c] == 1
+                {
+                    matrix[next_r][next_c] = 2;
+                    deque.push_back((next_r, next_c));
+                    ones -= 1;
+                }
+            }
+        }
+
+        seconds += 1;
+    }
+
+    if ones != 0 { -1 } else { seconds }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_matrix_infection_example() {
+        let mut row0 = [1, 1, 1, 0];
+        let mut row1 = [0, 0, 2, 1];
+        let mut row2 = [0, 1, 1, 0];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1, &mut row2];
+        assert_eq!(matrix_infection(matrix), 3);
+    }
+
+    #[test]
+    fn test_matrix_infection_impossible() {
+        // Uninfected cell isolated by empty cells
+        let mut row0 = [1, 0, 2];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0];
+        assert_eq!(matrix_infection(matrix), -1);
+    }
+
+    #[test]
+    fn test_matrix_infection_already_done() {
+        // No uninfected cells
+        let mut row0 = [2, 0, 2];
+        let mut row1 = [0, 0, 0];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1];
+        assert_eq!(matrix_infection(matrix), 0);
+    }
+
+    #[test]
+    fn test_matrix_infection_one_second() {
+        let mut row0 = [2, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0];
+        assert_eq!(matrix_infection(matrix), 1);
+    }
+
+    #[test]
+    fn test_matrix_infection_multiple_sources() {
+        // Two infected cells spread simultaneously
+        let mut row0 = [2, 1, 1, 1, 2];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0];
+        assert_eq!(matrix_infection(matrix), 2);
+    }
+
+    #[test]
+    fn test_matrix_infection_empty_matrix() {
+        let matrix: &mut [&mut [i32]] = &mut [];
+        assert_eq!(matrix_infection(matrix), 0);
+    }
+
+    #[test]
+    fn test_matrix_infection_no_infected() {
+        // Has uninfected but no infected cells
+        let mut row0 = [1, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0];
+        assert_eq!(matrix_infection(matrix), -1);
+    }
 
     fn create_node(val: i32) -> Rc<RefCell<Node>> {
         Rc::new(RefCell::new(Node::new(val)))
