@@ -76,6 +76,59 @@ pub fn clone_graph(node: GraphNode) -> GraphNode {
     }
 }
 
+/// Count Islands
+///
+/// Given a binary matrix representing 1s as land and 0s as water, return the number of islands.
+/// An island is formed by connecting adjacent lands 4-directionally (up, down, left, and right).
+///
+/// # Example
+///
+/// ```text
+/// Input: matrix = [[1, 1, 0, 0],
+///                  [1, 1, 0, 0],
+///                  [0, 0, 1, 1],
+///                  [0, 0, 1, 1]]
+///
+/// Output: 2
+///
+/// Explanation:
+/// There are two islands:
+/// - Top-left 2x2 block of 1s
+/// - Bottom-right 2x2 block of 1s
+/// ```
+pub fn count_islands(matrix: &mut [&mut [i32]]) -> i32 {
+    fn count_islands_helper(matrix: &mut [&mut [i32]], r: usize, c: usize) {
+        const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+        matrix[r][c] = -1;
+
+        for (dr, dc) in DIRS {
+            let Some(next_r) = r.checked_add_signed(dr) else {
+                continue;
+            };
+            let Some(next_c) = c.checked_add_signed(dc) else {
+                continue;
+            };
+
+            if next_r < matrix.len() && next_c < matrix[0].len() && matrix[next_r][next_c] == 1 {
+                count_islands_helper(matrix, next_r, next_c);
+            }
+        }
+    }
+
+    let mut counter = 0;
+    for r in 0..matrix.len() {
+        for c in 0..matrix[0].len() {
+            if matrix[r][c] == 1 {
+                count_islands_helper(matrix, r, c);
+                counter += 1;
+            }
+        }
+    }
+
+    counter
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,6 +140,64 @@ mod tests {
     fn connect(a: &Rc<RefCell<Node>>, b: &Rc<RefCell<Node>>) {
         a.borrow_mut().neighbors.push(Rc::clone(b));
         b.borrow_mut().neighbors.push(Rc::clone(a));
+    }
+
+    #[test]
+    fn test_count_islands_example() {
+        let mut row0 = [1, 1, 0, 0];
+        let mut row1 = [1, 1, 0, 0];
+        let mut row2 = [0, 0, 1, 1];
+        let mut row3 = [0, 0, 1, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1, &mut row2, &mut row3];
+        assert_eq!(count_islands(matrix), 2);
+    }
+
+    #[test]
+    fn test_count_islands_single_island() {
+        let mut row0 = [1, 1, 1];
+        let mut row1 = [1, 1, 1];
+        let mut row2 = [1, 1, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1, &mut row2];
+        assert_eq!(count_islands(matrix), 1);
+    }
+
+    #[test]
+    fn test_count_islands_no_islands() {
+        let mut row0 = [0, 0, 0];
+        let mut row1 = [0, 0, 0];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1];
+        assert_eq!(count_islands(matrix), 0);
+    }
+
+    #[test]
+    fn test_count_islands_diagonal_not_connected() {
+        // Diagonal cells are NOT connected
+        let mut row0 = [1, 0];
+        let mut row1 = [0, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1];
+        assert_eq!(count_islands(matrix), 2);
+    }
+
+    #[test]
+    fn test_count_islands_many_small() {
+        let mut row0 = [1, 0, 1, 0, 1];
+        let mut row1 = [0, 0, 0, 0, 0];
+        let mut row2 = [1, 0, 1, 0, 1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0, &mut row1, &mut row2];
+        assert_eq!(count_islands(matrix), 6);
+    }
+
+    #[test]
+    fn test_count_islands_single_cell() {
+        let mut row0 = [1];
+        let matrix: &mut [&mut [i32]] = &mut [&mut row0];
+        assert_eq!(count_islands(matrix), 1);
+    }
+
+    #[test]
+    fn test_count_islands_empty() {
+        let matrix: &mut [&mut [i32]] = &mut [];
+        assert_eq!(count_islands(matrix), 0);
     }
 
     #[test]
