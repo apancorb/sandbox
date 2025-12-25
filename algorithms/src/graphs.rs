@@ -197,9 +197,120 @@ pub fn matrix_infection(matrix: &mut [&mut [i32]]) -> i32 {
     if ones != 0 { -1 } else { seconds }
 }
 
+/// Bipartite Graph Validation
+///
+/// Given an undirected graph, determine if it's bipartite. A graph is bipartite if the nodes can
+/// be colored in one of two colors, so that no two adjacent nodes are the same color.
+///
+/// The input is presented as an adjacency list, where graph[i] is a list of all nodes adjacent to
+/// node i.
+///
+/// # Example
+///
+/// ```text
+/// Input: graph = [[1, 4], [0, 2], [1], [4], [0, 3]]
+///
+///     0 (blue) --- 1 (orange) --- 2 (blue)
+///     |
+///     4 (orange) --- 3 (blue)
+///
+/// Output: true
+/// Explanation: Nodes can be colored with two colors such that no adjacent nodes share a color.
+/// ```
+pub fn is_bipartite(graph: &[Vec<usize>]) -> bool {
+    fn is_bipartite_helper(
+        graph: &[Vec<usize>],
+        colors: &mut Vec<i32>,
+        node: usize,
+        color: i32,
+    ) -> bool {
+        colors[node] = color;
+
+        for &neighbor in &graph[node] {
+            if colors[neighbor] == color {
+                return false;
+            }
+
+            if colors[neighbor] == 0 && !is_bipartite_helper(graph, colors, neighbor, -color) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    let mut colors = vec![0; graph.len()];
+    for i in 0..colors.len() {
+        if colors[i] == 0 && !is_bipartite_helper(graph, &mut colors, i, 1) {
+            return false;
+        }
+    }
+
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_bipartite_example() {
+        // 0 -- 1 -- 2
+        // |
+        // 4 -- 3
+        let graph = vec![vec![1, 4], vec![0, 2], vec![1], vec![4], vec![0, 3]];
+        assert!(is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_triangle() {
+        // 0 -- 1
+        //  \  /
+        //   2
+        // Odd cycle - not bipartite
+        let graph = vec![vec![1, 2], vec![0, 2], vec![0, 1]];
+        assert!(!is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_square() {
+        // 0 -- 1
+        // |    |
+        // 3 -- 2
+        // Even cycle - bipartite
+        let graph = vec![vec![1, 3], vec![0, 2], vec![1, 3], vec![0, 2]];
+        assert!(is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_disconnected() {
+        // 0 -- 1    2 -- 3
+        // Two disconnected edges - bipartite
+        let graph = vec![vec![1], vec![0], vec![3], vec![2]];
+        assert!(is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_single_node() {
+        let graph = vec![vec![]];
+        assert!(is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_empty() {
+        let graph: Vec<Vec<usize>> = vec![];
+        assert!(is_bipartite(&graph));
+    }
+
+    #[test]
+    fn test_is_bipartite_disconnected_with_odd_cycle() {
+        // 0 -- 1    2 -- 3
+        //           |  /
+        //           4
+        // Second component has odd cycle
+        let graph = vec![vec![1], vec![0], vec![3, 4], vec![2, 4], vec![2, 3]];
+        assert!(!is_bipartite(&graph));
+    }
 
     #[test]
     fn test_matrix_infection_example() {
