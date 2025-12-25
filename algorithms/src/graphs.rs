@@ -249,9 +249,133 @@ pub fn is_bipartite(graph: &[Vec<usize>]) -> bool {
     true
 }
 
+/// Longest Increasing Path
+///
+/// Find the longest strictly increasing path in a matrix of positive integers. A path is a
+/// sequence of cells where each one is 4-directionally adjacent (up, down, left, or right) to
+/// the previous one.
+///
+/// # Example
+///
+/// ```text
+/// Input: matrix = [[2, 7, 9],
+///                  [5, 4, 3],
+///                  [6, 1, 8]]
+///
+/// Output: 4
+/// Explanation:
+///   Positions:
+///     2(0,0) 7(0,1) 9(0,2)
+///     5(1,0) 4(1,1) 3(1,2)
+///     6(2,0) 1(2,1) 8(2,2)
+///
+///   Longest paths of length 4:
+///   - 1 -> 4 -> 5 -> 6
+///   - 1 -> 4 -> 7 -> 9
+/// ```
+pub fn longest_increasing_path(matrix: &[&[i32]]) -> i32 {
+    const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+    fn longest_increasing_path_helper(
+        matrix: &[&[i32]],
+        memo: &mut Vec<Vec<i32>>,
+        r: usize,
+        c: usize,
+    ) -> i32 {
+        if memo[r][c] != 0 {
+            return memo[r][c];
+        }
+
+        let mut max = 1;
+        for (dr, dc) in DIRS {
+            let Some(next_r) = r.checked_add_signed(dr) else {
+                continue;
+            };
+            let Some(next_c) = c.checked_add_signed(dc) else {
+                continue;
+            };
+
+            if next_r < matrix.len()
+                && next_c < matrix[0].len()
+                && matrix[next_r][next_c] > matrix[r][c]
+            {
+                max = max.max(1 + longest_increasing_path_helper(matrix, memo, next_r, next_c));
+            }
+        }
+
+        memo[r][c] = max;
+        max
+    }
+
+    if matrix.is_empty() || matrix[0].is_empty() {
+        return 0;
+    }
+
+    let mut res = 0;
+    let mut memo = vec![vec![0; matrix[0].len()]; matrix.len()];
+    for r in 0..matrix.len() {
+        for c in 0..matrix[0].len() {
+            res = res.max(longest_increasing_path_helper(matrix, &mut memo, r, c));
+        }
+    }
+
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_longest_increasing_path_example() {
+        let matrix: &[&[i32]] = &[&[2, 7, 9], &[5, 4, 3], &[6, 1, 8]];
+        assert_eq!(longest_increasing_path(matrix), 4);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_single() {
+        let matrix: &[&[i32]] = &[&[1]];
+        assert_eq!(longest_increasing_path(matrix), 1);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_row() {
+        let matrix: &[&[i32]] = &[&[1, 2, 3, 4, 5]];
+        assert_eq!(longest_increasing_path(matrix), 5);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_decreasing() {
+        let matrix: &[&[i32]] = &[&[5, 4, 3, 2, 1]];
+        assert_eq!(longest_increasing_path(matrix), 5);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_column() {
+        let matrix: &[&[i32]] = &[&[1], &[2], &[3], &[4]];
+        assert_eq!(longest_increasing_path(matrix), 4);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_all_same() {
+        let matrix: &[&[i32]] = &[&[1, 1], &[1, 1]];
+        assert_eq!(longest_increasing_path(matrix), 1);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_spiral() {
+        // 1 2 3
+        // 8 9 4
+        // 7 6 5
+        let matrix: &[&[i32]] = &[&[1, 2, 3], &[8, 9, 4], &[7, 6, 5]];
+        assert_eq!(longest_increasing_path(matrix), 9);
+    }
+
+    #[test]
+    fn test_longest_increasing_path_empty() {
+        let matrix: &[&[i32]] = &[];
+        assert_eq!(longest_increasing_path(matrix), 0);
+    }
 
     #[test]
     fn test_is_bipartite_example() {
