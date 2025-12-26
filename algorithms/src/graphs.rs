@@ -395,9 +395,112 @@ pub fn shortest_transformation(start: &str, end: &str, dictionary: &[&str]) -> i
     0
 }
 
+/// Prerequisites
+///
+/// Given an integer n representing the number of courses labeled from 0 to n - 1, and an
+/// array of prerequisite pairs, determine if it's possible to enroll in all courses.
+///
+/// Each prerequisite is represented as a pair [a, b], indicating that course a must be taken
+/// before course b.
+///
+/// # Example
+///
+/// ```text
+/// Input: n = 3, prerequisites = [[0, 1], [1, 2], [2, 1]]
+///
+/// Output: false
+/// Explanation: Course 1 cannot be taken without first completing course 2, and vice versa.
+/// ```
+///
+/// # Constraints
+///
+/// - For any prerequisite [a, b], a will not equal b.
+pub fn can_finish(n: usize, prerequisites: &[[usize; 2]]) -> bool {
+    let mut graph: HashMap<usize, Vec<usize>> = HashMap::new();
+    let mut in_degrees = vec![0; n];
+
+    for prerequisite in prerequisites {
+        let prereq = prerequisite[0];
+        let course = prerequisite[1];
+
+        graph.entry(prereq).or_default().push(course);
+        in_degrees[course] += 1;
+    }
+
+    let mut queue = VecDeque::new();
+    for (course, &in_degree) in in_degrees.iter().enumerate() {
+        if in_degree == 0 {
+            queue.push_back(course);
+        }
+    }
+
+    let mut enrolled_courses = 0;
+    // Perform topological sort
+    while !queue.is_empty() {
+        let node = queue.pop_front().unwrap();
+        enrolled_courses += 1;
+        if let Some(neighbors) = graph.get(&node) {
+            for &neighbor in neighbors {
+                in_degrees[neighbor] -= 1;
+                if in_degrees[neighbor] == 0 {
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+    }
+
+    enrolled_courses == n
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_can_finish_example() {
+        // 0 -> 1 -> 2
+        //      ^----+  (cycle between 1 and 2)
+        assert!(!can_finish(3, &[[0, 1], [1, 2], [2, 1]]));
+    }
+
+    #[test]
+    fn test_can_finish_no_cycle() {
+        // 0 -> 1 -> 2
+        assert!(can_finish(3, &[[0, 1], [1, 2]]));
+    }
+
+    #[test]
+    fn test_can_finish_no_prereqs() {
+        assert!(can_finish(3, &[]));
+    }
+
+    #[test]
+    fn test_can_finish_single_course() {
+        assert!(can_finish(1, &[]));
+    }
+
+    #[test]
+    fn test_can_finish_diamond() {
+        //   0
+        //  / \
+        // 1   2
+        //  \ /
+        //   3
+        assert!(can_finish(4, &[[0, 1], [0, 2], [1, 3], [2, 3]]));
+    }
+
+    #[test]
+    fn test_can_finish_self_loop_impossible() {
+        // Constraint says a != b, but testing cycle detection
+        // 0 -> 1 -> 0
+        assert!(!can_finish(2, &[[0, 1], [1, 0]]));
+    }
+
+    #[test]
+    fn test_can_finish_disconnected() {
+        // 0 -> 1    2 -> 3
+        assert!(can_finish(4, &[[0, 1], [2, 3]]));
+    }
 
     #[test]
     fn test_shortest_transformation_example() {
