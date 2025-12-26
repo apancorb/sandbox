@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
 /// Graph Deep Copy
@@ -322,9 +322,121 @@ pub fn longest_increasing_path(matrix: &[&[i32]]) -> i32 {
     res
 }
 
+/// Shortest Transformation Sequence
+///
+/// Given two words, start and end, and a dictionary containing an array of words, return the
+/// length of the shortest transformation sequence to transform start to end. A transformation
+/// sequence is a series of words in which:
+/// - Each word differs from the preceding word by exactly one letter.
+/// - Each word in the sequence exists in the dictionary.
+///
+/// If no such transformation sequence exists, return 0.
+///
+/// # Example
+///
+/// ```text
+/// Input: start = "red", end = "hit", dictionary = ["red", "rod", "rad", "rat", "hat", "bad", "bat", "hit"]
+///
+/// Transformation: red -> rad -> rat -> hat -> hit
+///
+/// Output: 5
+/// ```
+///
+/// # Constraints
+///
+/// - All words are the same length.
+/// - All words contain only lowercase English letters.
+/// - The dictionary contains no duplicate words.
+pub fn shortest_transformation(start: &str, end: &str, dictionary: &[&str]) -> i32 {
+    if start == end {
+        return 1;
+    }
+
+    let dictionary: HashSet<String> = dictionary.iter().map(|s| s.to_string()).collect();
+
+    if !dictionary.contains(end) {
+        return 0;
+    }
+
+    let mut dist = 1;
+    let mut visited: HashSet<String> = HashSet::new();
+    visited.insert(start.to_string());
+    let mut queue: VecDeque<String> = VecDeque::new();
+    queue.push_back(start.to_string());
+
+    while !queue.is_empty() {
+        let level_size = queue.len();
+        for _ in 0..level_size {
+            let word = queue.pop_front().unwrap();
+
+            let chars: Vec<char> = word.chars().collect();
+            for i in 0..chars.len() {
+                for c in 'a'..='z' {
+                    if chars[i] != c {
+                        let mut next_chars = chars.clone();
+                        next_chars[i] = c;
+                        let next_word: String = next_chars.into_iter().collect();
+
+                        if next_word == end {
+                            return dist + 1;
+                        }
+
+                        if !visited.contains(&next_word) && dictionary.contains(&next_word) {
+                            visited.insert(next_word.clone());
+                            queue.push_back(next_word);
+                        }
+                    }
+                }
+            }
+        }
+        dist += 1;
+    }
+
+    0
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_shortest_transformation_example() {
+        let dictionary = &["red", "rod", "rad", "rat", "hat", "bad", "bat", "hit"];
+        assert_eq!(shortest_transformation("red", "hit", dictionary), 5);
+    }
+
+    #[test]
+    fn test_shortest_transformation_no_path() {
+        let dictionary = &["red", "rod", "rad"];
+        assert_eq!(shortest_transformation("red", "hit", dictionary), 0);
+    }
+
+    #[test]
+    fn test_shortest_transformation_one_step() {
+        let dictionary = &["hit", "hot"];
+        assert_eq!(shortest_transformation("hit", "hot", dictionary), 2);
+    }
+
+    #[test]
+    fn test_shortest_transformation_same_word() {
+        let dictionary = &["hit"];
+        assert_eq!(shortest_transformation("hit", "hit", dictionary), 1);
+    }
+
+    #[test]
+    fn test_shortest_transformation_direct() {
+        // red -> rad is 1 step, sequence length is 2
+        let dictionary = &["red", "rod", "rad"];
+        assert_eq!(shortest_transformation("red", "rad", dictionary), 2);
+    }
+
+    #[test]
+    fn test_shortest_transformation_multiple_paths() {
+        // hit -> hot -> dot -> dog
+        // hit -> hot -> lot -> log -> dog (longer)
+        let dictionary = &["hit", "hot", "dot", "dog", "lot", "log"];
+        assert_eq!(shortest_transformation("hit", "dog", dictionary), 4);
+    }
 
     #[test]
     fn test_longest_increasing_path_example() {
