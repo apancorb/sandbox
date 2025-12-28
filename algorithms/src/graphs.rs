@@ -452,9 +452,150 @@ pub fn can_finish(n: usize, prerequisites: &[[usize; 2]]) -> bool {
     enrolled_courses == n
 }
 
+/// Merging Communities
+///
+/// There are n people numbered from 0 to n - 1, with each person initially belonging to
+/// a separate community. When two people from different communities connect, their
+/// communities merge into a single community.
+///
+/// Your goal is to write two functions:
+/// - `connect(x, y)`: Connects person x with person y and merges their communities.
+/// - `get_community_size(x)`: Returns the size of the community which person x belongs to.
+///
+/// # Example
+///
+/// ```text
+/// Input: n = 5, [connect(0, 1), connect(1, 2), get_community_size(3),
+///                get_community_size(0), connect(3, 4), get_community_size(4)]
+///
+/// connect(0, 1):          {0, 1}, {2}, {3}, {4}
+/// connect(1, 2):          {0, 1, 2}, {3}, {4}
+/// get_community_size(3):  1
+/// get_community_size(0):  3
+/// connect(3, 4):          {0, 1, 2}, {3, 4}
+/// get_community_size(4):  2
+///
+/// Output: [1, 3, 2]
+/// ```
+pub struct UnionFind {
+    parent: Vec<usize>,
+    size: Vec<usize>,
+}
+
+impl UnionFind {
+    pub fn new(n: usize) -> Self {
+        let mut parent = Vec::new();
+        for i in 0..n {
+            parent.push(i);
+        }
+        Self {
+            parent,
+            size: vec![1; n],
+        }
+    }
+
+    pub fn connect(&mut self, x: usize, y: usize) {
+        self.union(x, y);
+    }
+
+    pub fn get_community_size(&mut self, x: usize) -> usize {
+        let rep = self.find(x);
+        self.size[rep]
+    }
+
+    fn find(&mut self, x: usize) -> usize {
+        if self.parent[x] == x {
+            return x;
+        }
+        // Path compression
+        self.parent[x] = self.find(self.parent[x]);
+        self.parent[x]
+    }
+
+    fn union(&mut self, x: usize, y: usize) {
+        let rep_x = self.find(x);
+        let rep_y = self.find(y);
+
+        if rep_x == rep_y {
+            return; // Already the same community
+        }
+
+        if self.size[rep_x] > self.size[rep_y] {
+            self.parent[rep_y] = rep_x;
+            self.size[rep_x] += self.size[rep_y];
+        } else {
+            self.parent[rep_x] = rep_y;
+            self.size[rep_y] += self.size[rep_x];
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_union_find_example() {
+        let mut uf = UnionFind::new(5);
+        uf.connect(0, 1);
+        uf.connect(1, 2);
+        assert_eq!(uf.get_community_size(3), 1);
+        assert_eq!(uf.get_community_size(0), 3);
+        uf.connect(3, 4);
+        assert_eq!(uf.get_community_size(4), 2);
+    }
+
+    #[test]
+    fn test_union_find_all_separate() {
+        let mut uf = UnionFind::new(4);
+        assert_eq!(uf.get_community_size(0), 1);
+        assert_eq!(uf.get_community_size(1), 1);
+        assert_eq!(uf.get_community_size(2), 1);
+        assert_eq!(uf.get_community_size(3), 1);
+    }
+
+    #[test]
+    fn test_union_find_all_connected() {
+        let mut uf = UnionFind::new(4);
+        uf.connect(0, 1);
+        uf.connect(1, 2);
+        uf.connect(2, 3);
+        assert_eq!(uf.get_community_size(0), 4);
+        assert_eq!(uf.get_community_size(1), 4);
+        assert_eq!(uf.get_community_size(2), 4);
+        assert_eq!(uf.get_community_size(3), 4);
+    }
+
+    #[test]
+    fn test_union_find_connect_same_community() {
+        let mut uf = UnionFind::new(3);
+        uf.connect(0, 1);
+        uf.connect(0, 1); // connect again
+        assert_eq!(uf.get_community_size(0), 2);
+        assert_eq!(uf.get_community_size(1), 2);
+    }
+
+    #[test]
+    fn test_union_find_merge_two_communities() {
+        let mut uf = UnionFind::new(6);
+        // Create two communities
+        uf.connect(0, 1);
+        uf.connect(1, 2);
+        uf.connect(3, 4);
+        uf.connect(4, 5);
+        assert_eq!(uf.get_community_size(0), 3);
+        assert_eq!(uf.get_community_size(3), 3);
+        // Merge them
+        uf.connect(2, 3);
+        assert_eq!(uf.get_community_size(0), 6);
+        assert_eq!(uf.get_community_size(5), 6);
+    }
+
+    #[test]
+    fn test_union_find_single_person() {
+        let mut uf = UnionFind::new(1);
+        assert_eq!(uf.get_community_size(0), 1);
+    }
 
     #[test]
     fn test_can_finish_example() {
