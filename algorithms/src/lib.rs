@@ -1,3 +1,4 @@
+pub mod backtracking;
 pub mod binary_search;
 pub mod fast_and_slow_pointers;
 pub mod graphs;
