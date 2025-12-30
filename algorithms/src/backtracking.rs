@@ -44,6 +44,37 @@ pub fn permutations(nums: &[i32]) -> Vec<Vec<i32>> {
     res
 }
 
+/// Find All Subsets
+///
+/// Return all possible subsets of a given set of unique integers. Each subset can be ordered
+/// in any way, and the subsets can be returned in any order.
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [4, 5, 6]
+///
+/// Output: [[], [4], [4, 5], [4, 5, 6], [4, 6], [5], [5, 6], [6]]
+/// ```
+pub fn subsets(nums: &[i32]) -> Vec<Vec<i32>> {
+    fn subsets_helper(nums: &[i32], res: &mut Vec<Vec<i32>>, curr_subset: &mut Vec<i32>, i: usize) {
+        if i == nums.len() {
+            res.push(curr_subset.clone());
+            return;
+        }
+
+        curr_subset.push(nums[i]);
+        subsets_helper(nums, res, curr_subset, i + 1);
+        curr_subset.pop();
+        subsets_helper(nums, res, curr_subset, i + 1);
+    }
+
+    let mut res = Vec::new();
+    let mut curr_subset = Vec::new();
+    subsets_helper(nums, &mut res, &mut curr_subset, 0);
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,5 +117,52 @@ mod tests {
         // 4! = 24 permutations
         let result = permutations(&[1, 2, 3, 4]);
         assert_eq!(result.len(), 24);
+    }
+
+    #[test]
+    fn test_subsets_example() {
+        let mut result = subsets(&[4, 5, 6]);
+        result.iter_mut().for_each(|s| s.sort());
+        result.sort();
+        let mut expected = vec![
+            vec![],
+            vec![4],
+            vec![4, 5],
+            vec![4, 5, 6],
+            vec![4, 6],
+            vec![5],
+            vec![5, 6],
+            vec![6],
+        ];
+        expected.iter_mut().for_each(|s| s.sort());
+        expected.sort();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_subsets_empty() {
+        assert_eq!(subsets(&[]), vec![vec![]]);
+    }
+
+    #[test]
+    fn test_subsets_single() {
+        let mut result = subsets(&[1]);
+        result.sort();
+        assert_eq!(result, vec![vec![], vec![1]]);
+    }
+
+    #[test]
+    fn test_subsets_two() {
+        let mut result = subsets(&[1, 2]);
+        result.iter_mut().for_each(|s| s.sort());
+        result.sort();
+        assert_eq!(result, vec![vec![], vec![1], vec![1, 2], vec![2]]);
+    }
+
+    #[test]
+    fn test_subsets_count() {
+        // 2^4 = 16 subsets
+        let result = subsets(&[1, 2, 3, 4]);
+        assert_eq!(result.len(), 16);
     }
 }
