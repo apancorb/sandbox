@@ -75,6 +75,68 @@ pub fn subsets(nums: &[i32]) -> Vec<Vec<i32>> {
     res
 }
 
+/// N Queens
+///
+/// There is a chessboard of size n x n. Your goal is to place n queens on the board such that
+/// no two queens attack each other. Return the number of distinct configurations where this
+/// is possible.
+///
+/// # Example
+///
+/// ```text
+/// Input: n = 4
+///
+/// Output: 2
+/// ```
+pub fn n_queens(n: usize) -> usize {
+    fn n_queens_helper(
+        n: usize,
+        r: usize,
+        res: &mut usize,
+        cols: &mut HashSet<usize>,
+        diagonals: &mut HashSet<isize>,
+        anti_diagonals: &mut HashSet<usize>,
+    ) {
+        if r == n {
+            *res += 1;
+            return;
+        }
+
+        for c in 0..n {
+            let curr_diagonal = (r as isize) - (c as isize);
+            let curr_anti_diagonal = r + c;
+
+            if cols.contains(&c)
+                || diagonals.contains(&curr_diagonal)
+                || anti_diagonals.contains(&curr_anti_diagonal)
+            {
+                continue;
+            }
+
+            cols.insert(c);
+            diagonals.insert(curr_diagonal);
+            anti_diagonals.insert(curr_anti_diagonal);
+
+            n_queens_helper(n, r + 1, res, cols, diagonals, anti_diagonals);
+
+            cols.remove(&c);
+            diagonals.remove(&curr_diagonal);
+            anti_diagonals.remove(&curr_anti_diagonal);
+        }
+    }
+
+    let mut res = 0;
+    n_queens_helper(
+        n,
+        0,
+        &mut res,
+        &mut HashSet::new(),
+        &mut HashSet::new(),
+        &mut HashSet::new(),
+    );
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -164,5 +226,30 @@ mod tests {
         // 2^4 = 16 subsets
         let result = subsets(&[1, 2, 3, 4]);
         assert_eq!(result.len(), 16);
+    }
+
+    #[test]
+    fn test_n_queens_4() {
+        assert_eq!(n_queens(4), 2);
+    }
+
+    #[test]
+    fn test_n_queens_1() {
+        assert_eq!(n_queens(1), 1);
+    }
+
+    #[test]
+    fn test_n_queens_2() {
+        assert_eq!(n_queens(2), 0);
+    }
+
+    #[test]
+    fn test_n_queens_3() {
+        assert_eq!(n_queens(3), 0);
+    }
+
+    #[test]
+    fn test_n_queens_8() {
+        assert_eq!(n_queens(8), 92);
     }
 }
