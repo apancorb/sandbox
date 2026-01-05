@@ -55,6 +55,78 @@ pub fn climbing_stairs_bottom_up(n: usize) -> usize {
     dp[n]
 }
 
+/// Minimum Coin Combination
+///
+/// You are given an array of coin values and a target amount of money. Return the minimum
+/// number of coins needed to total the target amount. If this isn't possible, return -1.
+/// You may assume there's an unlimited supply of each coin.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: coins = [1, 2, 3], target = 5
+///
+/// Output: 2
+///
+/// Explanation: Use one 2-dollar coin and one 3-dollar coin to make 5 dollars.
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: coins = [2, 4], target = 5
+///
+/// Output: -1
+/// ```
+pub fn min_coin_combination(coins: &[usize], target: usize) -> i32 {
+    fn min_coin_combination_helper(
+        coins: &[usize],
+        target: usize,
+        memo: &mut HashMap<usize, usize>,
+    ) -> usize {
+        if target == 0 {
+            return 0;
+        }
+
+        if let Some(&val) = memo.get(&target) {
+            return val;
+        }
+
+        let mut min_coin_combination = usize::MAX;
+        for &coin in coins {
+            if coin <= target {
+                let sub_result = min_coin_combination_helper(coins, target - coin, memo);
+                if sub_result != usize::MAX {
+                    min_coin_combination = min_coin_combination.min(1 + sub_result);
+                }
+            }
+        }
+
+        memo.insert(target, min_coin_combination);
+        min_coin_combination
+    }
+
+    let res = min_coin_combination_helper(coins, target, &mut HashMap::new());
+    if res == usize::MAX { -1 } else { res as i32 }
+}
+
+pub fn min_coin_combination_bottom_up(coins: &[usize], target: usize) -> i32 {
+    // The DP array will store the minimum number of coins needed for
+    // each amount. Set each element to a large number initially.
+    let mut dp = vec![usize::MAX; target + 1];
+    // Base case: if the target is 0, then 0 coins are needed.
+    dp[0] = 0;
+    // Update the DP array for all target amounts greater than 0.
+    for t in 1..=target {
+        for &coin in coins {
+            if coin <= t && dp[t - coin] != usize::MAX {
+                dp[t] = dp[t].min(1 + dp[t - coin]);
+            }
+        }
+    }
+    if dp[target] != usize::MAX { dp[target] as i32 } else { -1 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,5 +189,65 @@ mod tests {
     #[test]
     fn test_climbing_stairs_bottom_up_10() {
         assert_eq!(climbing_stairs_bottom_up(10), 89);
+    }
+
+    #[test]
+    fn test_min_coin_combination_example1() {
+        assert_eq!(min_coin_combination(&[1, 2, 3], 5), 2);
+    }
+
+    #[test]
+    fn test_min_coin_combination_example2() {
+        assert_eq!(min_coin_combination(&[2, 4], 5), -1);
+    }
+
+    #[test]
+    fn test_min_coin_combination_zero() {
+        assert_eq!(min_coin_combination(&[1, 2, 3], 0), 0);
+    }
+
+    #[test]
+    fn test_min_coin_combination_single_coin() {
+        assert_eq!(min_coin_combination(&[5], 10), 2);
+    }
+
+    #[test]
+    fn test_min_coin_combination_exact_coin() {
+        assert_eq!(min_coin_combination(&[1, 5, 10], 10), 1);
+    }
+
+    #[test]
+    fn test_min_coin_combination_larger() {
+        assert_eq!(min_coin_combination(&[1, 5, 10, 25], 63), 6); // 25+25+10+1+1+1
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_example1() {
+        assert_eq!(min_coin_combination_bottom_up(&[1, 2, 3], 5), 2);
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_example2() {
+        assert_eq!(min_coin_combination_bottom_up(&[2, 4], 5), -1);
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_zero() {
+        assert_eq!(min_coin_combination_bottom_up(&[1, 2, 3], 0), 0);
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_single_coin() {
+        assert_eq!(min_coin_combination_bottom_up(&[5], 10), 2);
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_exact_coin() {
+        assert_eq!(min_coin_combination_bottom_up(&[1, 5, 10], 10), 1);
+    }
+
+    #[test]
+    fn test_min_coin_combination_bottom_up_larger() {
+        assert_eq!(min_coin_combination_bottom_up(&[1, 5, 10, 25], 63), 6); // 25+25+10+1+1+1
     }
 }
