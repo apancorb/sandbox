@@ -124,7 +124,40 @@ pub fn min_coin_combination_bottom_up(coins: &[usize], target: usize) -> i32 {
             }
         }
     }
-    if dp[target] != usize::MAX { dp[target] as i32 } else { -1 }
+    if dp[target] != usize::MAX {
+        dp[target] as i32
+    } else {
+        -1
+    }
+}
+
+/// Matrix Pathways
+///
+/// You are positioned at the top-left corner of a m x n matrix, and can only move downward
+/// or rightward through the matrix. Determine the number of unique pathways you can take
+/// to reach the bottom-right corner of the matrix.
+///
+/// # Example
+///
+/// ```text
+/// Input: m = 3, n = 3
+///
+/// Output: 6
+/// ```
+///
+/// # Constraints
+///
+/// - m, n >= 1
+pub fn matrix_pathways(m: usize, n: usize) -> usize {
+    let mut dp = vec![vec![1; n]; m];
+
+    for i in 1..m {
+        for j in 1..n {
+            dp[i][j] = dp[i][j - 1] + dp[i - 1][j];
+        }
+    }
+
+    dp[m - 1][n - 1]
 }
 
 #[cfg(test)]
@@ -249,5 +282,35 @@ mod tests {
     #[test]
     fn test_min_coin_combination_bottom_up_larger() {
         assert_eq!(min_coin_combination_bottom_up(&[1, 5, 10, 25], 63), 6); // 25+25+10+1+1+1
+    }
+
+    #[test]
+    fn test_matrix_pathways_example() {
+        assert_eq!(matrix_pathways(3, 3), 6);
+    }
+
+    #[test]
+    fn test_matrix_pathways_1x1() {
+        assert_eq!(matrix_pathways(1, 1), 1);
+    }
+
+    #[test]
+    fn test_matrix_pathways_1xn() {
+        assert_eq!(matrix_pathways(1, 5), 1);
+    }
+
+    #[test]
+    fn test_matrix_pathways_mx1() {
+        assert_eq!(matrix_pathways(5, 1), 1);
+    }
+
+    #[test]
+    fn test_matrix_pathways_2x2() {
+        assert_eq!(matrix_pathways(2, 2), 2);
+    }
+
+    #[test]
+    fn test_matrix_pathways_3x7() {
+        assert_eq!(matrix_pathways(3, 7), 28);
     }
 }
