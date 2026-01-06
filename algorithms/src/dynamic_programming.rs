@@ -160,6 +160,40 @@ pub fn matrix_pathways(m: usize, n: usize) -> usize {
     dp[m - 1][n - 1]
 }
 
+/// Neighborhood Burglary
+///
+/// You plan to rob houses in a street where each house stores a certain amount of money.
+/// The neighborhood has a security system that sets off an alarm when two adjacent houses
+/// are robbed. Return the maximum amount of cash that can be stolen without triggering the
+/// alarms.
+///
+/// # Example
+///
+/// ```text
+/// Input: houses = [200, 300, 200, 50]
+///
+/// Output: 400
+///
+/// Explanation: Stealing from the houses at indexes 0 and 2 yields 200 + 200 = 400 dollars.
+/// ```
+pub fn neighborhood_burglary(houses: &[usize]) -> usize {
+    if houses.is_empty() {
+        return 0;
+    } else if houses.len() == 1 {
+        return houses[0];
+    }
+
+    let mut dp = vec![0; houses.len()];
+    dp[0] = houses[0];
+    dp[1] = houses[0].max(houses[1]);
+
+    for i in 2..dp.len() {
+        dp[i] = dp[i - 1].max(houses[i] + dp[i - 2]);
+    }
+
+    dp[dp.len() - 1]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -312,5 +346,35 @@ mod tests {
     #[test]
     fn test_matrix_pathways_3x7() {
         assert_eq!(matrix_pathways(3, 7), 28);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_example() {
+        assert_eq!(neighborhood_burglary(&[200, 300, 200, 50]), 400);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_empty() {
+        assert_eq!(neighborhood_burglary(&[]), 0);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_single() {
+        assert_eq!(neighborhood_burglary(&[100]), 100);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_two() {
+        assert_eq!(neighborhood_burglary(&[100, 200]), 200);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_all_same() {
+        assert_eq!(neighborhood_burglary(&[10, 10, 10, 10, 10]), 30);
+    }
+
+    #[test]
+    fn test_neighborhood_burglary_alternating() {
+        assert_eq!(neighborhood_burglary(&[1, 100, 1, 100, 1]), 200);
     }
 }
