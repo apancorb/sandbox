@@ -194,6 +194,37 @@ pub fn neighborhood_burglary(houses: &[usize]) -> usize {
     dp[dp.len() - 1]
 }
 
+/// Longest Common Subsequence
+///
+/// Given two strings, find the length of their longest common subsequence (LCS). A subsequence
+/// is a sequence of characters that can be derived from a string by deleting zero or more
+/// elements, without changing the order of the remaining elements.
+///
+/// # Example
+///
+/// ```text
+/// Input: s1 = "acabac", s2 = "aebab"
+///
+/// Output: 3
+/// ```
+pub fn longest_common_subsequence(s1: &str, s2: &str) -> usize {
+    let s1: Vec<char> = s1.chars().collect();
+    let s2: Vec<char> = s2.chars().collect();
+    let mut dp = vec![vec![0; s2.len() + 1]; s1.len() + 1];
+
+    for i in 1..=s1.len() {
+        for j in 1..=s2.len() {
+            if s1[i - 1] == s2[j - 1] {
+                dp[i][j] = 1 + dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = dp[i - 1][j].max(dp[i][j - 1]);
+            }
+        }
+    }
+
+    dp[s1.len()][s2.len()]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -376,5 +407,37 @@ mod tests {
     #[test]
     fn test_neighborhood_burglary_alternating() {
         assert_eq!(neighborhood_burglary(&[1, 100, 1, 100, 1]), 200);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_example() {
+        assert_eq!(longest_common_subsequence("acabac", "aebab"), 3);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_empty() {
+        assert_eq!(longest_common_subsequence("", "abc"), 0);
+        assert_eq!(longest_common_subsequence("abc", ""), 0);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_no_common() {
+        assert_eq!(longest_common_subsequence("abc", "xyz"), 0);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_identical() {
+        assert_eq!(longest_common_subsequence("abcd", "abcd"), 4);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_subsequence() {
+        assert_eq!(longest_common_subsequence("abcde", "ace"), 3);
+    }
+
+    #[test]
+    fn test_longest_common_subsequence_single_char() {
+        assert_eq!(longest_common_subsequence("a", "a"), 1);
+        assert_eq!(longest_common_subsequence("a", "b"), 0);
     }
 }
