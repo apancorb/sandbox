@@ -225,6 +225,54 @@ pub fn longest_common_subsequence(s1: &str, s2: &str) -> usize {
     dp[s1.len()][s2.len()]
 }
 
+/// Longest Palindrome in a String
+///
+/// Return the longest palindromic substring within a given string.
+///
+/// # Example
+///
+/// ```text
+/// Input: s = "abccbaba"
+///
+/// Output: "abccba"
+/// ```
+pub fn longest_palindrome(s: &str) -> String {
+    let s: Vec<char> = s.chars().collect();
+    let n = s.len();
+    if n == 0 {
+        return String::new();
+    }
+
+    let mut dp = vec![vec![false; n]; n];
+    let mut max_len = 1;
+    let mut start_index = 0;
+
+    for i in 0..n {
+        dp[i][i] = true;
+    }
+
+    for i in 0..n - 1 {
+        if s[i] == s[i + 1] {
+            dp[i][i + 1] = true;
+            max_len = 2;
+            start_index = i;
+        }
+    }
+
+    for substr_len in 3..=n {
+        for i in 0..(n - substr_len + 1) {
+            let j = i + substr_len - 1;
+            if s[i] == s[j] && dp[i + 1][j - 1] {
+                dp[i][j] = true;
+                max_len = substr_len;
+                start_index = i;
+            }
+        }
+    }
+
+    s[start_index..start_index + max_len].iter().collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -439,5 +487,35 @@ mod tests {
     fn test_longest_common_subsequence_single_char() {
         assert_eq!(longest_common_subsequence("a", "a"), 1);
         assert_eq!(longest_common_subsequence("a", "b"), 0);
+    }
+
+    #[test]
+    fn test_longest_palindrome_example() {
+        assert_eq!(longest_palindrome("abccbaba"), "abccba");
+    }
+
+    #[test]
+    fn test_longest_palindrome_empty() {
+        assert_eq!(longest_palindrome(""), "");
+    }
+
+    #[test]
+    fn test_longest_palindrome_single() {
+        assert_eq!(longest_palindrome("a"), "a");
+    }
+
+    #[test]
+    fn test_longest_palindrome_all_same() {
+        assert_eq!(longest_palindrome("aaaa"), "aaaa");
+    }
+
+    #[test]
+    fn test_longest_palindrome_odd_length() {
+        assert_eq!(longest_palindrome("racecar"), "racecar");
+    }
+
+    #[test]
+    fn test_longest_palindrome_at_end() {
+        assert_eq!(longest_palindrome("xyzaba"), "aba");
     }
 }
