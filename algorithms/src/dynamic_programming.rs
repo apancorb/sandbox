@@ -329,6 +329,52 @@ pub fn max_subarray_sum_dp(nums: &[i32]) -> i32 {
     max_sum
 }
 
+/// 0/1 Knapsack
+///
+/// You are a thief planning to rob a store. However, you can only carry a knapsack with a
+/// maximum capacity of `cap` units. Each item (i) in the store has a weight (weights[i]) and
+/// a value (values[i]).
+///
+/// Find the maximum total value of items you can carry in your knapsack.
+///
+/// # Example
+///
+/// ```text
+/// Input: cap = 7, weights = [5, 3, 4, 1], values = [70, 50, 40, 10]
+///
+/// Output: 90
+///
+/// Explanation: The most valuable combination of items that can fit in the knapsack together
+/// are items 1 and 2. These items have a combined value of 50 + 40 = 90 and a total weight of
+/// 3 + 4 = 7, which fits within the knapsack's capacity.
+/// ```
+pub fn knapsack(cap: usize, weights: &[usize], values: &[usize]) -> usize {
+    let n = values.len();
+    if n == 0 || cap == 0 {
+        return 0;
+    }
+    // base case: first col is 0 since cap of 0 means no items fit in the
+    // knapsack. last row is set to 0 since there is no nth item to pick from
+    let mut dp = vec![vec![0; cap + 1]; n + 1];
+    // populate the dp table
+    for i in (0..n).rev() {
+        for c in 1..=cap {
+            // if the item 'i' fits in the current knapsack cap,
+            // the maximum value at dp[i][c] is the largest of either:
+            // 1. The maximum value if we include item 'i'
+            // 2. The maximum value if we exclude item 'i'
+            if weights[i] <= c {
+                dp[i][c] = dp[i + 1][c].max(values[i] + dp[i + 1][c - weights[i]]);
+            // if it does not fit, we have to exclude it
+            } else {
+                dp[i][c] = dp[i + 1][c];
+            }
+        }
+    }
+    dbg!(&dp);
+    dp[0][cap]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -630,5 +676,41 @@ mod tests {
     #[test]
     fn test_max_subarray_sum_dp_empty() {
         assert_eq!(max_subarray_sum_dp(&[]), 0);
+    }
+
+    #[test]
+    fn test_knapsack_example() {
+        assert_eq!(knapsack(7, &[5, 3, 4, 1], &[70, 50, 40, 10]), 90);
+    }
+
+    #[test]
+    fn test_knapsack_empty() {
+        assert_eq!(knapsack(10, &[], &[]), 0);
+    }
+
+    #[test]
+    fn test_knapsack_zero_capacity() {
+        assert_eq!(knapsack(0, &[1, 2, 3], &[10, 20, 30]), 0);
+    }
+
+    #[test]
+    fn test_knapsack_single_item_fits() {
+        assert_eq!(knapsack(5, &[3], &[100]), 100);
+    }
+
+    #[test]
+    fn test_knapsack_single_item_too_heavy() {
+        assert_eq!(knapsack(2, &[3], &[100]), 0);
+    }
+
+    #[test]
+    fn test_knapsack_take_all() {
+        assert_eq!(knapsack(10, &[1, 2, 3], &[10, 20, 30]), 60);
+    }
+
+    #[test]
+    fn test_knapsack_choose_lighter() {
+        // Can take item with weight 4 (value 50) or item with weight 5 (value 40)
+        assert_eq!(knapsack(5, &[4, 5], &[50, 40]), 50);
     }
 }
