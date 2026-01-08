@@ -273,6 +273,62 @@ pub fn longest_palindrome(s: &str) -> String {
     s[start_index..start_index + max_len].iter().collect()
 }
 
+/// Maximum Subarray Sum
+///
+/// Given an array of integers, return the sum of the subarray with the largest sum.
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [3, 1, -6, 2, -1, 4, -9]
+///
+/// Output: 5
+///
+/// Explanation: subarray [2, -1, 4] has the largest sum of 5.
+/// ```
+///
+/// # Constraints
+///
+/// - The input array contains at least one element.
+pub fn max_subarray_sum(nums: &[i32]) -> i32 {
+    // Kadane's Algorithm:
+    // At each position, decide: start a new subarray here, or extend the previous one?
+    // curr_sum = max(num, curr_sum + num)
+    //   - If curr_sum + num < num, the previous subarray is dragging us down, so start fresh
+    //   - Otherwise, extend the current subarray
+    // max_sum tracks the best subarray sum seen so far
+    let mut curr_sum = nums[0];
+    let mut max_sum = nums[0];
+
+    for &num in &nums[1..] {
+        curr_sum = num.max(curr_sum + num);
+        max_sum = max_sum.max(curr_sum);
+    }
+
+    max_sum
+}
+
+pub fn max_subarray_sum_dp(nums: &[i32]) -> i32 {
+    if nums.is_empty() {
+        return 0;
+    }
+
+    let mut dp = vec![0; nums.len()];
+    // Base case: the maximum subarray sum of an array with just one
+    // element is that element.
+    dp[0] = nums[0];
+    let mut max_sum = dp[0];
+
+    // Populate the rest of the DP array.
+    for i in 1..nums.len() {
+        // Determine the maximum subarray sum ending at the current index.
+        dp[i] = (dp[i - 1] + nums[i]).max(nums[i]);
+        max_sum = max_sum.max(dp[i]);
+    }
+
+    max_sum
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -517,5 +573,62 @@ mod tests {
     #[test]
     fn test_longest_palindrome_at_end() {
         assert_eq!(longest_palindrome("xyzaba"), "aba");
+    }
+
+    #[test]
+    fn test_max_subarray_sum_example() {
+        assert_eq!(max_subarray_sum(&[3, 1, -6, 2, -1, 4, -9]), 5);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_all_positive() {
+        assert_eq!(max_subarray_sum(&[1, 2, 3, 4]), 10);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_all_negative() {
+        assert_eq!(max_subarray_sum(&[-3, -1, -4, -2]), -1);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_single() {
+        assert_eq!(max_subarray_sum(&[5]), 5);
+        assert_eq!(max_subarray_sum(&[-5]), -5);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_mixed() {
+        assert_eq!(max_subarray_sum(&[-2, 1, -3, 4, -1, 2, 1, -5, 4]), 6);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_example() {
+        assert_eq!(max_subarray_sum_dp(&[3, 1, -6, 2, -1, 4, -9]), 5);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_all_positive() {
+        assert_eq!(max_subarray_sum_dp(&[1, 2, 3, 4]), 10);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_all_negative() {
+        assert_eq!(max_subarray_sum_dp(&[-3, -1, -4, -2]), -1);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_single() {
+        assert_eq!(max_subarray_sum_dp(&[5]), 5);
+        assert_eq!(max_subarray_sum_dp(&[-5]), -5);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_mixed() {
+        assert_eq!(max_subarray_sum_dp(&[-2, 1, -3, 4, -1, 2, 1, -5, 4]), 6);
+    }
+
+    #[test]
+    fn test_max_subarray_sum_dp_empty() {
+        assert_eq!(max_subarray_sum_dp(&[]), 0);
     }
 }
