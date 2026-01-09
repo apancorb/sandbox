@@ -3,6 +3,7 @@ pub mod binary_search;
 pub mod dynamic_programming;
 pub mod fast_and_slow_pointers;
 pub mod graphs;
+pub mod greedy;
 pub mod hash_maps_and_sets;
 pub mod heaps;
 pub mod intervals;
