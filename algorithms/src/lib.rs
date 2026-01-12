@@ -10,6 +10,7 @@ pub mod intervals;
 pub mod linked_lists;
 pub mod prefix_sums;
 pub mod sliding_windows;
+pub mod sort_and_search;
 pub mod stacks;
 pub mod trees;
 pub mod tries;
