@@ -97,6 +97,54 @@ pub fn gas_stations(gas: &[i32], cost: &[i32]) -> i32 {
     start
 }
 
+/// Candies
+///
+/// You teach a class of children sitting in a row, each of whom has a rating based on their
+/// performance. You want to distribute candies to the children while abiding by the following
+/// rules:
+///
+/// 1. Each child must receive at least one candy.
+/// 2. If two children sit next to each other, the child with the higher rating must receive more candies.
+///
+/// Determine the minimum number of candies you need to distribute to satisfy these conditions.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: ratings = [4, 3, 2, 4, 5, 1]
+///
+/// Output: 12
+///
+/// Explanation: You can distribute candies to each child as follows: [3, 2, 1, 2, 3, 1].
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: ratings = [1, 3, 3]
+///
+/// Output: 4
+///
+/// Explanation: You can distribute candies to each child as follows: [1, 2, 1].
+/// ```
+pub fn candies(ratings: &[u32]) -> u32 {
+    let mut candies = vec![1; ratings.len()];
+
+    for i in 1..ratings.len() {
+        if ratings[i] > ratings[i - 1] {
+            candies[i] = 1 + candies[i - 1];
+        }
+    }
+
+    for i in (0..ratings.len() - 1).rev() {
+        if ratings[i] > ratings[i + 1] {
+            candies[i] = candies[i].max(candies[i + 1] + 1);
+        }
+    }
+
+    candies.iter().sum()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -156,5 +204,41 @@ mod tests {
     #[test]
     fn test_gas_stations_all_equal() {
         assert_eq!(gas_stations(&[3, 3, 3], &[3, 3, 3]), 0);
+    }
+
+    #[test]
+    fn test_candies_example1() {
+        assert_eq!(candies(&[4, 3, 2, 4, 5, 1]), 12);
+    }
+
+    #[test]
+    fn test_candies_example2() {
+        assert_eq!(candies(&[1, 3, 3]), 4);
+    }
+
+    #[test]
+    fn test_candies_single() {
+        assert_eq!(candies(&[5]), 1);
+    }
+
+    #[test]
+    fn test_candies_increasing() {
+        assert_eq!(candies(&[1, 2, 3, 4]), 10); // [1, 2, 3, 4]
+    }
+
+    #[test]
+    fn test_candies_decreasing() {
+        assert_eq!(candies(&[4, 3, 2, 1]), 10); // [4, 3, 2, 1]
+    }
+
+    #[test]
+    fn test_candies_all_equal() {
+        assert_eq!(candies(&[3, 3, 3, 3]), 4); // [1, 1, 1, 1]
+    }
+
+    #[test]
+    fn test_candies_valley() {
+        assert_eq!(candies(&[5, 2, 1, 2, 5]), 11); // [2, 1, 1, 2, 3] -> wait that's wrong
+        // Actually: [3, 2, 1, 2, 3] = 11
     }
 }
