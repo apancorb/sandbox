@@ -128,6 +128,71 @@ fn merge(mut l1: Option<NodeRef>, mut l2: Option<NodeRef>) -> Option<NodeRef> {
     Some(head)
 }
 
+/// Sort Array
+///
+/// Given an integer array, sort it in ascending order.
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [6, 8, 4, 2, 7, 3, 1, 5]
+///
+/// Output: [1, 2, 3, 4, 5, 6, 7, 8]
+/// ```
+// Quicksort Complexity:
+//
+// Time - Average O(n log n):
+//   - Good pivots split array roughly in half → log(n) levels
+//   - Each level does O(n) work (partition) → O(n log n) total
+//
+// Time - Worst O(n²):
+//   - Bad pivots (always min/max) → one side has n-1 elements
+//   - Creates n levels instead of log(n) → O(n²) total
+//   - Happens with already sorted arrays when using last element as pivot
+//
+// Space - O(log n) average, O(n) worst:
+//   - Recursion depth matches the number of levels
+//
+pub fn sort_array(nums: &mut [i32]) {
+    if nums.is_empty() {
+        return;
+    }
+    quicksort(nums, 0, nums.len() - 1);
+}
+
+fn quicksort(nums: &mut [i32], left: usize, right: usize) {
+    // Base case: if the subarray has 0 or 1 element, it's already sorted
+    if left >= right {
+        return;
+    }
+
+    // Partition the array and retrieve the pivot index
+    let pivot_index = partition(nums, left, right);
+
+    // Recursively sort left and right parts
+    if pivot_index > 0 {
+        quicksort(nums, left, pivot_index - 1);
+    }
+    quicksort(nums, pivot_index + 1, right);
+}
+
+fn partition(nums: &mut [i32], left: usize, right: usize) -> usize {
+    let pivot = nums[right];
+    let mut lo = left;
+
+    // Move all numbers less than pivot to the left
+    for i in left..right {
+        if nums[i] < pivot {
+            nums.swap(lo, i);
+            lo += 1;
+        }
+    }
+
+    // Swap pivot into its correct position
+    nums.swap(lo, right);
+    lo
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,5 +237,54 @@ mod tests {
         let head = Node::from_vec(&[3, 1, 2, 1, 3]);
         let sorted = sort_list(head);
         assert_eq!(Node::to_vec(&sorted), vec![1, 1, 2, 3, 3]);
+    }
+
+    #[test]
+    fn test_sort_array_example() {
+        let mut nums = [6, 8, 4, 2, 7, 3, 1, 5];
+        sort_array(&mut nums);
+        assert_eq!(nums, [1, 2, 3, 4, 5, 6, 7, 8]);
+    }
+
+    #[test]
+    fn test_sort_array_empty() {
+        let mut nums: [i32; 0] = [];
+        sort_array(&mut nums);
+        assert_eq!(nums, []);
+    }
+
+    #[test]
+    fn test_sort_array_single() {
+        let mut nums = [5];
+        sort_array(&mut nums);
+        assert_eq!(nums, [5]);
+    }
+
+    #[test]
+    fn test_sort_array_already_sorted() {
+        let mut nums = [1, 2, 3, 4, 5];
+        sort_array(&mut nums);
+        assert_eq!(nums, [1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_sort_array_reverse() {
+        let mut nums = [5, 4, 3, 2, 1];
+        sort_array(&mut nums);
+        assert_eq!(nums, [1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_sort_array_duplicates() {
+        let mut nums = [3, 1, 2, 1, 3];
+        sort_array(&mut nums);
+        assert_eq!(nums, [1, 1, 2, 3, 3]);
+    }
+
+    #[test]
+    fn test_sort_array_negative() {
+        let mut nums = [3, -1, 0, -5, 2];
+        sort_array(&mut nums);
+        assert_eq!(nums, [-5, -1, 0, 2, 3]);
     }
 }
