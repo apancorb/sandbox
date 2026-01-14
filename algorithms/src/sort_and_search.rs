@@ -1,4 +1,6 @@
 use std::cell::RefCell;
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 /// Linked list node using Rc<RefCell> for easier split/merge operations
@@ -126,6 +128,32 @@ fn merge(mut l1: Option<NodeRef>, mut l2: Option<NodeRef>) -> Option<NodeRef> {
     }
 
     Some(head)
+}
+
+/// Kth Largest Integer
+///
+/// Return the kth largest integer in an array.
+///
+/// # Example
+///
+/// ```text
+/// Input: nums = [5, 2, 4, 3, 1, 6], k = 3
+///
+/// Output: 4
+/// ```
+pub fn kth_largest(nums: &[i32], k: usize) -> i32 {
+    let mut min_heap: BinaryHeap<Reverse<i32>> = BinaryHeap::new();
+
+    for &num in nums {
+        if min_heap.len() < k {
+            min_heap.push(Reverse(num));
+        } else if num > min_heap.peek().unwrap().0 {
+            min_heap.pop();
+            min_heap.push(Reverse(num));
+        }
+    }
+
+    min_heap.peek().unwrap().0
 }
 
 /// Sort Array
@@ -286,5 +314,35 @@ mod tests {
         let mut nums = [3, -1, 0, -5, 2];
         sort_array(&mut nums);
         assert_eq!(nums, [-5, -1, 0, 2, 3]);
+    }
+
+    #[test]
+    fn test_kth_largest_example() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 3), 4);
+    }
+
+    #[test]
+    fn test_kth_largest_first() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 1), 6);
+    }
+
+    #[test]
+    fn test_kth_largest_last() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 6), 1);
+    }
+
+    #[test]
+    fn test_kth_largest_single() {
+        assert_eq!(kth_largest(&[42], 1), 42);
+    }
+
+    #[test]
+    fn test_kth_largest_duplicates() {
+        assert_eq!(kth_largest(&[3, 2, 3, 1, 2, 4, 5, 5, 6], 4), 4);
+    }
+
+    #[test]
+    fn test_kth_largest_negative() {
+        assert_eq!(kth_largest(&[-1, -5, 0, 3, -2], 2), 0);
     }
 }
