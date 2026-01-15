@@ -9,6 +9,7 @@ pub mod hash_maps_and_sets;
 pub mod heaps;
 pub mod intervals;
 pub mod linked_lists;
+pub mod math_and_geometry;
 pub mod prefix_sums;
 pub mod sliding_windows;
 pub mod sort_and_search;
