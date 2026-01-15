@@ -100,8 +100,12 @@ pub fn lonely_integer(nums: &[i32]) -> i32 {
 pub fn swap_odd_even_bits(n: u32) -> u32 {
     const EVEN_MASK: u32 = 0x55555555;
     const ODD_MASK: u32 = 0xAAAAAAAA;
+
     let even_bits = EVEN_MASK & n;
     let odd_bits = ODD_MASK & n;
+
+    // Shift the even bits to the left, the odd bits to the right, and
+    // merge these shifted values together.
     (even_bits << 1) | (odd_bits >> 1)
 }
 
