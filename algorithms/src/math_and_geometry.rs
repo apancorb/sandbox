@@ -101,6 +101,93 @@ pub fn reverse_integer(mut n: i32) -> i32 {
     reversed_n
 }
 
+/// Maximum Collinear Points
+///
+/// Given a set of points in a two-dimensional plane, determine the maximum number
+/// of points that lie along the same straight line.
+///
+/// # Example
+///
+/// ```text
+///   Y
+/// 4 |       •
+/// 3 | •   •
+/// 2 |   •
+/// 1 | •   •
+///   +----------→ X
+///     1 2 3 4
+///
+/// Input: points = [[1, 1], [1, 3], [2, 2], [3, 1], [3, 3], [4, 4]]
+/// Output: 4
+/// ```
+///
+/// # Constraints
+///
+/// - The input won't contain duplicate points.
+pub fn max_collinear_points(points: &[[i32; 2]]) -> usize {
+    let mut res = 0;
+
+    // Try each point as the "focal point"
+    for i in 0..points.len() {
+        res = res.max(max_points_from_focal_point(i, points));
+    }
+
+    res
+}
+
+fn max_points_from_focal_point(focal_idx: usize, points: &[[i32; 2]]) -> usize {
+    use std::collections::HashMap;
+
+    let mut slopes_map: HashMap<(i32, i32), usize> = HashMap::new();
+    let mut max_points = 0;
+
+    // Calculate slope from focal point to every other point
+    for j in 0..points.len() {
+        if j != focal_idx {
+            let slope = get_slope(&points[focal_idx], &points[j]);
+
+            // Count how many points share this slope
+            let count = slopes_map.entry(slope).or_insert(0);
+            *count += 1;
+
+            max_points = max_points.max(*count);
+        }
+    }
+
+    // +1 to include the focal point itself
+    max_points + 1
+}
+
+fn get_slope(p1: &[i32; 2], p2: &[i32; 2]) -> (i32, i32) {
+    fn gcd(mut a: i32, mut b: i32) -> i32 {
+        while b != 0 {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        a.abs()
+    }
+
+    let rise = p2[1] - p1[1];
+    let run = p2[0] - p1[0];
+
+    // Vertical line: can't divide by 0, use special marker
+    if run == 0 {
+        return (1, 0);
+    }
+
+    // Reduce fraction so (2,4) and (1,2) become the same
+    let g = gcd(rise, run);
+    let mut reduced = (rise / g, run / g);
+
+    // Normalize sign: keep run positive so (-1,-2) and (1,2) match
+    if reduced.1 < 0 {
+        reduced = (-reduced.0, -reduced.1);
+    }
+
+    reduced
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -169,5 +256,42 @@ mod tests {
     fn test_reverse_integer_overflow_negative() {
         // -2147483648 reversed would overflow
         assert_eq!(reverse_integer(-1563847412), 0);
+    }
+
+    #[test]
+    fn test_max_collinear_points_example() {
+        let points = [[1, 1], [1, 3], [2, 2], [3, 1], [3, 3], [4, 4]];
+        assert_eq!(max_collinear_points(&points), 4);
+    }
+
+    #[test]
+    fn test_max_collinear_points_single() {
+        let points = [[0, 0]];
+        assert_eq!(max_collinear_points(&points), 1);
+    }
+
+    #[test]
+    fn test_max_collinear_points_two() {
+        let points = [[0, 0], [1, 1]];
+        assert_eq!(max_collinear_points(&points), 2);
+    }
+
+    #[test]
+    fn test_max_collinear_points_horizontal() {
+        let points = [[1, 1], [2, 1], [3, 1], [4, 1]];
+        assert_eq!(max_collinear_points(&points), 4);
+    }
+
+    #[test]
+    fn test_max_collinear_points_vertical() {
+        let points = [[1, 1], [1, 2], [1, 3], [1, 4]];
+        assert_eq!(max_collinear_points(&points), 4);
+    }
+
+    #[test]
+    fn test_max_collinear_points_no_three_collinear() {
+        // Triangle - no 3 points on same line
+        let points = [[0, 0], [1, 1], [2, 0]];
+        assert_eq!(max_collinear_points(&points), 2);
     }
 }
