@@ -60,6 +60,47 @@ pub fn spiral_traversal(matrix: &[Vec<i32>]) -> Vec<i32> {
     result
 }
 
+/// Reverse 32-Bit Integer
+///
+/// Reverse the digits of a signed 32-bit integer. If the reversed integer overflows
+/// (i.e., is outside the range [-2^31, 2^31 - 1]), return 0. Assume the environment
+/// only allows you to store integers within the signed 32-bit integer range.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: n = 420
+/// Output: 24
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: n = -15
+/// Output: -51
+/// ```
+// Time: O(log n) - we process each digit once, and n has log₁₀(n) digits.
+//       For 32-bit integers (max 10 digits), this is effectively O(1).
+// Space: O(1) - only a few variables, no extra data structures.
+pub fn reverse_integer(mut n: i32) -> i32 {
+    let mut reversed_n: i32 = 0;
+
+    while n != 0 {
+        let digit = n % 10;
+        n /= 10;
+
+        reversed_n = match reversed_n
+            .checked_mul(10)
+            .and_then(|r| r.checked_add(digit))
+        {
+            Some(r) => r,
+            None => return 0,
+        };
+    }
+
+    reversed_n
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,5 +137,37 @@ mod tests {
     fn test_spiral_traversal_empty() {
         let matrix: Vec<Vec<i32>> = vec![];
         assert_eq!(spiral_traversal(&matrix), vec![]);
+    }
+
+    #[test]
+    fn test_reverse_integer_example1() {
+        assert_eq!(reverse_integer(420), 24);
+    }
+
+    #[test]
+    fn test_reverse_integer_example2() {
+        assert_eq!(reverse_integer(-15), -51);
+    }
+
+    #[test]
+    fn test_reverse_integer_zero() {
+        assert_eq!(reverse_integer(0), 0);
+    }
+
+    #[test]
+    fn test_reverse_integer_with_trailing_zeros() {
+        assert_eq!(reverse_integer(1200), 21);
+    }
+
+    #[test]
+    fn test_reverse_integer_overflow_positive() {
+        // 2147483647 reversed would overflow
+        assert_eq!(reverse_integer(1534236469), 0);
+    }
+
+    #[test]
+    fn test_reverse_integer_overflow_negative() {
+        // -2147483648 reversed would overflow
+        assert_eq!(reverse_integer(-1563847412), 0);
     }
 }
