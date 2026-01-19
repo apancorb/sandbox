@@ -105,6 +105,44 @@ pub fn remove_kth_from_end(head: Option<Box<ListNode>>, k: usize) -> Option<Box<
     dummy.next
 }
 
+/// Merge Two Sorted Lists
+///
+/// Merge two sorted linked lists and return it as a new sorted list.
+///
+/// # Example
+///
+/// ```text
+/// Input: 1 -> 2 -> 4, 1 -> 3 -> 4
+/// Output: 1 -> 1 -> 2 -> 3 -> 4 -> 4
+/// ```
+pub fn merge_two_lists(
+    mut list1: Option<Box<ListNode>>,
+    mut list2: Option<Box<ListNode>>,
+) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode::new(0));
+    let mut curr = &mut dummy;
+
+    while list1.is_some() && list2.is_some() {
+        let val1 = list1.as_ref().unwrap().val;
+        let val2 = list2.as_ref().unwrap().val;
+
+        if val1 <= val2 {
+            curr.next = list1.take();
+            curr = curr.next.as_mut().unwrap();
+            list1 = curr.next.take();
+        } else {
+            curr.next = list2.take();
+            curr = curr.next.as_mut().unwrap();
+            list2 = curr.next.take();
+        }
+    }
+
+    // Append the remaining
+    curr.next = if list1.is_some() { list1 } else { list2 };
+
+    dummy.next
+}
+
 /// Linked List Intersection
 ///
 /// Return the value of the node where two singly linked lists intersect. If the linked lists
@@ -381,6 +419,42 @@ mod tests {
         let head = ListNode::from_vec(vec![1, 2]);
         let result = remove_kth_from_end(head, 1);
         assert_eq!(ListNode::to_vec(&result), vec![1]);
+    }
+
+    #[test]
+    fn test_merge_two_lists_example() {
+        let list1 = ListNode::from_vec(vec![1, 2, 4]);
+        let list2 = ListNode::from_vec(vec![1, 3, 4]);
+        let result = merge_two_lists(list1, list2);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 1, 2, 3, 4, 4]);
+    }
+
+    #[test]
+    fn test_merge_two_lists_both_empty() {
+        let result = merge_two_lists(None, None);
+        assert_eq!(ListNode::to_vec(&result), vec![]);
+    }
+
+    #[test]
+    fn test_merge_two_lists_one_empty() {
+        let list1 = ListNode::from_vec(vec![1, 2, 3]);
+        let result = merge_two_lists(list1, None);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_merge_two_lists_other_empty() {
+        let list2 = ListNode::from_vec(vec![4, 5, 6]);
+        let result = merge_two_lists(None, list2);
+        assert_eq!(ListNode::to_vec(&result), vec![4, 5, 6]);
+    }
+
+    #[test]
+    fn test_merge_two_lists_different_lengths() {
+        let list1 = ListNode::from_vec(vec![1, 2]);
+        let list2 = ListNode::from_vec(vec![3, 4, 5, 6]);
+        let result = merge_two_lists(list1, list2);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3, 4, 5, 6]);
     }
 
     #[test]
