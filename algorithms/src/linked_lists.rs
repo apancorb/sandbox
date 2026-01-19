@@ -82,33 +82,27 @@ pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
 /// Output: 1 -> 2 -> 3 -> 5
 /// Explanation: Removed the 2nd node from the end (which is 4)
 /// ```
-pub fn remove_kth_from_end(mut head: Option<Box<ListNode>>, k: usize) -> Option<Box<ListNode>> {
-    if head.is_none() {
-        return head;
-    }
+pub fn remove_kth_from_end(head: Option<Box<ListNode>>, k: usize) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode { val: 0, next: head });
 
+    // Count length
     let mut len = 0;
-    let mut curr = &head;
+    let mut curr = &dummy.next;
     while let Some(node) = curr {
         len += 1;
         curr = &node.next;
     }
 
-    // Special case: removing the first node
-    if k == len {
-        return head.unwrap().next;
+    // Navigate to node BEFORE target
+    let mut curr = &mut dummy;
+    for _ in 0..(len - k) {
+        curr = curr.next.as_mut().unwrap();
     }
 
-    let target = len - k - 1;
-    let mut curr = &mut head;
-    for _ in 0..target {
-        curr = &mut curr.as_mut().unwrap().next;
-    }
+    // Remove: skip over the target node
+    curr.next = curr.next.take().unwrap().next;
 
-    let target_node = curr.as_mut().unwrap().next.take();
-    curr.as_mut().unwrap().next = target_node.unwrap().next;
-
-    head
+    dummy.next
 }
 
 /// Linked List Intersection
