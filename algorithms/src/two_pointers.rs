@@ -193,6 +193,121 @@ pub fn largest_container(heights: &[u32]) -> u32 {
     max_water
 }
 
+/// Remove Element
+///
+/// Remove all occurrences of val in nums in-place. Return the number of elements
+/// not equal to val. The first k elements of nums should contain the non-val elements.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [3, 2, 2, 3], val = 3
+/// Output: 2, nums = [2, 2, _, _]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [0, 1, 2, 2, 3, 0, 4, 2], val = 2
+/// Output: 5, nums = [0, 1, 4, 0, 3, _, _, _]
+/// ```
+pub fn remove_element(nums: &mut [i32], val: i32) -> usize {
+    let mut p1 = 0;
+    let mut p2 = nums.len();
+
+    while p1 < p2 {
+        if nums[p1] == val {
+            nums[p1] = nums[p2 - 1];
+            p2 -= 1;
+        } else {
+            p1 += 1;
+        }
+    }
+
+    p1
+}
+
+/// Remove Duplicates from Sorted Array
+///
+/// Given a sorted array, remove duplicates in-place such that each unique element
+/// appears only once. Return the number of unique elements k.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [1, 1, 2]
+/// Output: 2, nums = [1, 2, _]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [0, 0, 1, 1, 1, 2, 2, 3, 3, 4]
+/// Output: 5, nums = [0, 1, 2, 3, 4, _, _, _, _, _]
+/// ```
+pub fn remove_duplicates(nums: &mut [i32]) -> usize {
+    if nums.is_empty() {
+        return 0;
+    }
+
+    let mut p1 = 1;
+    let mut prev_val = nums[0];
+
+    for p2 in 1..nums.len() {
+        if nums[p2] != prev_val {
+            nums[p1] = nums[p2];
+            p1 += 1;
+            prev_val = nums[p2];
+        }
+    }
+
+    p1
+}
+
+/// Remove Duplicates from Sorted Array II
+///
+/// Given a sorted array, remove duplicates in-place such that each unique element
+/// appears at most twice. Return the number of elements k.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [1, 1, 1, 2, 2, 3]
+/// Output: 5, nums = [1, 1, 2, 2, 3, _]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [0, 0, 1, 1, 1, 1, 2, 3, 3]
+/// Output: 7, nums = [0, 0, 1, 1, 2, 3, 3, _, _]
+/// ```
+pub fn remove_duplicates_ii(nums: &mut [i32]) -> usize {
+    if nums.is_empty() {
+        return 0;
+    }
+
+    let mut p1 = 1;
+    let mut prev_val = nums[0];
+    let mut count = 1;
+
+    for p2 in 1..nums.len() {
+        if prev_val == nums[p2] && count == 1 {
+            nums[p1] = nums[p2];
+            count += 1;
+            p1 += 1;
+        } else if prev_val != nums[p2] {
+            nums[p1] = nums[p2];
+            p1 += 1;
+            count = 1;
+            prev_val = nums[p2];
+        }
+        // If same value and count >= 2, skip
+    }
+
+    p1
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -406,5 +521,140 @@ mod tests {
     #[test]
     fn test_largest_container_decreasing() {
         assert_eq!(largest_container(&[3, 2, 1]), 2);
+    }
+
+    #[test]
+    fn test_remove_element_example1() {
+        let mut nums = vec![3, 2, 2, 3];
+        let k = remove_element(&mut nums, 3);
+        assert_eq!(k, 2);
+        nums[..k].sort();
+        assert_eq!(&nums[..k], &[2, 2]);
+    }
+
+    #[test]
+    fn test_remove_element_example2() {
+        let mut nums = vec![0, 1, 2, 2, 3, 0, 4, 2];
+        let k = remove_element(&mut nums, 2);
+        assert_eq!(k, 5);
+        nums[..k].sort();
+        assert_eq!(&nums[..k], &[0, 0, 1, 3, 4]);
+    }
+
+    #[test]
+    fn test_remove_element_empty() {
+        let mut nums: Vec<i32> = vec![];
+        let k = remove_element(&mut nums, 1);
+        assert_eq!(k, 0);
+    }
+
+    #[test]
+    fn test_remove_element_all_same() {
+        let mut nums = vec![3, 3, 3, 3];
+        let k = remove_element(&mut nums, 3);
+        assert_eq!(k, 0);
+    }
+
+    #[test]
+    fn test_remove_element_none_match() {
+        let mut nums = vec![1, 2, 3, 4];
+        let k = remove_element(&mut nums, 5);
+        assert_eq!(k, 4);
+        nums[..k].sort();
+        assert_eq!(&nums[..k], &[1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_example1() {
+        let mut nums = vec![1, 1, 2];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 2);
+        assert_eq!(&nums[..k], &[1, 2]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_example2() {
+        let mut nums = vec![0, 0, 1, 1, 1, 2, 2, 3, 3, 4];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 5);
+        assert_eq!(&nums[..k], &[0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_empty() {
+        let mut nums: Vec<i32> = vec![];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 0);
+    }
+
+    #[test]
+    fn test_remove_duplicates_single() {
+        let mut nums = vec![1];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 1);
+        assert_eq!(&nums[..k], &[1]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_no_duplicates() {
+        let mut nums = vec![1, 2, 3, 4, 5];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 5);
+        assert_eq!(&nums[..k], &[1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_all_same() {
+        let mut nums = vec![5, 5, 5, 5];
+        let k = remove_duplicates(&mut nums);
+        assert_eq!(k, 1);
+        assert_eq!(&nums[..k], &[5]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_example1() {
+        let mut nums = vec![1, 1, 1, 2, 2, 3];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 5);
+        assert_eq!(&nums[..k], &[1, 1, 2, 2, 3]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_example2() {
+        let mut nums = vec![0, 0, 1, 1, 1, 1, 2, 3, 3];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 7);
+        assert_eq!(&nums[..k], &[0, 0, 1, 1, 2, 3, 3]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_empty() {
+        let mut nums: Vec<i32> = vec![];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 0);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_single() {
+        let mut nums = vec![1];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 1);
+        assert_eq!(&nums[..k], &[1]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_two_same() {
+        let mut nums = vec![1, 1];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 2);
+        assert_eq!(&nums[..k], &[1, 1]);
+    }
+
+    #[test]
+    fn test_remove_duplicates_ii_all_same() {
+        let mut nums = vec![5, 5, 5, 5, 5];
+        let k = remove_duplicates_ii(&mut nums);
+        assert_eq!(k, 2);
+        assert_eq!(&nums[..k], &[5, 5]);
     }
 }
