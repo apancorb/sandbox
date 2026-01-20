@@ -324,6 +324,51 @@ impl LRUCache {
     }
 }
 
+/// Add Two Numbers
+///
+/// Given two non-empty linked lists representing two non-negative integers,
+/// where digits are stored in reverse order, add the two numbers and return
+/// the sum as a linked list.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: l1 = [2, 4, 3], l2 = [5, 6, 4]
+/// Output: [7, 0, 8]
+/// Explanation: 342 + 465 = 807
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: l1 = [9, 9, 9, 9, 9, 9, 9], l2 = [9, 9, 9, 9]
+/// Output: [8, 9, 9, 9, 0, 0, 0, 1]
+/// ```
+pub fn add_two_numbers(
+    mut l1: Option<Box<ListNode>>,
+    mut l2: Option<Box<ListNode>>,
+) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode::new(0));
+    let mut curr = &mut dummy;
+    let mut carry = 0;
+
+    while l1.is_some() || l2.is_some() || carry != 0 {
+        let val1 = l1.as_ref().map_or(0, |n| n.val);
+        let val2 = l2.as_ref().map_or(0, |n| n.val);
+
+        let sum = val1 + val2 + carry;
+        carry = sum / 10;
+
+        curr.next = Some(Box::new(ListNode::new(sum % 10)));
+        curr = curr.next.as_mut().unwrap();
+
+        l1 = l1.and_then(|n| n.next);
+        l2 = l2.and_then(|n| n.next);
+    }
+
+    dummy.next
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -536,5 +581,45 @@ mod tests {
         assert_eq!(cache.get(1), None);
         cache.put(1, 100);
         assert_eq!(cache.get(2), None);
+    }
+
+    #[test]
+    fn test_add_two_numbers_example1() {
+        let l1 = ListNode::from_vec(vec![2, 4, 3]);
+        let l2 = ListNode::from_vec(vec![5, 6, 4]);
+        let result = add_two_numbers(l1, l2);
+        assert_eq!(ListNode::to_vec(&result), vec![7, 0, 8]);
+    }
+
+    #[test]
+    fn test_add_two_numbers_example2() {
+        let l1 = ListNode::from_vec(vec![0]);
+        let l2 = ListNode::from_vec(vec![0]);
+        let result = add_two_numbers(l1, l2);
+        assert_eq!(ListNode::to_vec(&result), vec![0]);
+    }
+
+    #[test]
+    fn test_add_two_numbers_example3() {
+        let l1 = ListNode::from_vec(vec![9, 9, 9, 9, 9, 9, 9]);
+        let l2 = ListNode::from_vec(vec![9, 9, 9, 9]);
+        let result = add_two_numbers(l1, l2);
+        assert_eq!(ListNode::to_vec(&result), vec![8, 9, 9, 9, 0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn test_add_two_numbers_different_lengths() {
+        let l1 = ListNode::from_vec(vec![1, 2, 3]);
+        let l2 = ListNode::from_vec(vec![4, 5]);
+        let result = add_two_numbers(l1, l2);
+        assert_eq!(ListNode::to_vec(&result), vec![5, 7, 3]); // 321 + 54 = 375
+    }
+
+    #[test]
+    fn test_add_two_numbers_carry_propagates() {
+        let l1 = ListNode::from_vec(vec![9, 9]);
+        let l2 = ListNode::from_vec(vec![1]);
+        let result = add_two_numbers(l1, l2);
+        assert_eq!(ListNode::to_vec(&result), vec![0, 0, 1]); // 99 + 1 = 100
     }
 }
