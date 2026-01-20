@@ -135,6 +135,46 @@ pub fn zero_striping(matrix: &mut [Vec<i32>]) {
     }
 }
 
+/// Majority Element
+///
+/// Given an array of size n, return the majority element. The majority element
+/// is the element that appears more than n/2 times.
+///
+/// Uses Boyer-Moore Voting Algorithm: O(n) time, O(1) space.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [3, 2, 3]
+/// Output: 3
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [2, 2, 1, 1, 1, 2, 2]
+/// Output: 2
+/// ```
+pub fn majority_element(nums: &[i32]) -> i32 {
+    let mut maj = nums[0];
+    let mut count = 1;
+
+    for i in 1..nums.len() {
+        if nums[i] == maj {
+            count += 1;
+        } else {
+            count -= 1;
+        }
+
+        if count == 0 {
+            maj = nums[i];
+            count = 1;
+        }
+    }
+
+    maj
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -399,5 +439,35 @@ mod tests {
             matrix,
             vec![vec![1, 0, 3, 4], vec![0, 0, 0, 0], vec![9, 0, 11, 12],]
         );
+    }
+
+    #[test]
+    fn test_majority_element_example1() {
+        assert_eq!(majority_element(&[3, 2, 3]), 3);
+    }
+
+    #[test]
+    fn test_majority_element_example2() {
+        assert_eq!(majority_element(&[2, 2, 1, 1, 1, 2, 2]), 2);
+    }
+
+    #[test]
+    fn test_majority_element_single() {
+        assert_eq!(majority_element(&[1]), 1);
+    }
+
+    #[test]
+    fn test_majority_element_two_same() {
+        assert_eq!(majority_element(&[5, 5]), 5);
+    }
+
+    #[test]
+    fn test_majority_element_all_same() {
+        assert_eq!(majority_element(&[7, 7, 7, 7, 7]), 7);
+    }
+
+    #[test]
+    fn test_majority_element_at_end() {
+        assert_eq!(majority_element(&[1, 2, 3, 3, 3]), 3);
     }
 }
