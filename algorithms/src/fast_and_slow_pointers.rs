@@ -29,6 +29,18 @@ impl Node {
 /// Output: true
 /// Explanation: Node 4's next points back to node 2, creating a cycle.
 /// ```
+// Floyd's Cycle Detection (Tortoise and Hare):
+//
+// Why it works:
+// - Slow moves 1 step, fast moves 2 steps per iteration
+// - If no cycle: fast reaches null → return false
+// - If cycle exists: once both enter the cycle, fast gains 1 step per iteration
+// - Gap closes by 1 each time: k → k-1 → k-2 → ... → 0 (they meet)
+//
+// Analogy: Two runners on a circular track - the faster one always laps the slower.
+//
+// Time: O(n) - at most 2 full traversals
+// Space: O(1) - just two pointers
 pub fn has_cycle(head: Option<Rc<RefCell<Node>>>) -> bool {
     if head.is_none() {
         return false;
