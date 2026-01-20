@@ -221,6 +221,33 @@ fn partition(nums: &mut [i32], left: usize, right: usize) -> usize {
     lo
 }
 
+/// Merge Sorted Array
+///
+/// Merge nums1 and nums2 into a single array sorted in non-decreasing order.
+/// The result is stored in nums1, which has length m + n (last n elements are 0s).
+///
+/// # Example
+///
+/// ```text
+/// Input: nums1 = [1, 2, 3, 0, 0, 0], m = 3, nums2 = [2, 5, 6], n = 3
+/// Output: nums1 = [1, 2, 2, 3, 5, 6]
+/// ```
+pub fn merge_sorted_array(nums1: &mut [i32], m: usize, nums2: &[i32], n: usize) {
+    let copy_nums1 = nums1[0..m].to_vec();
+    let mut p1 = 0;
+    let mut p2 = 0;
+
+    for i in 0..(m + n) {
+        if p2 >= n || (p1 < m && copy_nums1[p1] <= nums2[p2]) {
+            nums1[i] = copy_nums1[p1];
+            p1 += 1;
+        } else {
+            nums1[i] = nums2[p2];
+            p2 += 1;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -344,5 +371,45 @@ mod tests {
     #[test]
     fn test_kth_largest_negative() {
         assert_eq!(kth_largest(&[-1, -5, 0, 3, -2], 2), 0);
+    }
+
+    #[test]
+    fn test_merge_sorted_array_example() {
+        let mut nums1 = vec![1, 2, 3, 0, 0, 0];
+        let nums2 = vec![2, 5, 6];
+        merge_sorted_array(&mut nums1, 3, &nums2, 3);
+        assert_eq!(nums1, vec![1, 2, 2, 3, 5, 6]);
+    }
+
+    #[test]
+    fn test_merge_sorted_array_nums2_empty() {
+        let mut nums1 = vec![1, 2, 3];
+        let nums2: Vec<i32> = vec![];
+        merge_sorted_array(&mut nums1, 3, &nums2, 0);
+        assert_eq!(nums1, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_merge_sorted_array_nums1_empty() {
+        let mut nums1 = vec![0];
+        let nums2 = vec![1];
+        merge_sorted_array(&mut nums1, 0, &nums2, 1);
+        assert_eq!(nums1, vec![1]);
+    }
+
+    #[test]
+    fn test_merge_sorted_array_interleaved() {
+        let mut nums1 = vec![1, 3, 5, 0, 0, 0];
+        let nums2 = vec![2, 4, 6];
+        merge_sorted_array(&mut nums1, 3, &nums2, 3);
+        assert_eq!(nums1, vec![1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn test_merge_sorted_array_nums2_all_smaller() {
+        let mut nums1 = vec![4, 5, 6, 0, 0, 0];
+        let nums2 = vec![1, 2, 3];
+        merge_sorted_array(&mut nums1, 3, &nums2, 3);
+        assert_eq!(nums1, vec![1, 2, 3, 4, 5, 6]);
     }
 }
