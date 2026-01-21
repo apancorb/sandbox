@@ -180,6 +180,58 @@ pub fn max_profit(prices: &[i32]) -> i32 {
     max_profit
 }
 
+/// Best Time to Buy and Sell Stock II
+///
+/// Given stock prices, find max profit with unlimited transactions.
+/// You can buy/sell multiple times but only hold one share at a time.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: prices = [7, 1, 5, 3, 6, 4]
+/// Output: 7
+/// Explanation: Buy at 1, sell at 5 (profit 4). Buy at 3, sell at 6 (profit 3).
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: prices = [1, 2, 3, 4, 5]
+/// Output: 4
+/// Explanation: Buy at 1, sell at 5 (or capture each +1 step)
+/// ```
+// Greedy: capture every upward movement.
+// If price goes up tomorrow, buy today and sell tomorrow.
+//
+// Why this works - consider prices [1, 7, 2, 3, 6, 7, 6, 7]:
+//
+//     7 *       * 7   * 7
+//       |      /|    /
+//     6 |    6* |  6*
+//       |   /   |
+//       |  *3   |
+//     2 | *     |
+//       |/      |
+//     1 *       |
+//       --------|------
+//       A  B  C    D
+//
+// Sum of small gains (A + B + C) = one big gain (D)
+// e.g., (7-1) = (7-6) + (6-3) + (3-2) + (2-1) ... wait, simpler:
+// Capturing every +1 step from valley to peak equals the peak-valley difference.
+// So we don't need to find peaks/valleys - just sum all positive differences.
+pub fn max_profit_ii(prices: &[i32]) -> i32 {
+    let mut profit = 0;
+
+    for i in 1..prices.len() {
+        if prices[i] > prices[i - 1] {
+            profit += prices[i] - prices[i - 1];
+        }
+    }
+
+    profit
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -305,5 +357,30 @@ mod tests {
     #[test]
     fn test_max_profit_best_at_end() {
         assert_eq!(max_profit(&[2, 4, 1, 7]), 6); // Buy at 1, sell at 7
+    }
+
+    #[test]
+    fn test_max_profit_ii_example1() {
+        assert_eq!(max_profit_ii(&[7, 1, 5, 3, 6, 4]), 7);
+    }
+
+    #[test]
+    fn test_max_profit_ii_example2() {
+        assert_eq!(max_profit_ii(&[1, 2, 3, 4, 5]), 4);
+    }
+
+    #[test]
+    fn test_max_profit_ii_example3() {
+        assert_eq!(max_profit_ii(&[7, 6, 4, 3, 1]), 0);
+    }
+
+    #[test]
+    fn test_max_profit_ii_single() {
+        assert_eq!(max_profit_ii(&[5]), 0);
+    }
+
+    #[test]
+    fn test_max_profit_ii_zigzag() {
+        assert_eq!(max_profit_ii(&[1, 3, 2, 4]), 4); // (3-1) + (4-2) = 2 + 2 = 4
     }
 }
