@@ -264,6 +264,39 @@ pub fn remove_duplicates(nums: &mut [i32]) -> usize {
     p1
 }
 
+/// Rotate Array
+///
+/// Rotate the array to the right by k steps.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [1, 2, 3, 4, 5, 6, 7], k = 3
+/// Output: [5, 6, 7, 1, 2, 3, 4]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [-1, -100, 3, 99], k = 2
+/// Output: [3, 99, -1, -100]
+/// ```
+// O(n*k) time, O(1) space - rotate one step at a time
+pub fn rotate(nums: &mut [i32], k: usize) {
+    if nums.is_empty() {
+        return;
+    }
+
+    for _ in 0..k {
+        let mut prev = nums[nums.len() - 1];
+        for i in 0..nums.len() {
+            let tmp = nums[i];
+            nums[i] = prev;
+            prev = tmp;
+        }
+    }
+}
+
 /// Remove Duplicates from Sorted Array II
 ///
 /// Given a sorted array, remove duplicates in-place such that each unique element
@@ -656,5 +689,47 @@ mod tests {
         let k = remove_duplicates_ii(&mut nums);
         assert_eq!(k, 2);
         assert_eq!(&nums[..k], &[5, 5]);
+    }
+
+    #[test]
+    fn test_rotate_example1() {
+        let mut nums = vec![1, 2, 3, 4, 5, 6, 7];
+        rotate(&mut nums, 3);
+        assert_eq!(nums, vec![5, 6, 7, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_rotate_example2() {
+        let mut nums = vec![-1, -100, 3, 99];
+        rotate(&mut nums, 2);
+        assert_eq!(nums, vec![3, 99, -1, -100]);
+    }
+
+    #[test]
+    fn test_rotate_k_zero() {
+        let mut nums = vec![1, 2, 3];
+        rotate(&mut nums, 0);
+        assert_eq!(nums, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_rotate_k_equals_len() {
+        let mut nums = vec![1, 2, 3];
+        rotate(&mut nums, 3);
+        assert_eq!(nums, vec![1, 2, 3]); // Full rotation = no change
+    }
+
+    #[test]
+    fn test_rotate_k_greater_than_len() {
+        let mut nums = vec![1, 2, 3];
+        rotate(&mut nums, 4); // Same as k=1
+        assert_eq!(nums, vec![3, 1, 2]);
+    }
+
+    #[test]
+    fn test_rotate_single() {
+        let mut nums = vec![1];
+        rotate(&mut nums, 5);
+        assert_eq!(nums, vec![1]);
     }
 }
