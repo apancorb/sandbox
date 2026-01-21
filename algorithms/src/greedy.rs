@@ -145,6 +145,41 @@ pub fn candies(ratings: &[u32]) -> u32 {
     candies.iter().sum()
 }
 
+/// Best Time to Buy and Sell Stock
+///
+/// Given an array where prices[i] is the stock price on day i, find the maximum
+/// profit from buying on one day and selling on a later day.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: prices = [7, 1, 5, 3, 6, 4]
+/// Output: 5
+/// Explanation: Buy at 1, sell at 6 → profit = 5
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: prices = [7, 6, 4, 3, 1]
+/// Output: 0
+/// Explanation: Prices only decrease, no profit possible
+/// ```
+pub fn max_profit(prices: &[i32]) -> i32 {
+    let mut min_price = i32::MAX;
+    let mut max_profit = 0;
+
+    for &price in prices {
+        if price < min_price {
+            min_price = price;
+        } else if price - min_price > max_profit {
+            max_profit = price - min_price;
+        }
+    }
+
+    max_profit
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -240,5 +275,35 @@ mod tests {
     fn test_candies_valley() {
         assert_eq!(candies(&[5, 2, 1, 2, 5]), 11); // [2, 1, 1, 2, 3] -> wait that's wrong
         // Actually: [3, 2, 1, 2, 3] = 11
+    }
+
+    #[test]
+    fn test_max_profit_example1() {
+        assert_eq!(max_profit(&[7, 1, 5, 3, 6, 4]), 5);
+    }
+
+    #[test]
+    fn test_max_profit_example2() {
+        assert_eq!(max_profit(&[7, 6, 4, 3, 1]), 0);
+    }
+
+    #[test]
+    fn test_max_profit_single() {
+        assert_eq!(max_profit(&[5]), 0);
+    }
+
+    #[test]
+    fn test_max_profit_two_increasing() {
+        assert_eq!(max_profit(&[1, 5]), 4);
+    }
+
+    #[test]
+    fn test_max_profit_two_decreasing() {
+        assert_eq!(max_profit(&[5, 1]), 0);
+    }
+
+    #[test]
+    fn test_max_profit_best_at_end() {
+        assert_eq!(max_profit(&[2, 4, 1, 7]), 6); // Buy at 1, sell at 7
     }
 }
