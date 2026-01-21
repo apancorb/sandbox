@@ -24,6 +24,28 @@
 ///
 /// - There is at least one element in nums.
 /// - All integers in nums are non-negative integers.
+//
+// Greedy approach (O(n) time, O(1) space):
+// Work backwards - if position i can reach current destination, move destination to i.
+//
+// DP approach (O(n²) time, O(n) space):
+// ```
+// let mut dp = vec![false; n];
+// dp[0] = true;  // We start at index 0
+//
+// for i in 0..n {
+//     if dp[i] {
+//         for j in 1..=nums[i] {
+//             if i + j < n {
+//                 dp[i + j] = true;
+//             }
+//         }
+//     }
+// }
+// return dp[n - 1]
+// ```
+// dp[i] = "can we reach position i?"
+// From each reachable position, mark all positions we can jump to.
 pub fn jump_to_end(nums: &[usize]) -> bool {
     let mut destination = nums.len() - 1;
 
