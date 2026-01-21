@@ -369,6 +369,77 @@ pub fn add_two_numbers(
     dummy.next
 }
 
+/// Node with random pointer for Copy List problem
+#[derive(Debug)]
+pub struct RandomNode {
+    pub val: i32,
+    pub next: Option<Rc<RefCell<RandomNode>>>,
+    pub random: Option<Rc<RefCell<RandomNode>>>,
+}
+
+impl RandomNode {
+    pub fn new(val: i32) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(RandomNode {
+            val,
+            next: None,
+            random: None,
+        }))
+    }
+}
+
+/// Copy List with Random Pointer
+///
+/// Given a linked list where each node has a `next` pointer and a `random` pointer
+/// (which can point to any node or null), create a deep copy of the list.
+///
+/// # Example
+///
+/// ```text
+/// Input: [[7,null],[13,0],[11,4],[10,2],[1,0]]
+/// Output: [[7,null],[13,0],[11,4],[10,2],[1,0]]
+/// ```
+// Uses HashMap to map original nodes to cloned nodes.
+// Two passes: 1) create all nodes, 2) wire up next and random pointers.
+pub fn copy_random_list(head: Option<Rc<RefCell<RandomNode>>>) -> Option<Rc<RefCell<RandomNode>>> {
+    if head.is_none() {
+        return None;
+    }
+
+    // Map from original node address to cloned node
+    let mut map: HashMap<*const RefCell<RandomNode>, Rc<RefCell<RandomNode>>> = HashMap::new();
+
+    // First pass: create all nodes and populate map
+    let mut curr = head.clone();
+    while let Some(node) = curr {
+        let clone = RandomNode::new(node.borrow().val);
+        map.insert(Rc::as_ptr(&node), clone);
+        curr = node.borrow().next.clone();
+    }
+
+    // Second pass: wire up next and random pointers
+    curr = head.clone();
+    while let Some(node) = curr {
+        let node_ptr = Rc::as_ptr(&node);
+        let clone = map.get(&node_ptr).unwrap();
+
+        // Set next
+        if let Some(next) = node.borrow().next.as_ref() {
+            let next_clone = map.get(&Rc::as_ptr(next)).unwrap();
+            clone.borrow_mut().next = Some(Rc::clone(next_clone));
+        }
+
+        // Set random
+        if let Some(random) = node.borrow().random.as_ref() {
+            let random_clone = map.get(&Rc::as_ptr(random)).unwrap();
+            clone.borrow_mut().random = Some(Rc::clone(random_clone));
+        }
+
+        curr = node.borrow().next.clone();
+    }
+
+    map.get(&Rc::as_ptr(&head.unwrap())).cloned()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -621,5 +692,49 @@ mod tests {
         let l2 = ListNode::from_vec(vec![1]);
         let result = add_two_numbers(l1, l2);
         assert_eq!(ListNode::to_vec(&result), vec![0, 0, 1]); // 99 + 1 = 100
+    }
+
+    #[test]
+    fn test_copy_random_list_empty() {
+        let result = copy_random_list(None);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_copy_random_list_single() {
+        let node = RandomNode::new(7);
+        let result = copy_random_list(Some(node.clone()));
+
+        assert!(result.is_some());
+        let copied = result.unwrap();
+        assert_eq!(copied.borrow().val, 7);
+        // Ensure it's a different node (deep copy)
+        assert!(!Rc::ptr_eq(&node, &copied));
+    }
+
+    #[test]
+    fn test_copy_random_list_with_random() {
+        // Create: 1 -> 2, where 1.random = 2 and 2.random = 2 (self)
+        let node1 = RandomNode::new(1);
+        let node2 = RandomNode::new(2);
+
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        node1.borrow_mut().random = Some(Rc::clone(&node2));
+        node2.borrow_mut().random = Some(Rc::clone(&node2));
+
+        let result = copy_random_list(Some(Rc::clone(&node1)));
+
+        let copied1 = result.unwrap();
+        assert_eq!(copied1.borrow().val, 1);
+
+        let copied2 = copied1.borrow().next.clone().unwrap();
+        assert_eq!(copied2.borrow().val, 2);
+
+        // Check random pointers point to copied nodes, not originals
+        let copied1_random = copied1.borrow().random.clone().unwrap();
+        assert!(Rc::ptr_eq(&copied1_random, &copied2));
+
+        let copied2_random = copied2.borrow().random.clone().unwrap();
+        assert!(Rc::ptr_eq(&copied2_random, &copied2));
     }
 }
