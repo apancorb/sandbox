@@ -58,6 +58,49 @@ pub fn jump_to_end(nums: &[usize]) -> bool {
     destination == 0
 }
 
+/// Jump Game II
+///
+/// Given a 0-indexed array where each element represents the maximum jump length
+/// from that position, return the minimum number of jumps to reach the last index.
+/// It's guaranteed you can reach the end.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: nums = [2, 3, 1, 1, 4]
+/// Output: 2
+/// Explanation: Jump 1 step (0→1), then 3 steps (1→4)
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: nums = [2, 3, 0, 1, 4]
+/// Output: 2
+/// ```
+pub fn min_jumps(nums: &[usize]) -> usize {
+    if nums.len() <= 1 {
+        return 0;
+    }
+
+    let mut jumps = 0;
+    let mut current_end = 0; // edge of current jump
+    let mut farthest = 0; // best we have seen
+
+    for i in 0..nums.len() - 1 {
+        // update the fathest reachable index of this jump
+        farthest = farthest.max(nums[i] + i);
+
+        // reached the edge, must jump
+        if i == current_end {
+            jumps += 1;
+            current_end = farthest;
+        }
+    }
+
+    jumps
+}
+
 /// Gas Stations
 ///
 /// There's a circular route which contains gas stations. At each station, you can fill your car
@@ -404,5 +447,35 @@ mod tests {
     #[test]
     fn test_max_profit_ii_zigzag() {
         assert_eq!(max_profit_ii(&[1, 3, 2, 4]), 4); // (3-1) + (4-2) = 2 + 2 = 4
+    }
+
+    #[test]
+    fn test_min_jumps_example1() {
+        assert_eq!(min_jumps(&[2, 3, 1, 1, 4]), 2);
+    }
+
+    #[test]
+    fn test_min_jumps_example2() {
+        assert_eq!(min_jumps(&[2, 3, 0, 1, 4]), 2);
+    }
+
+    #[test]
+    fn test_min_jumps_single() {
+        assert_eq!(min_jumps(&[0]), 0);
+    }
+
+    #[test]
+    fn test_min_jumps_two_elements() {
+        assert_eq!(min_jumps(&[1, 0]), 1);
+    }
+
+    #[test]
+    fn test_min_jumps_one_big_jump() {
+        assert_eq!(min_jumps(&[5, 0, 0, 0, 0]), 1);
+    }
+
+    #[test]
+    fn test_min_jumps_all_ones() {
+        assert_eq!(min_jumps(&[1, 1, 1, 1]), 3);
     }
 }
