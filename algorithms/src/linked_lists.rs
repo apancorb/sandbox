@@ -71,6 +71,62 @@ pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     prev
 }
 
+/// Reverse Linked List II
+///
+/// Given the head of a singly linked list and two integers `left` and `right`
+/// where `left <= right`, reverse the nodes from position `left` to `right`,
+/// and return the reversed list. Positions are 1-indexed.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: head = [1, 2, 3, 4, 5], left = 2, right = 4
+/// Output: [1, 4, 3, 2, 5]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: head = [5], left = 1, right = 1
+/// Output: [5]
+/// ```
+pub fn reverse_between(
+    head: Option<Box<ListNode>>,
+    left: usize,
+    right: usize,
+) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode { val: 0, next: head });
+
+    // Phase 1: find node before reversal section
+    let mut before = &mut dummy;
+    for _ in 0..left - 1 {
+        before = before.next.as_mut().unwrap();
+    }
+
+    // Phase 2: reverse from left to right
+    let mut curr = before.next.take();
+    let mut prev: Option<Box<ListNode>> = None;
+
+    for _ in 0..=(right - left) {
+        let mut node = curr.unwrap();
+        curr = node.next.take();
+        node.next = prev;
+        prev = Some(node);
+    }
+
+    // Phase 3: reconnect
+    // Find tail of reversed section and connect to remaining
+    let mut tail = &mut prev;
+    while tail.as_ref().unwrap().next.is_some() {
+        tail = &mut tail.as_mut().unwrap().next;
+    }
+    tail.as_mut().unwrap().next = curr;
+
+    before.next = prev;
+
+    dummy.next
+}
+
 /// Remove the Kth Last Node From a Linked List
 ///
 /// Return the head of a singly linked list after removing the kth node from the end of it.
@@ -736,5 +792,47 @@ mod tests {
 
         let copied2_random = copied2.borrow().random.clone().unwrap();
         assert!(Rc::ptr_eq(&copied2_random, &copied2));
+    }
+
+    #[test]
+    fn test_reverse_between_example1() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 4, 5]);
+        let result = reverse_between(head, 2, 4);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 4, 3, 2, 5]);
+    }
+
+    #[test]
+    fn test_reverse_between_example2() {
+        let head = ListNode::from_vec(vec![5]);
+        let result = reverse_between(head, 1, 1);
+        assert_eq!(ListNode::to_vec(&result), vec![5]);
+    }
+
+    #[test]
+    fn test_reverse_between_full_list() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 4, 5]);
+        let result = reverse_between(head, 1, 5);
+        assert_eq!(ListNode::to_vec(&result), vec![5, 4, 3, 2, 1]);
+    }
+
+    #[test]
+    fn test_reverse_between_first_two() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 4, 5]);
+        let result = reverse_between(head, 1, 2);
+        assert_eq!(ListNode::to_vec(&result), vec![2, 1, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_reverse_between_last_two() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 4, 5]);
+        let result = reverse_between(head, 4, 5);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3, 5, 4]);
+    }
+
+    #[test]
+    fn test_reverse_between_two_elements() {
+        let head = ListNode::from_vec(vec![3, 5]);
+        let result = reverse_between(head, 1, 2);
+        assert_eq!(ListNode::to_vec(&result), vec![5, 3]);
     }
 }
