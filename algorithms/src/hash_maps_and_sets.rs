@@ -175,6 +175,74 @@ pub fn majority_element(nums: &[i32]) -> i32 {
     maj
 }
 
+/// Insert Delete GetRandom O(1)
+///
+/// Implement a data structure that supports insert, remove, and getRandom in O(1) average time.
+///
+/// - `insert(val)` - Insert if not present. Returns true if inserted, false otherwise.
+/// - `remove(val)` - Remove if present. Returns true if removed, false otherwise.
+/// - `get_random()` - Return a random element (uniform probability).
+///
+/// # Example
+///
+/// ```text
+/// let mut set = RandomizedSet::new();
+/// set.insert(1);  // true
+/// set.remove(2);  // false (not present)
+/// set.insert(2);  // true, set = [1, 2]
+/// set.get_random(); // 1 or 2
+/// set.remove(1);  // true, set = [2]
+/// set.insert(2);  // false (already present)
+/// ```
+pub struct RandomizedSet {
+    map: HashMap<i32, usize>, // val -> index in values
+    values: Vec<i32>,         // for O(1) random access
+}
+
+impl RandomizedSet {
+    pub fn new() -> Self {
+        RandomizedSet {
+            map: HashMap::new(),
+            values: Vec::new(),
+        }
+    }
+
+    pub fn insert(&mut self, val: i32) -> bool {
+        if self.map.contains_key(&val) {
+            return false;
+        }
+
+        self.values.push(val);
+        self.map.insert(val, self.values.len() - 1);
+        true
+    }
+
+    pub fn remove(&mut self, val: i32) -> bool {
+        if let Some(&index) = self.map.get(&val) {
+            let last_index = self.values.len() - 1;
+            let last_val = self.values[last_index];
+
+            // Swap with last element
+            self.values[index] = last_val;
+            self.map.insert(last_val, index);
+
+            // Remove last element
+            self.values.pop();
+            self.map.remove(&val);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_random(&self) -> i32 {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_index = rng.gen_range(0..self.values.len());
+        self.values[random_index]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -469,5 +537,51 @@ mod tests {
     #[test]
     fn test_majority_element_at_end() {
         assert_eq!(majority_element(&[1, 2, 3, 3, 3]), 3);
+    }
+
+    #[test]
+    fn test_randomized_set_example() {
+        let mut set = RandomizedSet::new();
+        assert!(set.insert(1));
+        assert!(!set.remove(2));
+        assert!(set.insert(2));
+        let rand = set.get_random();
+        assert!(rand == 1 || rand == 2);
+        assert!(set.remove(1));
+        assert!(!set.insert(2));
+        assert_eq!(set.get_random(), 2);
+    }
+
+    #[test]
+    fn test_randomized_set_insert_duplicate() {
+        let mut set = RandomizedSet::new();
+        assert!(set.insert(5));
+        assert!(!set.insert(5));
+    }
+
+    #[test]
+    fn test_randomized_set_remove_nonexistent() {
+        let mut set = RandomizedSet::new();
+        assert!(!set.remove(10));
+    }
+
+    #[test]
+    fn test_randomized_set_insert_remove_insert() {
+        let mut set = RandomizedSet::new();
+        assert!(set.insert(1));
+        assert!(set.remove(1));
+        assert!(set.insert(1));
+        assert_eq!(set.get_random(), 1);
+    }
+
+    #[test]
+    fn test_randomized_set_multiple() {
+        let mut set = RandomizedSet::new();
+        set.insert(10);
+        set.insert(20);
+        set.insert(30);
+        set.remove(20);
+        let rand = set.get_random();
+        assert!(rand == 10 || rand == 30);
     }
 }
