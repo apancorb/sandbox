@@ -161,6 +161,48 @@ pub fn remove_kth_from_end(head: Option<Box<ListNode>>, k: usize) -> Option<Box<
     dummy.next
 }
 
+/// Remove Duplicates from Sorted List II
+///
+/// Given the head of a sorted linked list, delete all nodes that have duplicate
+/// numbers, leaving only distinct numbers. Return the linked list sorted.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: [1, 2, 3, 3, 4, 4, 5]
+/// Output: [1, 2, 5]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: [1, 1, 1, 2, 3]
+/// Output: [2, 3]
+/// ```
+pub fn delete_duplicates(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode { val: 0, next: head });
+    let mut prev = &mut dummy;
+
+    while let Some(ref mut curr) = prev.next {
+        // Check if this starts a duplicate run
+        let mut is_dup = false;
+        while curr.next.is_some() && curr.val == curr.next.as_ref().unwrap().val {
+            curr.next = curr.next.take().unwrap().next;
+            is_dup = true;
+        }
+
+        if is_dup {
+            // Skip curr entirely (it was part of duplicates)
+            prev.next = curr.next.take();
+        } else {
+            // Keep curr, move prev forward
+            prev = prev.next.as_mut().unwrap();
+        }
+    }
+
+    dummy.next
+}
+
 /// Merge Two Sorted Lists
 ///
 /// Merge two sorted linked lists and return it as a new sorted list.
@@ -834,5 +876,46 @@ mod tests {
         let head = ListNode::from_vec(vec![3, 5]);
         let result = reverse_between(head, 1, 2);
         assert_eq!(ListNode::to_vec(&result), vec![5, 3]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_example1() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 3, 4, 4, 5]);
+        let result = delete_duplicates(head);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 5]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_example2() {
+        let head = ListNode::from_vec(vec![1, 1, 1, 2, 3]);
+        let result = delete_duplicates(head);
+        assert_eq!(ListNode::to_vec(&result), vec![2, 3]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_all_same() {
+        let head = ListNode::from_vec(vec![1, 1, 1]);
+        let result = delete_duplicates(head);
+        assert_eq!(ListNode::to_vec(&result), vec![]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_no_duplicates() {
+        let head = ListNode::from_vec(vec![1, 2, 3]);
+        let result = delete_duplicates(head);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_empty() {
+        let result = delete_duplicates(None);
+        assert_eq!(ListNode::to_vec(&result), vec![]);
+    }
+
+    #[test]
+    fn test_delete_duplicates_single() {
+        let head = ListNode::from_vec(vec![1]);
+        let result = delete_duplicates(head);
+        assert_eq!(ListNode::to_vec(&result), vec![1]);
     }
 }
