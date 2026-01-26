@@ -248,6 +248,45 @@ pub fn merge_sorted_array(nums1: &mut [i32], m: usize, nums2: &[i32], n: usize) 
     }
 }
 
+/// H-Index
+///
+/// Given an array where citations[i] is the number of citations for the ith paper,
+/// return the researcher's h-index: the maximum value h such that the researcher
+/// has at least h papers with at least h citations each.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: citations = [3, 0, 6, 1, 5]
+/// Output: 3
+/// Explanation: 3 papers have at least 3 citations each
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: citations = [1, 3, 1]
+/// Output: 1
+/// ```
+pub fn h_index(citations: &[usize]) -> usize {
+    let mut sorted = citations.to_vec();
+    sorted.sort();
+
+    let n = sorted.len();
+    let mut h = 0;
+
+    for i in 0..n {
+        let papers_with_at_least = n - i;
+        let citation_count = sorted[i];
+
+        if citation_count >= papers_with_at_least {
+            h = h.max(papers_with_at_least);
+        }
+    }
+
+    h
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -411,5 +450,35 @@ mod tests {
         let nums2 = vec![1, 2, 3];
         merge_sorted_array(&mut nums1, 3, &nums2, 3);
         assert_eq!(nums1, vec![1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn test_h_index_example1() {
+        assert_eq!(h_index(&[3, 0, 6, 1, 5]), 3);
+    }
+
+    #[test]
+    fn test_h_index_example2() {
+        assert_eq!(h_index(&[1, 3, 1]), 1);
+    }
+
+    #[test]
+    fn test_h_index_all_zeros() {
+        assert_eq!(h_index(&[0, 0, 0]), 0);
+    }
+
+    #[test]
+    fn test_h_index_single_high() {
+        assert_eq!(h_index(&[100]), 1);
+    }
+
+    #[test]
+    fn test_h_index_single_zero() {
+        assert_eq!(h_index(&[0]), 0);
+    }
+
+    #[test]
+    fn test_h_index_all_same() {
+        assert_eq!(h_index(&[5, 5, 5, 5, 5]), 5);
     }
 }
