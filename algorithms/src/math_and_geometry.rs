@@ -247,6 +247,67 @@ pub fn roman_to_int(s: &str) -> i32 {
     total
 }
 
+/// Integer to Roman
+///
+/// Convert an integer to a Roman numeral string.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: 3749
+/// Output: "MMMDCCXLIX"
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: 1994
+/// Output: "MCMXCIV"
+/// Explanation: M=1000, CM=900, XC=90, IV=4
+/// ```
+//
+// Greedy approach: include subtractive forms in lookup table.
+// Walk through with 1994:
+//
+//   remaining = 1994, result = ""
+//
+//   1000: 1994 >= 1000? YES → result = "M", remaining = 994
+//   900:  994 >= 900?   YES → result = "MCM", remaining = 94
+//   90:   94 >= 90?     YES → result = "MCMXC", remaining = 4
+//   4:    4 >= 4?       YES → result = "MCMXCIV", remaining = 0
+//
+//   Result: "MCMXCIV"
+//
+pub fn int_to_roman(num: i32) -> String {
+    let symbols = [
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    ];
+
+    let mut result = String::new();
+    let mut remaining = num;
+
+    for (value, symbol) in symbols {
+        while remaining >= value {
+            result.push_str(symbol);
+            remaining -= value;
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -382,5 +443,41 @@ mod tests {
     #[test]
     fn test_roman_to_int_single() {
         assert_eq!(roman_to_int("M"), 1000);
+    }
+
+    #[test]
+    fn test_int_to_roman_example1() {
+        assert_eq!(int_to_roman(3749), "MMMDCCXLIX");
+    }
+
+    #[test]
+    fn test_int_to_roman_example2() {
+        assert_eq!(int_to_roman(58), "LVIII");
+    }
+
+    #[test]
+    fn test_int_to_roman_example3() {
+        assert_eq!(int_to_roman(1994), "MCMXCIV");
+    }
+
+    #[test]
+    fn test_int_to_roman_subtractive() {
+        assert_eq!(int_to_roman(4), "IV");
+        assert_eq!(int_to_roman(9), "IX");
+        assert_eq!(int_to_roman(40), "XL");
+        assert_eq!(int_to_roman(90), "XC");
+        assert_eq!(int_to_roman(400), "CD");
+        assert_eq!(int_to_roman(900), "CM");
+    }
+
+    #[test]
+    fn test_int_to_roman_single() {
+        assert_eq!(int_to_roman(1), "I");
+        assert_eq!(int_to_roman(1000), "M");
+    }
+
+    #[test]
+    fn test_int_to_roman_max() {
+        assert_eq!(int_to_roman(3999), "MMMCMXCIX");
     }
 }
