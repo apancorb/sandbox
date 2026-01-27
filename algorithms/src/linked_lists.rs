@@ -203,6 +203,76 @@ pub fn delete_duplicates(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     dummy.next
 }
 
+/// Rotate List
+///
+/// Given the head of a linked list, rotate the list to the right by k places.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: head = [1, 2, 3, 4, 5], k = 2
+/// Output: [4, 5, 1, 2, 3]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: head = [0, 1, 2], k = 4
+/// Output: [2, 0, 1]
+/// ```
+//
+// Walk through [1, 2, 3, 4, 5], k = 2:
+//
+// 1. Count len = 5, k % len = 2
+//
+// 2. Find new_tail at position (5-2-1) = 2 → node 3
+//    [1, 2, 3] | [4, 5]
+//          ^new_tail
+//
+// 3. Split: new_head = [4, 5], old head = [1, 2, 3]
+//
+// 4. Connect tail of [4, 5] to [1, 2, 3]
+//    [4, 5, 1, 2, 3]
+//
+pub fn rotate_list(mut head: Option<Box<ListNode>>, k: usize) -> Option<Box<ListNode>> {
+    if head.is_none() {
+        return None;
+    }
+
+    // Count length
+    let mut len = 1;
+    let mut curr = head.as_ref().unwrap();
+    while curr.next.is_some() {
+        len += 1;
+        curr = curr.next.as_ref().unwrap();
+    }
+
+    // Rotating by len gives same list, so only the remainder matters
+    // e.g., k=4, len=3 → 4 % 3 = 1 (4 rotations = 1 full cycle + 1 extra)
+    let k = k % len;
+    if k == 0 {
+        return head;
+    }
+
+    // Find new tail at position (len - k - 1)
+    let mut new_tail = head.as_mut().unwrap();
+    for _ in 0..(len - k - 1) {
+        new_tail = new_tail.next.as_mut().unwrap();
+    }
+
+    // Split: new_tail.next becomes new head
+    let mut new_head = new_tail.next.take();
+
+    // Find tail of new_head portion and connect to old head
+    let mut tail = &mut new_head;
+    while tail.as_ref().unwrap().next.is_some() {
+        tail = &mut tail.as_mut().unwrap().next;
+    }
+    tail.as_mut().unwrap().next = head;
+
+    new_head
+}
+
 /// Merge Two Sorted Lists
 ///
 /// Merge two sorted linked lists and return it as a new sorted list.
@@ -917,5 +987,46 @@ mod tests {
         let head = ListNode::from_vec(vec![1]);
         let result = delete_duplicates(head);
         assert_eq!(ListNode::to_vec(&result), vec![1]);
+    }
+
+    #[test]
+    fn test_rotate_list_example1() {
+        let head = ListNode::from_vec(vec![1, 2, 3, 4, 5]);
+        let result = rotate_list(head, 2);
+        assert_eq!(ListNode::to_vec(&result), vec![4, 5, 1, 2, 3]);
+    }
+
+    #[test]
+    fn test_rotate_list_example2() {
+        let head = ListNode::from_vec(vec![0, 1, 2]);
+        let result = rotate_list(head, 4);
+        assert_eq!(ListNode::to_vec(&result), vec![2, 0, 1]);
+    }
+
+    #[test]
+    fn test_rotate_list_empty() {
+        let result = rotate_list(None, 5);
+        assert_eq!(ListNode::to_vec(&result), vec![]);
+    }
+
+    #[test]
+    fn test_rotate_list_single() {
+        let head = ListNode::from_vec(vec![1]);
+        let result = rotate_list(head, 3);
+        assert_eq!(ListNode::to_vec(&result), vec![1]);
+    }
+
+    #[test]
+    fn test_rotate_list_k_zero() {
+        let head = ListNode::from_vec(vec![1, 2, 3]);
+        let result = rotate_list(head, 0);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_rotate_list_k_equals_len() {
+        let head = ListNode::from_vec(vec![1, 2, 3]);
+        let result = rotate_list(head, 3);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
     }
 }
