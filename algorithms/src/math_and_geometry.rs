@@ -228,20 +228,23 @@ pub fn roman_to_int(s: &str) -> i32 {
     }
 
     let chars: Vec<char> = s.chars().collect();
-    let mut result = 0;
+    let mut total = 0;
+    let mut i = 0;
 
-    for i in 0..chars.len() {
+    while i < chars.len() {
         let curr = value(chars[i]);
         let next = if i + 1 < chars.len() { value(chars[i + 1]) } else { 0 };
 
         if curr < next {
-            result -= curr;
+            total += next - curr;
+            i += 2;
         } else {
-            result += curr;
+            total += curr;
+            i += 1;
         }
     }
 
-    result
+    total
 }
 
 #[cfg(test)]
