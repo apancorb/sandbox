@@ -188,6 +188,62 @@ fn get_slope(p1: &[i32; 2], p2: &[i32; 2]) -> (i32, i32) {
     reduced
 }
 
+/// Roman to Integer
+///
+/// Convert a Roman numeral string to an integer.
+///
+/// Symbol values: I=1, V=5, X=10, L=50, C=100, D=500, M=1000
+///
+/// Subtraction rules:
+/// - I before V (5) or X (10) makes 4 or 9
+/// - X before L (50) or C (100) makes 40 or 90
+/// - C before D (500) or M (1000) makes 400 or 900
+///
+/// # Example 1
+///
+/// ```text
+/// Input: "III"
+/// Output: 3
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: "MCMXCIV"
+/// Output: 1994
+/// Explanation: M=1000, CM=900, XC=90, IV=4
+/// ```
+pub fn roman_to_int(s: &str) -> i32 {
+    fn value(c: char) -> i32 {
+        match c {
+            'I' => 1,
+            'V' => 5,
+            'X' => 10,
+            'L' => 50,
+            'C' => 100,
+            'D' => 500,
+            'M' => 1000,
+            _ => 0,
+        }
+    }
+
+    let chars: Vec<char> = s.chars().collect();
+    let mut result = 0;
+
+    for i in 0..chars.len() {
+        let curr = value(chars[i]);
+        let next = if i + 1 < chars.len() { value(chars[i + 1]) } else { 0 };
+
+        if curr < next {
+            result -= curr;
+        } else {
+            result += curr;
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -293,5 +349,35 @@ mod tests {
         // Triangle - no 3 points on same line
         let points = [[0, 0], [1, 1], [2, 0]];
         assert_eq!(max_collinear_points(&points), 2);
+    }
+
+    #[test]
+    fn test_roman_to_int_example1() {
+        assert_eq!(roman_to_int("III"), 3);
+    }
+
+    #[test]
+    fn test_roman_to_int_example2() {
+        assert_eq!(roman_to_int("LVIII"), 58);
+    }
+
+    #[test]
+    fn test_roman_to_int_example3() {
+        assert_eq!(roman_to_int("MCMXCIV"), 1994);
+    }
+
+    #[test]
+    fn test_roman_to_int_subtraction_iv() {
+        assert_eq!(roman_to_int("IV"), 4);
+    }
+
+    #[test]
+    fn test_roman_to_int_subtraction_ix() {
+        assert_eq!(roman_to_int("IX"), 9);
+    }
+
+    #[test]
+    fn test_roman_to_int_single() {
+        assert_eq!(roman_to_int("M"), 1000);
     }
 }
