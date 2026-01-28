@@ -341,6 +341,54 @@ pub fn remove_duplicates_ii(nums: &mut [i32]) -> usize {
     p1
 }
 
+/// Trapping Rain Water
+///
+/// Given n non-negative integers representing an elevation map where the width
+/// of each bar is 1, compute how much water it can trap after raining.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: height = [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+/// Output: 6
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: height = [4, 2, 0, 3, 2, 5]
+/// Output: 9
+/// ```
+pub fn trap(height: &[i32]) -> i32 {
+    // Need at least 3 bars to trap water (two walls + valley)
+    // Also prevents underflow: height.len() - 1 panics if empty
+    if height.len() < 3 {
+        return 0;
+    }
+
+    let mut left = 0;
+    let mut right = height.len() - 1;
+    let mut left_max = height[left];
+    let mut right_max = height[right];
+    let mut water = 0;
+
+    while left < right {
+        if left_max < right_max {
+            // Left side is the bottleneck
+            left += 1;
+            left_max = left_max.max(height[left]);
+            water += left_max - height[left];
+        } else {
+            // Right side is the bottleneck
+            right -= 1;
+            right_max = right_max.max(height[right]);
+            water += right_max - height[right];
+        }
+    }
+
+    water
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -731,5 +779,36 @@ mod tests {
         let mut nums = vec![1];
         rotate(&mut nums, 5);
         assert_eq!(nums, vec![1]);
+    }
+
+    #[test]
+    fn test_trap_example1() {
+        assert_eq!(trap(&[0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]), 6);
+    }
+
+    #[test]
+    fn test_trap_example2() {
+        assert_eq!(trap(&[4, 2, 0, 3, 2, 5]), 9);
+    }
+
+    #[test]
+    fn test_trap_empty() {
+        assert_eq!(trap(&[]), 0);
+    }
+
+    #[test]
+    fn test_trap_no_trap() {
+        assert_eq!(trap(&[1, 2, 3, 4, 5]), 0); // increasing
+        assert_eq!(trap(&[5, 4, 3, 2, 1]), 0); // decreasing
+    }
+
+    #[test]
+    fn test_trap_single_valley() {
+        assert_eq!(trap(&[3, 0, 3]), 3);
+    }
+
+    #[test]
+    fn test_trap_flat() {
+        assert_eq!(trap(&[2, 2, 2, 2]), 0);
     }
 }
