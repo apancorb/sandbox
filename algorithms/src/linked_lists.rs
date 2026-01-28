@@ -273,6 +273,50 @@ pub fn rotate_list(mut head: Option<Box<ListNode>>, k: usize) -> Option<Box<List
     new_head
 }
 
+/// Partition List
+///
+/// Given the head of a linked list and a value x, partition it such that all
+/// nodes less than x come before nodes greater than or equal to x.
+/// Preserve the original relative order in each partition.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: head = [1, 4, 3, 2, 5, 2], x = 3
+/// Output: [1, 2, 2, 4, 3, 5]
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: head = [2, 1], x = 2
+/// Output: [1, 2]
+/// ```
+pub fn partition(mut head: Option<Box<ListNode>>, x: i32) -> Option<Box<ListNode>> {
+    let mut less_dummy = Box::new(ListNode::new(0));
+    let mut greater_dummy = Box::new(ListNode::new(0));
+
+    let mut less = &mut less_dummy;
+    let mut greater = &mut greater_dummy;
+
+    while let Some(mut node) = head {
+        head = node.next.take();
+
+        if node.val < x {
+            less.next = Some(node);
+            less = less.next.as_mut().unwrap();
+        } else {
+            greater.next = Some(node);
+            greater = greater.next.as_mut().unwrap();
+        }
+    }
+
+    // Connect less list to greater list
+    less.next = greater_dummy.next;
+
+    less_dummy.next
+}
+
 /// Merge Two Sorted Lists
 ///
 /// Merge two sorted linked lists and return it as a new sorted list.
@@ -1028,5 +1072,46 @@ mod tests {
         let head = ListNode::from_vec(vec![1, 2, 3]);
         let result = rotate_list(head, 3);
         assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_partition_example1() {
+        let head = ListNode::from_vec(vec![1, 4, 3, 2, 5, 2]);
+        let result = partition(head, 3);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 2, 4, 3, 5]);
+    }
+
+    #[test]
+    fn test_partition_example2() {
+        let head = ListNode::from_vec(vec![2, 1]);
+        let result = partition(head, 2);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2]);
+    }
+
+    #[test]
+    fn test_partition_empty() {
+        let result = partition(None, 5);
+        assert_eq!(ListNode::to_vec(&result), vec![]);
+    }
+
+    #[test]
+    fn test_partition_all_less() {
+        let head = ListNode::from_vec(vec![1, 2, 3]);
+        let result = partition(head, 5);
+        assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_partition_all_greater() {
+        let head = ListNode::from_vec(vec![5, 6, 7]);
+        let result = partition(head, 3);
+        assert_eq!(ListNode::to_vec(&result), vec![5, 6, 7]);
+    }
+
+    #[test]
+    fn test_partition_single() {
+        let head = ListNode::from_vec(vec![1]);
+        let result = partition(head, 2);
+        assert_eq!(ListNode::to_vec(&result), vec![1]);
     }
 }
