@@ -308,6 +308,27 @@ pub fn int_to_roman(num: i32) -> String {
     result
 }
 
+/// Length of Last Word
+///
+/// Given a string consisting of words and spaces, return the length of the last word.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: "Hello World"
+/// Output: 5
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: "   fly me   to   the moon  "
+/// Output: 4
+/// ```
+pub fn length_of_last_word(s: &str) -> usize {
+    s.split_whitespace().last().map_or(0, |w| w.len())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,5 +500,30 @@ mod tests {
     #[test]
     fn test_int_to_roman_max() {
         assert_eq!(int_to_roman(3999), "MMMCMXCIX");
+    }
+
+    #[test]
+    fn test_length_of_last_word_example1() {
+        assert_eq!(length_of_last_word("Hello World"), 5);
+    }
+
+    #[test]
+    fn test_length_of_last_word_example2() {
+        assert_eq!(length_of_last_word("   fly me   to   the moon  "), 4);
+    }
+
+    #[test]
+    fn test_length_of_last_word_example3() {
+        assert_eq!(length_of_last_word("luffy is still joyboy"), 6);
+    }
+
+    #[test]
+    fn test_length_of_last_word_single() {
+        assert_eq!(length_of_last_word("a"), 1);
+    }
+
+    #[test]
+    fn test_length_of_last_word_trailing_spaces() {
+        assert_eq!(length_of_last_word("hello   "), 5);
     }
 }
