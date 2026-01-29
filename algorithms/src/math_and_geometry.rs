@@ -329,6 +329,42 @@ pub fn length_of_last_word(s: &str) -> usize {
     s.split_whitespace().last().map_or(0, |w| w.len())
 }
 
+/// Longest Common Prefix
+///
+/// Find the longest common prefix string amongst an array of strings.
+/// Return empty string if no common prefix.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: ["flower", "flow", "flight"]
+/// Output: "fl"
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: ["dog", "racecar", "car"]
+/// Output: ""
+/// ```
+pub fn longest_common_prefix(strs: &[&str]) -> String {
+    if strs.is_empty() {
+        return String::new();
+    }
+
+    let first = strs[0];
+
+    for (i, c) in first.chars().enumerate() {
+        for s in &strs[1..] {
+            if i >= s.len() || s.chars().nth(i) != Some(c) {
+                return first[..i].to_string();
+            }
+        }
+    }
+
+    first.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -525,5 +561,30 @@ mod tests {
     #[test]
     fn test_length_of_last_word_trailing_spaces() {
         assert_eq!(length_of_last_word("hello   "), 5);
+    }
+
+    #[test]
+    fn test_longest_common_prefix_example1() {
+        assert_eq!(longest_common_prefix(&["flower", "flow", "flight"]), "fl");
+    }
+
+    #[test]
+    fn test_longest_common_prefix_example2() {
+        assert_eq!(longest_common_prefix(&["dog", "racecar", "car"]), "");
+    }
+
+    #[test]
+    fn test_longest_common_prefix_single() {
+        assert_eq!(longest_common_prefix(&["alone"]), "alone");
+    }
+
+    #[test]
+    fn test_longest_common_prefix_identical() {
+        assert_eq!(longest_common_prefix(&["test", "test", "test"]), "test");
+    }
+
+    #[test]
+    fn test_longest_common_prefix_empty_string() {
+        assert_eq!(longest_common_prefix(&["", "b"]), "");
     }
 }
