@@ -446,6 +446,29 @@ pub fn zigzag_convert(s: &str, num_rows: usize) -> String {
     rows.concat()
 }
 
+/// Find the Index of the First Occurrence in a String
+///
+/// Return the index of the first occurrence of needle in haystack,
+/// or -1 if needle is not part of haystack.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: haystack = "sadbutsad", needle = "sad"
+/// Output: 0
+/// Explanation: "sad" occurs at index 0 and 6. First occurrence is at 0.
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: haystack = "leetcode", needle = "leeto"
+/// Output: -1
+/// ```
+pub fn str_str(haystack: &str, needle: &str) -> i32 {
+    haystack.find(needle).map_or(-1, |i| i as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -717,5 +740,30 @@ mod tests {
     #[test]
     fn test_zigzag_convert_more_rows_than_chars() {
         assert_eq!(zigzag_convert("AB", 5), "AB");
+    }
+
+    #[test]
+    fn test_str_str_example1() {
+        assert_eq!(str_str("sadbutsad", "sad"), 0);
+    }
+
+    #[test]
+    fn test_str_str_example2() {
+        assert_eq!(str_str("leetcode", "leeto"), -1);
+    }
+
+    #[test]
+    fn test_str_str_middle() {
+        assert_eq!(str_str("hello", "ll"), 2);
+    }
+
+    #[test]
+    fn test_str_str_empty_needle() {
+        assert_eq!(str_str("hello", ""), 0);
+    }
+
+    #[test]
+    fn test_str_str_full_match() {
+        assert_eq!(str_str("abc", "abc"), 0);
     }
 }
