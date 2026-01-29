@@ -387,6 +387,65 @@ pub fn reverse_words(s: &str) -> String {
     s.split_whitespace().rev().collect::<Vec<_>>().join(" ")
 }
 
+/// Zigzag Conversion
+///
+/// Write a string in a zigzag pattern across numRows rows, then read line by line.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: s = "PAYPALISHIRING", numRows = 3
+///
+/// P   A   H   N
+/// A P L S I I G
+/// Y   I   R
+///
+/// Output: "PAHNAPLSIIGYIR"
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: s = "PAYPALISHIRING", numRows = 4
+///
+/// P     I    N
+/// A   L S  I G
+/// Y A   H R
+/// P     I
+///
+/// Output: "PINALSIGYAHRPI"
+/// ```
+pub fn zigzag_convert(s: &str, num_rows: usize) -> String {
+    if num_rows == 1 || num_rows >= s.len() {
+        return s.to_string();
+    }
+
+    // Create a row for each level of the zigzag
+    let mut rows: Vec<String> = vec![String::new(); num_rows];
+    let mut current_row = 0;
+    let mut going_down = true;
+
+    for c in s.chars() {
+        rows[current_row].push(c);
+
+        // At top or bottom, reverse direction
+        if current_row == 0 {
+            going_down = true;
+        } else if current_row == num_rows - 1 {
+            going_down = false;
+        }
+
+        if going_down {
+            current_row += 1;
+        } else {
+            current_row -= 1;
+        }
+    }
+
+    // Concatenate all rows
+    rows.concat()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -633,5 +692,30 @@ mod tests {
     #[test]
     fn test_reverse_words_empty() {
         assert_eq!(reverse_words(""), "");
+    }
+
+    #[test]
+    fn test_zigzag_convert_example1() {
+        assert_eq!(zigzag_convert("PAYPALISHIRING", 3), "PAHNAPLSIIGYIR");
+    }
+
+    #[test]
+    fn test_zigzag_convert_example2() {
+        assert_eq!(zigzag_convert("PAYPALISHIRING", 4), "PINALSIGYAHRPI");
+    }
+
+    #[test]
+    fn test_zigzag_convert_single_row() {
+        assert_eq!(zigzag_convert("A", 1), "A");
+    }
+
+    #[test]
+    fn test_zigzag_convert_two_rows() {
+        assert_eq!(zigzag_convert("ABCD", 2), "ACBD");
+    }
+
+    #[test]
+    fn test_zigzag_convert_more_rows_than_chars() {
+        assert_eq!(zigzag_convert("AB", 5), "AB");
     }
 }
