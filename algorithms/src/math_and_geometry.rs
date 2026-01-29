@@ -365,6 +365,28 @@ pub fn longest_common_prefix(strs: &[&str]) -> String {
     first.to_string()
 }
 
+/// Reverse Words in a String
+///
+/// Reverse the order of words in a string. Words are separated by spaces.
+/// Remove leading/trailing spaces and reduce multiple spaces to single space.
+///
+/// # Example 1
+///
+/// ```text
+/// Input: "the sky is blue"
+/// Output: "blue is sky the"
+/// ```
+///
+/// # Example 2
+///
+/// ```text
+/// Input: "  hello world  "
+/// Output: "world hello"
+/// ```
+pub fn reverse_words(s: &str) -> String {
+    s.split_whitespace().rev().collect::<Vec<_>>().join(" ")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -586,5 +608,30 @@ mod tests {
     #[test]
     fn test_longest_common_prefix_empty_string() {
         assert_eq!(longest_common_prefix(&["", "b"]), "");
+    }
+
+    #[test]
+    fn test_reverse_words_example1() {
+        assert_eq!(reverse_words("the sky is blue"), "blue is sky the");
+    }
+
+    #[test]
+    fn test_reverse_words_example2() {
+        assert_eq!(reverse_words("  hello world  "), "world hello");
+    }
+
+    #[test]
+    fn test_reverse_words_multiple_spaces() {
+        assert_eq!(reverse_words("a   good   example"), "example good a");
+    }
+
+    #[test]
+    fn test_reverse_words_single() {
+        assert_eq!(reverse_words("word"), "word");
+    }
+
+    #[test]
+    fn test_reverse_words_empty() {
+        assert_eq!(reverse_words(""), "");
     }
 }
