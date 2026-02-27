@@ -213,6 +213,7 @@ def find_overlaps(intervals1: list[list[int]], intervals2: list[list[int]]) -> l
 
     return result
 
+
 # -----------------------------------------------------------------------------
 # Tests for find_overlaps
 # -----------------------------------------------------------------------------

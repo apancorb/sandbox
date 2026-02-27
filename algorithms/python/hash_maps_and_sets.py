@@ -35,6 +35,7 @@ def pair_sum(nums: list[int], target: int) -> list[int]:
 
     return []
 
+
 # -----------------------------------------------------------------------------
 # Tests for pair_sum
 # -----------------------------------------------------------------------------
@@ -131,6 +132,7 @@ def verify_sudoku(board: list[list[int]]) -> bool:
             subgrids[i // 3][j // 3].add(num)
 
     return True
+
 
 # -----------------------------------------------------------------------------
 # Tests for verify_sudoku
@@ -272,6 +274,7 @@ def zero_striping(matrix: list[list[int]]) -> None:
         for i in range(rows):
             matrix[i][0] = 0
 
+
 # -----------------------------------------------------------------------------
 # Tests for zero_striping
 # -----------------------------------------------------------------------------
@@ -370,6 +373,7 @@ def majority_element(nums: list[int]) -> int:
             count = 1
 
     return candidate
+
 
 # -----------------------------------------------------------------------------
 # Tests for majority_element

@@ -224,6 +224,7 @@ def is_palindrome_valid(s: str) -> bool:
 
     return True
 
+
 # -----------------------------------------------------------------------------
 # Tests for is_palindrome_valid
 # -----------------------------------------------------------------------------
@@ -307,6 +308,7 @@ def largest_container(heights: list[int]) -> int:
 
     return max_water
 
+
 # -----------------------------------------------------------------------------
 # Tests for largest_container
 # -----------------------------------------------------------------------------
@@ -376,6 +378,7 @@ def remove_element(nums: list[int], val: int) -> int:
             left += 1
 
     return left
+
 
 # -----------------------------------------------------------------------------
 # Tests for remove_element
@@ -609,6 +612,7 @@ def remove_duplicates_ii(nums: list[int]) -> int:
 
     return slow
 
+
 # -----------------------------------------------------------------------------
 # Tests for remove_duplicates_ii
 # -----------------------------------------------------------------------------
@@ -695,6 +699,7 @@ def trap(height: list[int]) -> int:
             water += right_max - height[right]
 
     return water
+
 
 # -----------------------------------------------------------------------------
 # Tests for trap

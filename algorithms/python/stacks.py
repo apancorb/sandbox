@@ -41,6 +41,7 @@ def is_valid_parentheses(s: str) -> bool:
 
     return len(stack) == 0
 
+
 # -----------------------------------------------------------------------------
 # Tests for is_valid_parentheses
 # -----------------------------------------------------------------------------
@@ -132,6 +133,7 @@ def next_largest_to_right(nums: list[int]) -> list[int]:
         stack.append(nums[i])
 
     return res
+
 
 # -----------------------------------------------------------------------------
 # Tests for next_largest_to_right
@@ -234,6 +236,7 @@ def evaluate_expression(s: str) -> int:
 
     # Don't forget the last number (no operator after it to trigger addition)
     return res + curr_num * sign
+
 
 # -----------------------------------------------------------------------------
 # Tests for evaluate_expression

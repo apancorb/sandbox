@@ -86,35 +86,46 @@ def climbing_stairs_bottom_up(n: int) -> int:
 def test_climbing_stairs_example():
     assert climbing_stairs(4) == 5
 
+
 def test_climbing_stairs_1():
     assert climbing_stairs(1) == 1
+
 
 def test_climbing_stairs_2():
     assert climbing_stairs(2) == 2
 
+
 def test_climbing_stairs_3():
     assert climbing_stairs(3) == 3
+
 
 def test_climbing_stairs_5():
     assert climbing_stairs(5) == 8
 
+
 def test_climbing_stairs_10():
     assert climbing_stairs(10) == 89
+
 
 def test_climbing_stairs_bottom_up_example():
     assert climbing_stairs_bottom_up(4) == 5
 
+
 def test_climbing_stairs_bottom_up_1():
     assert climbing_stairs_bottom_up(1) == 1
+
 
 def test_climbing_stairs_bottom_up_2():
     assert climbing_stairs_bottom_up(2) == 2
 
+
 def test_climbing_stairs_bottom_up_3():
     assert climbing_stairs_bottom_up(3) == 3
 
+
 def test_climbing_stairs_bottom_up_5():
     assert climbing_stairs_bottom_up(5) == 8
+
 
 def test_climbing_stairs_bottom_up_10():
     assert climbing_stairs_bottom_up(10) == 89
@@ -193,35 +204,46 @@ def min_coin_combination_bottom_up(coins: list[int], target: int) -> int:
 def test_min_coin_combination_example1():
     assert min_coin_combination([1, 2, 3], 5) == 2
 
+
 def test_min_coin_combination_example2():
     assert min_coin_combination([2, 4], 5) == -1
+
 
 def test_min_coin_combination_zero():
     assert min_coin_combination([1, 2, 3], 0) == 0
 
+
 def test_min_coin_combination_single_coin():
     assert min_coin_combination([5], 10) == 2
+
 
 def test_min_coin_combination_exact_coin():
     assert min_coin_combination([1, 5, 10], 10) == 1
 
+
 def test_min_coin_combination_larger():
     assert min_coin_combination([1, 5, 10, 25], 63) == 6
+
 
 def test_min_coin_combination_bottom_up_example1():
     assert min_coin_combination_bottom_up([1, 2, 3], 5) == 2
 
+
 def test_min_coin_combination_bottom_up_example2():
     assert min_coin_combination_bottom_up([2, 4], 5) == -1
+
 
 def test_min_coin_combination_bottom_up_zero():
     assert min_coin_combination_bottom_up([1, 2, 3], 0) == 0
 
+
 def test_min_coin_combination_bottom_up_single_coin():
     assert min_coin_combination_bottom_up([5], 10) == 2
 
+
 def test_min_coin_combination_bottom_up_exact_coin():
     assert min_coin_combination_bottom_up([1, 5, 10], 10) == 1
+
 
 def test_min_coin_combination_bottom_up_larger():
     assert min_coin_combination_bottom_up([1, 5, 10, 25], 63) == 6
@@ -267,17 +289,22 @@ def matrix_pathways(m: int, n: int) -> int:
 def test_matrix_pathways_example():
     assert matrix_pathways(3, 3) == 6
 
+
 def test_matrix_pathways_1x1():
     assert matrix_pathways(1, 1) == 1
+
 
 def test_matrix_pathways_1xn():
     assert matrix_pathways(1, 5) == 1
 
+
 def test_matrix_pathways_mx1():
     assert matrix_pathways(5, 1) == 1
 
+
 def test_matrix_pathways_2x2():
     assert matrix_pathways(2, 2) == 2
+
 
 def test_matrix_pathways_3x7():
     assert matrix_pathways(3, 7) == 28
@@ -330,17 +357,22 @@ def neighborhood_burglary(houses: list[int]) -> int:
 def test_neighborhood_burglary_example():
     assert neighborhood_burglary([200, 300, 200, 50]) == 400
 
+
 def test_neighborhood_burglary_empty():
     assert neighborhood_burglary([]) == 0
+
 
 def test_neighborhood_burglary_single():
     assert neighborhood_burglary([100]) == 100
 
+
 def test_neighborhood_burglary_two():
     assert neighborhood_burglary([100, 200]) == 200
 
+
 def test_neighborhood_burglary_all_same():
     assert neighborhood_burglary([10, 10, 10, 10, 10]) == 30
+
 
 def test_neighborhood_burglary_alternating():
     assert neighborhood_burglary([1, 100, 1, 100, 1]) == 200
@@ -397,18 +429,23 @@ def longest_common_subsequence(s1: str, s2: str) -> int:
 def test_longest_common_subsequence_example():
     assert longest_common_subsequence("acabac", "aebab") == 3
 
+
 def test_longest_common_subsequence_empty():
     assert longest_common_subsequence("", "abc") == 0
     assert longest_common_subsequence("abc", "") == 0
 
+
 def test_longest_common_subsequence_no_common():
     assert longest_common_subsequence("abc", "xyz") == 0
+
 
 def test_longest_common_subsequence_identical():
     assert longest_common_subsequence("abcd", "abcd") == 4
 
+
 def test_longest_common_subsequence_subsequence():
     assert longest_common_subsequence("abcde", "ace") == 3
+
 
 def test_longest_common_subsequence_single_char():
     assert longest_common_subsequence("a", "a") == 1
@@ -476,17 +513,22 @@ def longest_palindrome(s: str) -> str:
 def test_longest_palindrome_example():
     assert longest_palindrome("abccbaba") == "abccba"
 
+
 def test_longest_palindrome_empty():
     assert longest_palindrome("") == ""
+
 
 def test_longest_palindrome_single():
     assert longest_palindrome("a") == "a"
 
+
 def test_longest_palindrome_all_same():
     assert longest_palindrome("aaaa") == "aaaa"
 
+
 def test_longest_palindrome_odd_length():
     assert longest_palindrome("racecar") == "racecar"
+
 
 def test_longest_palindrome_at_end():
     assert longest_palindrome("xyzaba") == "aba"
@@ -563,34 +605,44 @@ def max_subarray_sum_dp(nums: list[int]) -> int:
 def test_max_subarray_sum_example():
     assert max_subarray_sum([3, 1, -6, 2, -1, 4, -9]) == 5
 
+
 def test_max_subarray_sum_all_positive():
     assert max_subarray_sum([1, 2, 3, 4]) == 10
 
+
 def test_max_subarray_sum_all_negative():
     assert max_subarray_sum([-3, -1, -4, -2]) == -1
+
 
 def test_max_subarray_sum_single():
     assert max_subarray_sum([5]) == 5
     assert max_subarray_sum([-5]) == -5
 
+
 def test_max_subarray_sum_mixed():
     assert max_subarray_sum([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6
+
 
 def test_max_subarray_sum_dp_example():
     assert max_subarray_sum_dp([3, 1, -6, 2, -1, 4, -9]) == 5
 
+
 def test_max_subarray_sum_dp_all_positive():
     assert max_subarray_sum_dp([1, 2, 3, 4]) == 10
 
+
 def test_max_subarray_sum_dp_all_negative():
     assert max_subarray_sum_dp([-3, -1, -4, -2]) == -1
+
 
 def test_max_subarray_sum_dp_single():
     assert max_subarray_sum_dp([5]) == 5
     assert max_subarray_sum_dp([-5]) == -5
 
+
 def test_max_subarray_sum_dp_mixed():
     assert max_subarray_sum_dp([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6
+
 
 def test_max_subarray_sum_dp_empty():
     assert max_subarray_sum_dp([]) == 0
@@ -645,20 +697,26 @@ def knapsack(cap: int, weights: list[int], values: list[int]) -> int:
 def test_knapsack_example():
     assert knapsack(7, [5, 3, 4, 1], [70, 50, 40, 10]) == 90
 
+
 def test_knapsack_empty():
     assert knapsack(10, [], []) == 0
+
 
 def test_knapsack_zero_capacity():
     assert knapsack(0, [1, 2, 3], [10, 20, 30]) == 0
 
+
 def test_knapsack_single_item_fits():
     assert knapsack(5, [3], [100]) == 100
+
 
 def test_knapsack_single_item_too_heavy():
     assert knapsack(2, [3], [100]) == 0
 
+
 def test_knapsack_take_all():
     assert knapsack(10, [1, 2, 3], [10, 20, 30]) == 60
+
 
 def test_knapsack_choose_lighter():
     assert knapsack(5, [4, 5], [50, 40]) == 50
