@@ -59,9 +59,6 @@ def reverse_list(head: ListNode | None) -> ListNode | None:
         >>> to_list(reverse_list(from_list([1, 2, 3, 4, 5])))
         [5, 4, 3, 2, 1]
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Use three pointers: prev, curr, next.
     At each step, flip curr's pointer to point backwards.
 
@@ -81,6 +78,9 @@ def reverse_list(head: ListNode | None) -> ListNode | None:
                 advance: prev=3→2→1, curr=None
 
         Done! return prev = 3→2→1
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     prev = None
     curr = head
@@ -137,9 +137,6 @@ def reverse_between(head: ListNode | None, left: int, right: int) -> ListNode | 
         >>> to_list(reverse_between(from_list([1, 2, 3, 4, 5]), 2, 4))
         [1, 4, 3, 2, 5]
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Three phases:
         1. Walk to node before position left
         2. Reverse the sublist from left to right
@@ -155,6 +152,9 @@ def reverse_between(head: ListNode | None, left: int, right: int) -> ListNode | 
         Phase 3: reconnect
             [1] → [4, 3, 2] → [5]
             Result: [1, 4, 3, 2, 5]
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     dummy = ListNode(0, head)
 
@@ -219,9 +219,6 @@ def remove_kth_from_end(head: ListNode | None, k: int) -> ListNode | None:
         [1, 2, 3, 5]
         # Removed 4 (2nd from end)
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Two approaches:
         1. Count length, then walk to (len - k - 1) to find node before target
         2. Two pointers: advance fast by k, then move both until fast hits end
@@ -233,6 +230,9 @@ def remove_kth_from_end(head: ListNode | None, k: int) -> ListNode | None:
             walk to position 2 (node before target): node 3
             skip: 3.next = 3.next.next (skip node 4)
             Result: [1, 2, 3, 5]
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     dummy = ListNode(0, head)
 
@@ -293,9 +293,6 @@ def delete_duplicates(head: ListNode | None) -> ListNode | None:
         >>> to_list(delete_duplicates(from_list([1, 2, 3, 3, 4, 4, 5])))
         [1, 2, 5]
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Use a dummy node. For each group of nodes, check if it's a duplicate run.
     If yes, skip the entire group. If no, keep it and advance.
 
@@ -310,6 +307,9 @@ def delete_duplicates(head: ListNode | None) -> ListNode | None:
         prev=2:     curr=5, next=None      → keep 5, prev=5
 
         Result: [1, 2, 5]
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     dummy = ListNode(0, head)
     prev = dummy
@@ -370,9 +370,6 @@ def rotate_list(head: ListNode | None, k: int) -> ListNode | None:
         >>> to_list(rotate_list(from_list([1, 2, 3, 4, 5]), 2))
         [4, 5, 1, 2, 3]
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Steps:
         1. Count length, reduce k by len (k % len handles k > len)
         2. Find new tail at position (len - k - 1)
@@ -385,6 +382,9 @@ def rotate_list(head: ListNode | None, k: int) -> ListNode | None:
         Split: [1, 2, 3] | [4, 5]
         Connect: [4, 5] → [1, 2, 3]
         Result: [4, 5, 1, 2, 3]
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     if not head:
         return None
@@ -453,9 +453,6 @@ def partition_list(head: ListNode | None, x: int) -> ListNode | None:
         >>> to_list(partition_list(from_list([1, 4, 3, 2, 5, 2]), 3))
         [1, 2, 2, 4, 3, 5]
 
-    Time Complexity: O(n)
-    Space Complexity: O(1) - reuse existing nodes
-
     Build two separate chains: "less" and "greater or equal".
     Then connect less_tail → greater_head.
 
@@ -469,6 +466,9 @@ def partition_list(head: ListNode | None, x: int) -> ListNode | None:
 
         Connect: [1, 2, 2] → [4, 3, 5]
         Result: [1, 2, 2, 4, 3, 5]
+
+    Time Complexity: O(n)
+    Space Complexity: O(1) - reuse existing nodes
     """
     less_dummy = ListNode(0)
     greater_dummy = ListNode(0)
@@ -530,9 +530,6 @@ def merge_two_lists(l1: ListNode | None, l2: ListNode | None) -> ListNode | None
         >>> to_list(merge_two_lists(from_list([1, 2, 4]), from_list([1, 3, 4])))
         [1, 1, 2, 3, 4, 4]
 
-    Time Complexity: O(n + m)
-    Space Complexity: O(1) - reuse existing nodes
-
     Use a dummy node and compare heads of both lists.
     Always pick the smaller value and advance that pointer.
 
@@ -544,6 +541,9 @@ def merge_two_lists(l1: ListNode | None, l2: ListNode | None) -> ListNode | None
         Compare 4 vs 4 → take l1's 4
         l1 exhausted   → append l2's [4]
         Result: [1, 1, 2, 3, 4, 4]
+
+    Time Complexity: O(n + m)
+    Space Complexity: O(1) - reuse existing nodes
     """
     dummy = ListNode(0)
     curr = dummy
@@ -603,9 +603,6 @@ class LRUCache:
         >>> cache.get(1)
         -1
 
-    Time Complexity: O(1) for both get and put
-    Space Complexity: O(capacity)
-
     Python's OrderedDict maintains insertion order and supports
     move_to_end() for O(1) reordering. Perfect for LRU!
 
@@ -614,6 +611,9 @@ class LRUCache:
         - put(key, val): if exists, update + move to end
                          if new + full, pop first item (least recent)
                          insert at end (most recent)
+
+    Time Complexity: O(1) for both get and put
+    Space Complexity: O(capacity)
 
     OrderedDict internals: doubly linked list + hash map
     (same as the classic LRU implementation, just built-in)
@@ -702,9 +702,6 @@ def add_two_numbers(l1: ListNode | None, l2: ListNode | None) -> ListNode | None
         [7, 0, 8]
         # 342 + 465 = 807 (stored as 7→0→8)
 
-    Time Complexity: O(max(m, n))
-    Space Complexity: O(max(m, n)) - new list
-
     Walk both lists simultaneously, adding digits + carry.
     Like grade school addition, right to left (but lists are already reversed).
 
@@ -719,6 +716,9 @@ def add_two_numbers(l1: ListNode | None, l2: ListNode | None) -> ListNode | None
         9+0+1 = 10, carry=1 → 0
         0+0+1 = 1,  carry=0 → 1
         Result: [0, 0, 1]  (99 + 1 = 100)
+
+    Time Complexity: O(max(m, n))
+    Space Complexity: O(max(m, n)) - new list
     """
     dummy = ListNode(0)
     curr = dummy
@@ -771,20 +771,26 @@ def copy_random_list(head):
     Each node has val, next, and a random pointer (can point to any node or None).
     Create a deep copy of the list.
 
-    Time Complexity: O(n) - two passes
-    Space Complexity: O(n) - hash map of old→new nodes
+    Example:
+        >>> # A(random->C) -> B(random->A) -> C(random->B)
+        >>> copied = copy_random_list(head)
+        >>> # Returns deep copy with same structure, no shared nodes
 
-    Two-pass approach:
-        Pass 1: Create all new nodes, map old_node → new_node
-        Pass 2: Wire up next and random pointers using the map
+    Two-pass approach: first create all new nodes and build a map from
+    old to new, then wire up next and random pointers using the map.
+    This avoids the chicken-and-egg problem of needing nodes to exist
+    before you can point to them.
 
-    Example: A(random→C) → B(random→A) → C(random→B)
+    Example: A(random->C) -> B(random->A) -> C(random->B)
         Pass 1: create A', B', C'
                 map = {A: A', B: B', C: C'}
         Pass 2: A'.next = map[A.next] = B'
                 A'.random = map[A.random] = C'
                 B'.next = C', B'.random = A'
                 C'.next = None, C'.random = B'
+
+    Time Complexity: O(n) - two passes
+    Space Complexity: O(n) - hash map of old->new nodes
     """
     if not head:
         return None

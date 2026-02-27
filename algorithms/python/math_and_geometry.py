@@ -27,9 +27,6 @@ def spiral_traversal(matrix: list[list[int]]) -> list[int]:
 
         → [0,1,2,3,4, 9,14,19, 18,17,16,15, 10,5, 6,7,8, 13, 12,11]
 
-    Time Complexity: O(m*n) - visit every cell
-    Space Complexity: O(1) - besides output
-
     Use four boundaries: top, bottom, left, right.
     Each pass walks one edge and shrinks that boundary inward.
 
@@ -39,6 +36,9 @@ def spiral_traversal(matrix: list[list[int]]) -> list[int]:
         ↑               left col (bottom to top), then left++
 
     Repeat until boundaries cross.
+
+    Time Complexity: O(m*n) - visit every cell
+    Space Complexity: O(1) - besides output
     """
     if not matrix:
         return []
@@ -106,15 +106,15 @@ def reverse_integer(n: int) -> int:
         >>> reverse_integer(-15)
         -51
 
-    Time Complexity: O(log n) - process each digit
-    Space Complexity: O(1)
-
     Extract digits with % 10 and // 10, build reversed number.
 
     Example 420:
         420 % 10 = 0, 420 // 10 = 42 → reversed = 0
         42 % 10 = 2,  42 // 10 = 4   → reversed = 2
         4 % 10 = 4,   4 // 10 = 0    → reversed = 24
+
+    Time Complexity: O(log n) - process each digit
+    Space Complexity: O(1)
 
     Python ints are unbounded, so check overflow at the end.
     """
@@ -175,9 +175,6 @@ def max_collinear_points(points: list[list[int]]) -> int:
         points = [[1,1],[1,3],[2,2],[3,1],[3,3],[4,4]]
         → 4  (the diagonal: (1,1),(2,2),(3,3),(4,4))
 
-    Time Complexity: O(n^2)
-    Space Complexity: O(n) - slope map per focal point
-
     For each "focal" point, calculate slope to every other point.
     Points with the same slope from the focal point are collinear.
 
@@ -185,6 +182,17 @@ def max_collinear_points(points: list[list[int]]) -> int:
     float division to avoid precision errors.
     Normalize sign so (-1,-2) and (1,2) are treated the same.
     Vertical lines: use (1, 0) as special marker.
+
+    Focal point (1,1), slopes to others:
+        (1,3): rise=2, run=0 → vertical (1,0)
+        (2,2): rise=1, run=1 → slope (1,1)
+        (3,1): rise=0, run=2 → slope (0,1)
+        (3,3): rise=2, run=2 → slope (1,1)  ← same as (2,2)!
+        (4,4): rise=3, run=3 → slope (1,1)  ← same again!
+        Slope (1,1) has count 3, so 3+1 = 4 collinear points.
+
+    Time Complexity: O(n^2)
+    Space Complexity: O(n) - slope map per focal point
     """
     n = len(points)
     if n <= 2:
@@ -257,12 +265,21 @@ def roman_to_int(s: str) -> int:
         1994
         # M=1000, CM=900, XC=90, IV=4
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Rule: if current value < next value, it's a subtraction pair.
         IV → 5-1=4,  IX → 10-1=9,  XL → 50-10=40, etc.
     Otherwise just add.
+
+    "MCMXCIV" walkthrough:
+        M(1000) < C(100)? no  → +1000, total=1000
+        C(100) < M(1000)? yes → -100,  total=900
+        M(1000) < X(10)? no   → +1000, total=1900
+        X(10) < C(100)? yes   → -10,   total=1890
+        C(100) < I(1)? no     → +100,  total=1990
+        I(1) < V(5)? yes      → -1,    total=1989
+        V(5) is last           → +5,    total=1994
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     values = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
     total = 0
@@ -318,9 +335,6 @@ def int_to_roman(num: int) -> str:
         'MCMXCIV'
         # 1000=M, 900=CM, 90=XC, 4=IV
 
-    Time Complexity: O(1) - bounded by 3999
-    Space Complexity: O(1)
-
     Greedy: include subtractive forms (CM, CD, XC, XL, IX, IV)
     in the lookup table. Walk through largest to smallest,
     subtracting and appending.
@@ -331,6 +345,9 @@ def int_to_roman(num: int) -> str:
         94 >= 90     → "XC",   remaining=4
         4 >= 4       → "IV",   remaining=0
         Result: "MCMXCIV"
+
+    Time Complexity: O(1) - bounded by 3999
+    Space Complexity: O(1)
     """
     symbols = [
         (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
@@ -392,6 +409,15 @@ def length_of_last_word(s: str) -> int:
         >>> length_of_last_word("   fly me   to   the moon  ")
         4
 
+    Split the string on whitespace, which automatically handles leading,
+    trailing, and multiple spaces. The last element of the split result
+    is the last word, so just return its length.
+
+    "   fly me   to   the moon  "
+        split() → ["fly", "me", "to", "the", "moon"]
+        last word → "moon"
+        len("moon") → 4
+
     Time Complexity: O(n)
     Space Complexity: O(1)
     """
@@ -432,11 +458,16 @@ def longest_common_prefix(strs: list[str]) -> str:
         >>> longest_common_prefix(["flower", "flow", "flight"])
         'fl'
 
-    Time Complexity: O(n * m) - n strings, m = shortest length
-    Space Complexity: O(1)
-
     Compare char by char using the first string as reference.
     Stop when any string differs or runs out of characters.
+
+    ["flower", "flow", "flight"]:
+        i=0: 'f' == 'f' == 'f' → match
+        i=1: 'l' == 'l' == 'l' → match
+        i=2: 'o' == 'o' != 'i' → stop, return "fl"
+
+    Time Complexity: O(n * m) - n strings, m = shortest length
+    Space Complexity: O(1)
     """
     if not strs:
         return ""
@@ -483,6 +514,15 @@ def reverse_words(s: str) -> str:
         >>> reverse_words("  hello world  ")
         'world hello'
 
+    Split the string on whitespace to get a list of words, then reverse
+    the list and join with single spaces. Python's split() handles all
+    the edge cases with multiple and trailing spaces automatically.
+
+    "  hello world  "
+        split() → ["hello", "world"]
+        [::-1]  → ["world", "hello"]
+        join    → "world hello"
+
     Time Complexity: O(n)
     Space Complexity: O(n)
     """
@@ -526,12 +566,22 @@ def zigzag_convert(s: str, num_rows: int) -> str:
 
         "PAYPALISHIRING" → "PAHNAPLSIIGYIR"
 
-    Time Complexity: O(n)
-    Space Complexity: O(n)
-
     Simulate: bounce a row index up and down.
     Row goes 0,1,2,1,0,1,2,1,0... for num_rows=3.
     Collect chars into each row, then concatenate.
+
+    "PAYPALISHIRING" with num_rows=3:
+        P → row 0 (down)    row 0: [P]
+        A → row 1 (down)    row 1: [A]
+        Y → row 2 (bounce)  row 2: [Y]
+        P → row 1 (up)      row 1: [A,P]
+        A → row 0 (bounce)  row 0: [P,A]
+        L → row 1 (down)    row 1: [A,P,L]
+        ...continues...
+        Result: "PAHN" + "APLSIIG" + "YIR" = "PAHNAPLSIIGYIR"
+
+    Time Complexity: O(n)
+    Space Complexity: O(n)
     """
     if num_rows == 1 or num_rows >= len(s):
         return s
@@ -588,6 +638,18 @@ def str_str(haystack: str, needle: str) -> int:
         0
         >>> str_str("leetcode", "leeto")
         -1
+
+    Use Python's built-in string find method, which slides a window of
+    the needle's length across the haystack checking for a match. This
+    is the simplest approach and handles all edge cases cleanly.
+
+    "sadbutsad", needle="sad":
+        i=0: "sad" == "sad"? yes → return 0
+
+    "leetcode", needle="leeto":
+        i=0: "leetc" == "leeto"? no
+        i=1: "eetco" == "leeto"? no
+        ...no match found → return -1
 
     Time Complexity: O(n * m) worst case
     Space Complexity: O(1)

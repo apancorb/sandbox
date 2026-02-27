@@ -45,6 +45,20 @@ class Trie:
         >>> t.insert("to"); t.search("to")
         True
 
+    The key idea is to store strings character by character in a tree.
+    Each node holds a dictionary of children and a boolean flag marking
+    whether it completes a word. Insert walks/creates nodes, search walks
+    and checks the flag, and has_prefix just walks without checking the flag.
+
+    Walkthrough of insert("top") then search("to"):
+        insert("top"):
+            root -> 't' (create) -> 'o' (create) -> 'p' (create, is_word=True)
+        search("to"):
+            root -> 't' (exists) -> 'o' (exists) -> is_word=False -> return False
+
+    Time Complexity: O(m) per operation, where m is the word length
+    Space Complexity: O(total characters across all inserted words)
+
     Each node is a dict of children + is_word flag.
     In Python, we represent a node as: {children: {char: node}, is_word: bool}
     Simplification: use a dict for children, a separate flag for is_word.
@@ -166,12 +180,17 @@ class WildcardTrie:
         >>> t.insert("ran"); t.search(".an")  # matches "ran"
         True
 
+    When we hit '.', we must try ALL children (branching search).
+    Normal chars follow one path. This is why wildcards are expensive.
+
+    Walkthrough of search("ra.") with words ["band", "rat"]:
+        'r' -> exact match, go to child 'r'
+        'a' -> exact match, go to child 'a'
+        '.' -> wildcard, try all children: 't' -> is_word=True -> return True
+
     Time Complexity:
         insert: O(m)
         search: O(m) without wildcards, O(26^w * m) worst case with w wildcards
-
-    When we hit '.', we must try ALL children (branching search).
-    Normal chars follow one path. This is why wildcards are expensive.
     """
 
     def __init__(self):
@@ -283,9 +302,6 @@ def find_words(board: list[list[str]], words: list[str]) -> list[str]:
         words = ["byte","bytes","rat","rain","trait","train"]
         → ["byte", "bytes", "rain", "train"]
 
-    Time Complexity: O(w*m + rows*cols*4^max_word_len)
-    Space Complexity: O(w*m) for trie + O(max_word_len) recursion
-
     Approach: Build a trie from all words, then DFS from each cell.
     The trie lets us prune early: if no word starts with the current
     path, stop exploring.
@@ -298,6 +314,9 @@ def find_words(board: list[list[str]], words: list[str]) -> list[str]:
         2. For each cell, if it matches a trie child, start DFS
         3. DFS: mark cell visited, explore 4 directions, unmark
         4. When we reach a leaf with a word, add it to results
+
+    Time Complexity: O(w*m + rows*cols*4^max_word_len)
+    Space Complexity: O(w*m) for trie + O(max_word_len) recursion
     """
     # Build trie: each node is {children, word}
     # Store the full word at leaf instead of is_word flag

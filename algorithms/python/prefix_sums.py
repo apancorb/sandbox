@@ -23,11 +23,19 @@ class RangeSum:
         >>> rs.sum_range(2, 2)  # just 6
         6
 
+    Build prefix sums array where prefix[i] = sum of nums[0..i].
+    Then sum(left, right) = prefix[right] - prefix[left-1]. This
+    turns any range sum query into a single subtraction.
+
+    Walkthrough for nums=[3, -7, 6, 0, -2, 5]:
+        Build prefix: [3, -4, 2, 2, 0, 5]
+
+        sum_range(0, 3) → prefix[3] = 2 (left=0, return directly)
+        sum_range(2, 4) → prefix[4] - prefix[1] = 0 - (-4) = 4
+        sum_range(2, 2) → prefix[2] - prefix[1] = 2 - (-4) = 6
+
     Time Complexity: O(n) preprocessing, O(1) per query
     Space Complexity: O(n) for prefix array
-
-    Build prefix sums array where prefix[i] = sum of nums[0..i].
-    Then sum(left, right) = prefix[right] - prefix[left-1].
     """
 
     def __init__(self, nums: list[int]):
@@ -99,6 +107,20 @@ def k_sum_subarrays(nums: list[int], k: int) -> int:
         3
         # [1,2] at 0-1, [1,2,-1,1] at 0-3, [1,2] at 3-4
 
+    Build a prefix sums array with a leading zero so that the sum of any
+    subarray nums[i..j] equals prefix[j+1] - prefix[i]. Then check all
+    pairs (i, j) to count how many equal k.
+
+    Walkthrough for nums=[1, 2, -1, 1, 2], k=3:
+        prefix = [0, 1, 3, 2, 3, 5]
+
+        Check all pairs prefix[j] - prefix[i]:
+            prefix[2]-prefix[0] = 3-0 = 3 ✓  → subarray [1,2]
+            prefix[4]-prefix[0] = 3-0 = 3 ✓  → subarray [1,2,-1,1]
+            prefix[5]-prefix[3] = 5-2 = 3 ✓  → subarray [1,2]
+
+        Answer: 3
+
     Time Complexity: O(n^2) - check all subarrays using prefix sums
     Space Complexity: O(n) - prefix array
 
@@ -167,11 +189,22 @@ def product_except_self(nums: list[int]) -> list[int]:
         [60, 40, 120, 30, 24]
         # result[0] = 3*1*4*5 = 60 (everything except 2)
 
+    Strategy: For each position, we need product of LEFT side * RIGHT side.
+    Build prefix products from left, and prefix products from right. Then
+    multiply them together for each index.
+
+    Walkthrough for nums=[2, 3, 1, 4, 5]:
+        left products:  [1, 2, 6, 6, 24]
+            left[0]=1, left[1]=2, left[2]=2*3=6, left[3]=6*1=6, left[4]=6*4=24
+
+        right products: [60, 20, 20, 5, 1]
+            right[4]=1, right[3]=5, right[2]=4*5=20, right[1]=1*20=20, right[0]=3*20=60
+
+        result = left[i] * right[i]:
+            [1*60, 2*20, 6*20, 6*5, 24*1] = [60, 40, 120, 30, 24]
+
     Time Complexity: O(n) - two passes
     Space Complexity: O(n) - for left/right arrays
-
-    Strategy: For each position, we need product of LEFT side * RIGHT side.
-    Build prefix products from left, and prefix products from right.
     """
     if not nums:
         return []

@@ -30,11 +30,17 @@ def count_islands(grid: list[list[int]]) -> int:
          [0,0,1,1],
          [0,0,1,1]]  → 2
 
-    Time Complexity: O(rows * cols)
-    Space Complexity: O(rows * cols) worst case recursion
-
     For each unvisited land cell, DFS to mark the whole island as visited.
     Each DFS = one island found.
+
+    Walkthrough on the example grid:
+        Scan (0,0): land, DFS marks (0,0),(0,1),(1,0),(1,1) -> count=1
+        Scan (0,2): water, skip
+        Scan (2,2): land, DFS marks (2,2),(2,3),(3,2),(3,3) -> count=2
+        All other cells already visited or water -> return 2
+
+    Time Complexity: O(rows * cols)
+    Space Complexity: O(rows * cols) worst case recursion
     """
     if not grid:
         return 0
@@ -106,11 +112,17 @@ def matrix_infection(grid: list[list[int]]) -> int:
          [0,0,2,1],
          [0,1,1,0]]  → 3
 
-    Time Complexity: O(rows * cols)
-    Space Complexity: O(rows * cols) - queue
-
     Multi-source BFS: start from ALL infected cells simultaneously.
     Each BFS level = one second. Count remaining uninfected at end.
+
+    Walkthrough on the example grid:
+        Initial: queue=[(1,2)], uninfected=6: (0,0),(0,1),(0,2),(1,3),(2,1),(2,2)
+        t=1: (1,2) infects (0,2),(1,3),(2,2) -> uninfected=3
+        t=2: (0,2) infects (0,1), (2,2) infects (2,1) -> uninfected=1
+        t=3: (0,1) infects (0,0) -> uninfected=0 -> return 3
+
+    Time Complexity: O(rows * cols)
+    Space Complexity: O(rows * cols) - queue
     """
     if not grid:
         return 0
@@ -184,12 +196,17 @@ def is_bipartite(graph: list[list[int]]) -> bool:
         |                  → True (two-colorable)
         4 -- 3
 
+    DFS coloring: assign color +1 to a node, -1 to its neighbors.
+    If a neighbor already has the SAME color, it's not bipartite.
+    A graph is bipartite iff it has no odd-length cycles.
+
+    Walkthrough on the example graph:
+        color[0]=+1 -> neighbor 1: color[1]=-1 -> neighbor 2: color[2]=+1
+        back to 0 -> neighbor 4: color[4]=-1 -> neighbor 3: color[3]=+1
+        No conflicts found -> return True
+
     Time Complexity: O(V + E)
     Space Complexity: O(V) - color array
-
-    DFS coloring: assign color +1 to a node, -1 to its neighbors.
-    If a neighbor already has the SAME color → not bipartite.
-    A graph is bipartite iff it has no odd-length cycles.
     """
     n = len(graph)
     colors = [0] * n  # 0=unvisited, 1=color A, -1=color B
@@ -253,14 +270,21 @@ def longest_increasing_path(matrix: list[list[int]]) -> int:
          [5,4,3],
          [6,1,8]]  → 4  (1→4→5→6 or 1→4→7→9)
 
-    Time Complexity: O(rows * cols) - each cell computed once
-    Space Complexity: O(rows * cols) - memo table
-
     DFS + memoization: from each cell, try all 4 directions where
     the neighbor is strictly larger. Cache results to avoid recomputation.
 
     Why memoization works: if we already know the longest path starting
     from cell (r,c), we don't need to recompute it.
+
+    Walkthrough starting from cell (2,1)=1:
+        dfs(2,1)=1: neighbors 4>(1) yes -> dfs(1,1)
+        dfs(1,1)=4: neighbors 7>4 yes -> dfs(0,1), 5>4 yes -> dfs(1,0)
+        dfs(0,1)=7: neighbor 9>7 yes -> dfs(0,2)=1, so dfs(0,1)=2
+        dfs(1,0)=5: neighbor 6>5 yes -> dfs(2,0)=1, so dfs(1,0)=2
+        dfs(1,1)=max(1+2, 1+2)=3, dfs(2,1)=1+3=4
+
+    Time Complexity: O(rows * cols) - each cell computed once
+    Space Complexity: O(rows * cols) - memo table
     """
     if not matrix or not matrix[0]:
         return 0
@@ -337,12 +361,19 @@ def shortest_transformation(start: str, end: str, dictionary: list[str]) -> int:
         dictionary=["red","rod","rad","rat","hat","bad","bat","hit"]
         → 5  (red → rad → rat → hat → hit)
 
-    Time Complexity: O(n * m * 26) - n words, m word length
-    Space Complexity: O(n) - visited set + queue
-
     BFS level by level: try changing each character to a-z.
     If the new word is in the dictionary and unvisited, add to queue.
     BFS guarantees shortest path.
+
+    Walkthrough on the example:
+        dist=1: queue=["red"]
+        dist=2: "red" -> try all 1-char changes -> "rad" in dict -> queue=["rad"]
+        dist=3: "rad" -> "rat" in dict -> queue=["rat"]
+        dist=4: "rat" -> "hat" in dict -> queue=["hat"]
+        dist=5: "hat" -> "hit" == end -> return 5
+
+    Time Complexity: O(n * m * 26) - n words, m word length
+    Space Complexity: O(n) - visited set + queue
     """
     if start == end:
         return 1
@@ -420,15 +451,18 @@ def can_finish(n: int, prerequisites: list[list[int]]) -> bool:
     Example:
         n=3, prereqs=[[0,1],[1,2],[2,1]]  → False (cycle: 1↔2)
 
+    Topological sort using Kahn's algorithm: start with courses that have
+    no prerequisites (in-degree 0), process them, and reduce the in-degree
+    of their dependents. If we process all n courses there's no cycle.
+
+    Walkthrough on the example:
+        graph: 0->[1], 1->[2], 2->[1]
+        in-degree: [0, 1+1, 1] = [0, 2, 1]
+        queue=[0] -> process 0, decrement in-degree[1] -> [0, 1, 1]
+        queue=[]: no more 0-degree nodes, enrolled=1 != 3 -> return False
+
     Time Complexity: O(V + E)
     Space Complexity: O(V + E)
-
-    Topological sort (Kahn's algorithm):
-        1. Count in-degrees (how many prereqs each course has)
-        2. Start with courses that have 0 in-degree (no prereqs)
-        3. Process queue: for each course, reduce in-degree of dependents
-        4. If we process all n courses → no cycle → True
-           If some courses remain → cycle → False
     """
     graph = [[] for _ in range(n)]
     in_degree = [0] * n
@@ -498,7 +532,18 @@ class UnionFind:
         >>> uf.get_community_size(3)
         1
 
-    Time Complexity: O(α(n)) ≈ O(1) amortized per operation
+    The idea is to maintain a forest of trees where each tree is a
+    component. To check connectivity, find the root of each node.
+    To merge, attach one root under the other.
+
+    Walkthrough on the example:
+        init:       parent=[0,1,2,3,4], size=[1,1,1,1,1]
+        connect(0,1): root(0)=0, root(1)=1 -> parent=[0,0,2,3,4], size=[2,1,1,1,1]
+        connect(1,2): root(1)=0, root(2)=2 -> parent=[0,0,0,3,4], size=[3,1,1,1,1]
+        get_community_size(0): root=0, size[0]=3
+        get_community_size(3): root=3, size[3]=1
+
+    Time Complexity: O(a(n)) ~ O(1) amortized per operation
     Space Complexity: O(n)
 
     Two optimizations:
@@ -506,7 +551,7 @@ class UnionFind:
         - Union by size: attach smaller tree under larger tree
 
     Without these: O(n) per operation (degenerate chain).
-    With both: O(α(n)) where α = inverse Ackermann ≈ constant.
+    With both: O(a(n)) where a = inverse Ackermann ~ constant.
     """
 
     def __init__(self, n: int):
@@ -599,11 +644,17 @@ def clone_graph(node: dict | None) -> dict | None:
     Deep copy an undirected graph. Each node has val and neighbors list.
     Using dicts for simplicity: {"val": 1, "neighbors": [node2, node4]}
 
-    Time Complexity: O(V + E)
-    Space Complexity: O(V) - hash map of old→new
-
     DFS: clone current node, recursively clone neighbors.
     Use a map to avoid cloning the same node twice (handles cycles).
+
+    Walkthrough on a graph 1--2--3:
+        dfs(1): create copy1, recurse on neighbor 2
+        dfs(2): create copy2, recurse on neighbor 1 -> already cloned, return copy1
+                recurse on neighbor 3 -> create copy3, done
+        copy2.neighbors = [copy1, copy3], copy1.neighbors = [copy2]
+
+    Time Complexity: O(V + E)
+    Space Complexity: O(V) - hash map of old->new
     """
     if not node:
         return None

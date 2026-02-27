@@ -19,11 +19,16 @@ def pair_sum(nums: list[int], target: int) -> list[int]:
         [0, 2]
         # nums[0] + nums[2] = -1 + 4 = 3
 
-    Time Complexity: O(n) - single pass through array
-    Space Complexity: O(n) - hash map stores up to n elements
-
     For each number, check if (target - num) exists in map. If yes, found
     pair. If no, store current num and its index for future lookups.
+
+    Walkthrough for nums=[-1, 3, 4, 2], target=3:
+        i=0, num=-1: complement=4, not in seen → seen={-1:0}
+        i=1, num=3:  complement=0, not in seen → seen={-1:0, 3:1}
+        i=2, num=4:  complement=-1, found in seen! → return [0, 2]
+
+    Time Complexity: O(n) - single pass through array
+    Space Complexity: O(n) - hash map stores up to n elements
     """
     seen = {}
 
@@ -101,11 +106,37 @@ def verify_sudoku(board: list[list[int]]) -> bool:
 
     Note: Verify current state is valid, not whether board is solvable.
 
-    Time Complexity: O(1) - always 81 cells (9x9 board)
-    Space Complexity: O(1) - fixed size sets (max 9 elements each)
+    Example:
+        >>> board = [
+        ...     [5, 3, 0, 0, 7, 0, 0, 0, 0],
+        ...     [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        ...     [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        ...     [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        ...     [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        ...     [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        ...     [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        ...     [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        ...     [0, 0, 0, 0, 8, 0, 0, 7, 9],
+        ... ]
+        >>> verify_sudoku(board)
+        True
 
     Use sets to track seen numbers in each row, column, and 3x3 subgrid.
-    For each cell, check all three constraints.
+    For each cell, check all three constraints. The subgrid index is found
+    by integer-dividing the row and column by 3 (e.g., cell (4,7) maps to
+    subgrid (1,2)).
+
+    Walkthrough for checking cell (0,0)=5:
+        row 0 set: empty → add 5 → {5}
+        col 0 set: empty → add 5 → {5}
+        subgrid (0,0) set: empty → add 5 → {5}
+        No duplicates → continue
+
+    If row 0 had another 5 (say at col 7):
+        row 0 set already has 5 → duplicate found → return False
+
+    Time Complexity: O(1) - always 81 cells (9x9 board)
+    Space Complexity: O(1) - fixed size sets (max 9 elements each)
     """
     rows = [set() for _ in range(9)]
     cols = [set() for _ in range(9)]
@@ -235,12 +266,21 @@ def zero_striping(matrix: list[list[int]]) -> None:
         >>> m = [[1,2,3],[4,0,6],[7,8,9]]; zero_striping(m); m
         [[1,0,3],[0,0,0],[7,0,9]]
 
-    Time Complexity: O(m*n) - traverse matrix twice
-    Space Complexity: O(1) - use first row/col as markers instead of extra sets
-
     Use first row and first column as markers. Track separately if first
     row/col themselves need zeroing. Then apply markers, then handle first
-    row/col.
+    row/col. This avoids needing extra sets, giving us O(1) space.
+
+    Walkthrough for [[1,2,3],[4,0,6],[7,8,9]]:
+        1. Check first row/col for zeros: none found
+        2. Scan rest of matrix: (1,1)=0 → mark row 1: matrix[1][0]=0
+                                           mark col 1: matrix[0][1]=0
+        3. Apply markers:
+           row 1 marked → [4,0,6] → [0,0,0]
+           col 1 marked → col 1 all → [0,0,0] for col
+        4. Result: [[1,0,3],[0,0,0],[7,0,9]]
+
+    Time Complexity: O(m*n) - traverse matrix twice
+    Space Complexity: O(1) - use first row/col as markers instead of extra sets
     """
     if not matrix:
         return
@@ -352,12 +392,23 @@ def majority_element(nums: list[int]) -> int:
         >>> majority_element([2, 2, 1, 1, 1, 2, 2])
         2
 
-    Time Complexity: O(n) - single pass
-    Space Complexity: O(1) - only two variables
-
     Boyer-Moore Voting Algorithm: treat it like an election. The majority
     candidate gains votes, others cancel out. Since majority > n/2, it
     will always survive.
+
+    Walkthrough for [2, 2, 1, 1, 1, 2, 2]:
+        i=0: candidate=2, count=1
+        i=1: 2==candidate → count=2
+        i=2: 1!=candidate → count=1
+        i=3: 1!=candidate → count=0 → new candidate=1, count=1
+        i=4: 1==candidate → count=2
+        i=5: 2!=candidate → count=1
+        i=6: 2!=candidate → count=0 → new candidate=2, count=1
+
+        Answer: 2
+
+    Time Complexity: O(n) - single pass
+    Space Complexity: O(1) - only two variables
     """
     candidate = nums[0]
     count = 1
@@ -421,11 +472,20 @@ class RandomizedSet:
         >>> s.insert(2)  # True
         >>> s.get_random()  # 1 or 2
 
+    Use a list for O(1) random access and a dict mapping val->index.
+    For removal, swap with last element to maintain O(1) delete. The
+    trick is that lists allow O(1) pop from the end, so swapping the
+    target to the last position lets us remove without shifting.
+
+    Walkthrough for insert(1), insert(2), remove(1):
+        insert(1): values=[1], val_to_index={1:0}
+        insert(2): values=[1,2], val_to_index={1:0, 2:1}
+        remove(1): idx=0, last_val=2
+                   swap: values=[2,2], update val_to_index={1:0, 2:0}
+                   pop:  values=[2], delete key 1 → val_to_index={2:0}
+
     Time Complexity: O(1) average for all operations
     Space Complexity: O(n) - storing n elements
-
-    Use a list for O(1) random access and a dict mapping val->index.
-    For removal, swap with last element to maintain O(1) delete.
     """
 
     def __init__(self):

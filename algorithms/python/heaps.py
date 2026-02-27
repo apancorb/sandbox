@@ -34,9 +34,6 @@ def kth_largest(nums: list[int], k: int) -> int:
         4
         # Sorted desc: [6, 5, 4, 3, 2, 1] → 3rd largest is 4
 
-    Time Complexity: O(n log k) - heap operations
-    Space Complexity: O(k) - heap size
-
     Keep a min heap of size k (the "top k" bucket).
     The smallest in the bucket = kth largest overall.
 
@@ -48,6 +45,9 @@ def kth_largest(nums: list[int], k: int) -> int:
         1 → 1 > min(3)? no → skip
         6 → 6 > min(3)? yes → kick 3, add 6 → bucket: [4, 5, 6]
         Answer: min of bucket = 4
+
+    Time Complexity: O(n log k) - heap operations
+    Space Complexity: O(k) - heap size
     """
     heap = []  # min heap
 
@@ -105,9 +105,6 @@ class MedianFinder:
         >>> mf.get_median()
         3.0
 
-    Time Complexity: O(log n) per add, O(1) per get_median
-    Space Complexity: O(n)
-
     Two heaps split the data into smaller and larger halves:
 
         left (max heap): smaller half    right (min heap): larger half
@@ -123,9 +120,6 @@ class MedianFinder:
             - Everything in left <= everything in right
             - Median = top of left (odd count), avg of both tops (even)
 
-    Python only has min heap, so left uses NEGATED values for max heap.
-    push -5 into min heap → acts like pushing 5 into max heap.
-
     Example walkthrough: add(3), add(6), add(1)
         add(3): left=[-3], right=[]          → left has 3
         add(6): 6 > 3, goes right            → left=[-3], right=[6]
@@ -138,6 +132,11 @@ class MedianFinder:
                   left.size(2) - right.size(1) = 1, ok no rebalance
                   median = top of left = 3 ✓
 
+    Time Complexity: O(log n) per add, O(1) per get_median
+    Space Complexity: O(n)
+
+    Python only has min heap, so left uses NEGATED values for max heap.
+    push -5 into min heap → acts like pushing 5 into max heap.
     """
 
     def __init__(self):
@@ -239,6 +238,17 @@ def k_most_frequent_strings(strs: list[str], k: int) -> list[str]:
         ["go", "byte"]
         # go: 3 times, byte: 2 times
 
+    Count frequencies with a Counter, then use a min heap with negated
+    counts so the highest frequency pops first. For ties, the tuple
+    comparison naturally falls through to lexicographic order on the name.
+
+    ["go","coding","byte","byte","go","interview","go"], k=2:
+        Counter: {"go": 3, "byte": 2, "coding": 1, "interview": 1}
+        Heap entries: [(-3,"go"), (-2,"byte"), (-1,"coding"), (-1,"interview")]
+        Pop 1: (-3,"go")    → "go"
+        Pop 2: (-2,"byte")  → "byte"
+        Result: ["go", "byte"]
+
     Time Complexity: O(n log n) - heap/sort
     Space Complexity: O(n) - counter
     """
@@ -296,12 +306,24 @@ def combine_sorted_lists(lists: list[list[int]]) -> list[int]:
         >>> combine_sorted_lists([[1, 3, 5], [2, 4, 6], [0, 7, 8]])
         [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
-    Time Complexity: O(n log k) - n total elements, k lists
-    Space Complexity: O(k) - heap holds one element per list
-
     Push first element of each list into min heap.
     Pop smallest, push the next element from that same list.
     Heap entries are (value, list_index, element_index) to break ties.
+
+    [[1,3,5], [2,4,6], [0,7,8]]:
+        Init heap: [(1,0,0), (2,1,0), (0,2,0)]
+        Pop (0,2,0) → result=[0], push (7,2,1)
+        Pop (1,0,0) → result=[0,1], push (3,0,1)
+        Pop (2,1,0) → result=[0,1,2], push (4,1,1)
+        Pop (3,0,1) → result=[0,1,2,3], push (5,0,2)
+        Pop (4,1,1) → result=[0,1,2,3,4], push (6,1,2)
+        Pop (5,0,2) → result=[0,1,2,3,4,5], list 0 exhausted
+        Pop (6,1,2) → result=[0,1,2,3,4,5,6], list 1 exhausted
+        Pop (7,2,1) → result=[0,1,2,3,4,5,6,7], push (8,2,2)
+        Pop (8,2,2) → result=[0,1,2,3,4,5,6,7,8], list 2 exhausted
+
+    Time Complexity: O(n log k) - n total elements, k lists
+    Space Complexity: O(k) - heap holds one element per list
     """
     heap = []
     # Push first element of each list: (value, list_idx, elem_idx)

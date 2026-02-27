@@ -52,13 +52,22 @@ def invert_tree(root: TreeNode | None) -> TreeNode | None:
          / \\                / \\
         4   5              5   4
 
+    At each node, swap left and right, then recurse. The key insight is
+    that inverting is just swapping children at every level. You don't
+    need to think about it globally -- just swap locally and let
+    recursion handle the rest.
+
+    Example tree (1,2,3,4,5):
+        at node 1: swap children → left=3, right=2
+        recurse left (node 3): no children to swap
+        recurse right (node 2): swap → left=5, right=4
+        Result: 1(3, 2(5, 4))
+
     Time Complexity: O(n) - visit every node
     Space Complexity: O(h) - recursion stack (h = height)
         Why h? Each recursive call stays on the stack until it returns.
         The deepest the stack gets = longest root-to-leaf path = height.
         Balanced tree: h = log n. Skewed tree: h = n.
-
-    At each node, swap left and right, then recurse.
     """
     if not root:
         return None
@@ -120,9 +129,6 @@ def is_balanced(root: TreeNode | None) -> bool:
          / \\             /
         4   5            3
 
-    Time Complexity: O(n)
-    Space Complexity: O(h)
-
     Return height from each subtree. If any subtree is unbalanced,
     propagate -1 up as a "poisoned" signal.
 
@@ -135,6 +141,9 @@ def is_balanced(root: TreeNode | None) -> bool:
         helper(2): |0-0|=0 ≤1 ✓ → return 1
         helper(3)=0
         helper(1): |1-0|=1 ≤1 ✓ → return 2 → balanced!
+
+    Time Complexity: O(n)
+    Space Complexity: O(h)
     """
     def height(node):
         if not node:
@@ -206,9 +215,6 @@ def rightmost_nodes(root: TreeNode | None) -> list[int]:
 
         → [1, 3, 6]
 
-    Time Complexity: O(n) - visit every node
-    Space Complexity: O(w) - max width of tree (queue)
-
     BFS level by level. The last node in each level is the rightmost.
 
     Use a queue. Process one level at a time:
@@ -217,6 +223,9 @@ def rightmost_nodes(root: TreeNode | None) -> list[int]:
             node = queue.popleft()
             if i == level_size - 1: → this is the rightmost!
             add children to queue
+
+    Time Complexity: O(n) - visit every node
+    Space Complexity: O(w) - max width of tree (queue)
     """
     if not root:
         return []
@@ -292,9 +301,6 @@ def is_valid_bst(root: TreeNode | None) -> bool:
          / \\ / \\
         2  6 7  8
 
-    Time Complexity: O(n)
-    Space Complexity: O(h)
-
     Pass bounds down: each node must be in range (lower, upper).
     Go left  → update upper bound to current val
     Go right → update lower bound to current val
@@ -305,6 +311,9 @@ def is_valid_bst(root: TreeNode | None) -> bool:
             check(2, -inf, 3): 2 in range ✓
             check(4, 3, 5):    4 in range ✓
           check(7, 5, inf): 7 in range ✓
+
+    Time Complexity: O(n)
+    Space Complexity: O(h)
     """
     def check(node, lower, upper):
         if not node:
@@ -385,9 +394,6 @@ def lowest_common_ancestor(root: TreeNode | None, p: int, q: int) -> TreeNode | 
         LCA(4, 3) = 1    (split across root)
         LCA(2, 4) = 2    (2 is ancestor of 4)
 
-    Time Complexity: O(n)
-    Space Complexity: O(h)
-
     Post-order DFS: search left and right subtrees.
         - If current node is p or q → return it
         - If left AND right both found something → current node is the LCA
@@ -399,6 +405,9 @@ def lowest_common_ancestor(root: TreeNode | None, p: int, q: int) -> TreeNode | 
         at node 2: left=4, right=5 → BOTH found → return 2 (LCA!)
         at node 3: left=None, right=None → return None
         at node 1: left=2, right=None → return 2
+
+    Time Complexity: O(n)
+    Space Complexity: O(h)
     """
     if not root:
         return None
@@ -453,6 +462,9 @@ def build_tree(preorder: list[int], inorder: list[int]) -> TreeNode | None:
     """
     Build Binary Tree from Preorder and Inorder Traversals
 
+    Given preorder and inorder traversal arrays, reconstruct the original
+    binary tree. Each value is unique.
+
     Example:
         preorder = [5, 9, 2, 3, 4, 7]
         inorder  = [2, 9, 5, 4, 3, 7]
@@ -464,14 +476,10 @@ def build_tree(preorder: list[int], inorder: list[int]) -> TreeNode | None:
            /   / \\
           2   4   7
 
-    Time Complexity: O(n)
-    Space Complexity: O(n) - hash map + recursion
-
-    Key insight:
-        - preorder[0] is always the root
-        - Find root in inorder → everything left is left subtree,
-          everything right is right subtree
-        - Recurse!
+    Key insight: preorder[0] is always the root. Find that root in the
+    inorder array -- everything to its left is the left subtree, everything
+    to its right is the right subtree. Then recurse on each side. Use a
+    hash map for O(1) lookup of inorder indices.
 
     Example: preorder=[5,9,2,3,4,7], inorder=[2,9,5,4,3,7]
         root = preorder[0] = 5
@@ -482,7 +490,9 @@ def build_tree(preorder: list[int], inorder: list[int]) -> TreeNode | None:
         next preorder element for right subtree: 3
         Recurse on each side...
 
-    Use a hash map for O(1) lookup of inorder indices.
+    Time Complexity: O(n)
+    Space Complexity: O(n) - hash map + recursion
+
     Use a shared preorder index that increments as we consume elements.
     """
     if not preorder:
@@ -557,9 +567,6 @@ def max_path_sum(root: TreeNode | None) -> int:
 
         Best path: 4 → 3 → 5 → 8 → 6 = 26
 
-    Time Complexity: O(n)
-    Space Complexity: O(h)
-
     At each node, we decide:
         - left_gain = max(0, best path going left)   ← 0 if negative (skip)
         - right_gain = max(0, best path going right)
@@ -577,6 +584,9 @@ def max_path_sum(root: TreeNode | None) -> int:
         at node 8:  left=0, right=6 → path_through=8+0+6=14, return 8+6=14
         at node 5:  left=7, right=14 → path_through=5+7+14=26 ★, return 5+14=19
         Answer: 26
+
+    Time Complexity: O(n)
+    Space Complexity: O(h)
     """
     best = [float('-inf')]  # list so inner fn can modify
 
@@ -648,9 +658,6 @@ def widest_level(root: TreeNode | None) -> int:
         Level 2 has nodes at positions 0 and 3 → width = 4
         (positions: 4, null, null, 5)
 
-    Time Complexity: O(n)
-    Space Complexity: O(w) - max width (queue)
-
     Assign position indices like a heap array:
         - root = 0
         - left child = 2*i + 1
@@ -662,6 +669,9 @@ def widest_level(root: TreeNode | None) -> int:
         Level 0: node 1 at pos 0           → width = 1
         Level 1: node 2 at pos 1, 3 at pos 2  → width = 2
         Level 2: node 4 at pos 3, 5 at pos 6  → width = 6-3+1 = 4 ★
+
+    Time Complexity: O(n)
+    Space Complexity: O(w) - max width (queue)
     """
     if not root:
         return 0

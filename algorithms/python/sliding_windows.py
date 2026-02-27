@@ -20,9 +20,6 @@ def count_anagrams(s: str, t: str) -> int:
         2
         # Anagrams at index 1 ("aab") and index 2 ("aba")
 
-    Time Complexity: O(n) - single pass with fixed window
-    Space Complexity: O(1) - fixed size arrays (26 letters)
-
     Fixed window of size len(t). Compare character frequencies.
 
     Example walkthrough for s="caabab", t="aba":
@@ -36,6 +33,9 @@ def count_anagrams(s: str, t: str) -> int:
         i=5: window="bab"   → freq={a:1,b:2} ≠ expected
 
         Answer: 2
+
+    Time Complexity: O(n) - single pass with fixed window
+    Space Complexity: O(1) - fixed size arrays (26 letters)
     """
     if len(t) > len(s) or len(t) == 0:
         return 0
@@ -122,9 +122,6 @@ def longest_unique_substring(s: str) -> int:
         3
         # "abc" or "cba" are the longest with unique chars
 
-    Time Complexity: O(n) - each char visited at most twice
-    Space Complexity: O(min(n, 26)) - hashmap of char positions
-
     Variable window: expand right, shrink left when duplicate found.
     Track last seen position of each character.
 
@@ -137,6 +134,9 @@ def longest_unique_substring(s: str) -> int:
                  → window [2,4]="cba", len=3
 
         Answer: 3
+
+    Time Complexity: O(n) - each char visited at most twice
+    Space Complexity: O(min(n, 26)) - hashmap of char positions
     """
     last_seen = {}  # char -> last index where we saw it
     max_len = 0
@@ -210,9 +210,6 @@ def longest_uniform_substring(s: str, k: int) -> int:
         5
         # Replace 'b' and 'd' with 'c' to get "ccccc"
 
-    Time Complexity: O(n) - single pass
-    Space Complexity: O(26) - frequency map
-
     Key insight: window is valid if (window_size - most_frequent_char) <= k
     That's the number of chars we need to replace.
 
@@ -233,6 +230,9 @@ def longest_uniform_substring(s: str, k: int) -> int:
                  shrink! ...
 
         Answer: 5 (make "ccccc" by replacing b,d with c)
+
+    Time Complexity: O(n) - single pass
+    Space Complexity: O(26) - frequency map
     """
     if not s:
         return 0

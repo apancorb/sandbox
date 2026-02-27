@@ -34,9 +34,6 @@ def permutations(nums: list[int]) -> list[list[int]]:
         >>> sorted(permutations([4, 5, 6]))
         [[4, 5, 6], [4, 6, 5], [5, 4, 6], [5, 6, 4], [6, 4, 5], [6, 5, 4]]
 
-    Time Complexity: O(n! * n) — n! permutations, each takes O(n) to copy
-    Space Complexity: O(n) recursion depth + O(n) visited set
-
     At each level, try every unused number. Use a visited set to skip
     numbers already in the current permutation.
 
@@ -48,6 +45,9 @@ def permutations(nums: list[int]) -> list[list[int]]:
        [4,5] [4,6] [5,4] [5,6] [6,4] [6,5]
          |     |     |     |     |     |
       [4,5,6] ...   ...   ...   ...  [6,5,4]
+
+    Time Complexity: O(n! * n) -- n! permutations, each takes O(n) to copy
+    Space Complexity: O(n) recursion depth + O(n) visited set
     """
     result = []
 
@@ -105,9 +105,6 @@ def subsets(nums: list[int]) -> list[list[int]]:
         >>> sorted([sorted(s) for s in subsets([4, 5, 6])])
         [[], [4], [4, 5], [4, 5, 6], [4, 6], [5], [5, 6], [6]]
 
-    Time Complexity: O(2^n * n) — 2^n subsets, each up to O(n) to copy
-    Space Complexity: O(n) recursion depth
-
     At each index, make a binary choice: include or exclude nums[i].
     Then recurse to the next index. When we reach the end, save the subset.
 
@@ -122,6 +119,9 @@ def subsets(nums: list[int]) -> list[list[int]]:
          /  \\    /  \\      /  \\    /  \\
        +6  -6  +6  -6    +6  -6  +6  -6
     [4,5,6][4,5][4,6][4] [5,6][5] [6] []
+
+    Time Complexity: O(2^n * n) -- 2^n subsets, each up to O(n) to copy
+    Space Complexity: O(n) recursion depth
     """
     result = []
 
@@ -175,29 +175,31 @@ def n_queens(n: int) -> int:
     """
     N Queens
 
-    Place n queens on an n×n board so no two attack each other.
+    Place n queens on an n*n board so no two attack each other.
     Return the number of valid configurations.
 
     Example:
         >>> n_queens(4)
         2
 
-    Time Complexity: O(n!) — pruning reduces branching at each row
-    Space Complexity: O(n) for the three sets + recursion
-
     Place one queen per row (they can't share a row). For each row,
     try every column. Skip if column, diagonal, or anti-diagonal
     is already occupied.
-
-    How diagonals work:
-        Diagonal (↘):      r - c is constant  (e.g. (0,1) and (1,2) both = -1)
-        Anti-diagonal (↙):  r + c is constant  (e.g. (0,1) and (1,0) both = 1)
 
     Example n=4, one solution:
         . Q . .    row 0, col 1
         . . . Q    row 1, col 3
         Q . . .    row 2, col 0
         . . Q .    row 3, col 2
+
+    Time Complexity: O(n!) -- pruning reduces branching at each row
+    Space Complexity: O(n) for the three sets + recursion
+
+    How diagonals work:
+        Diagonal (top-left to bottom-right): r - c is constant
+            (e.g. (0,1) and (1,2) both = -1)
+        Anti-diagonal (top-right to bottom-left): r + c is constant
+            (e.g. (0,1) and (1,0) both = 1)
     """
     count = 0
     cols = set()

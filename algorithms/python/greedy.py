@@ -21,9 +21,6 @@ def jump_to_end(nums: list[int]) -> bool:
         >>> jump_to_end([2, 1, 0, 3])
         False  # stuck at index 2 (can't jump past the 0)
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Work backwards: start destination at last index.
     If position i can reach destination, move destination to i.
     If destination reaches 0, we can make it!
@@ -34,6 +31,9 @@ def jump_to_end(nums: list[int]) -> bool:
         i=1: nums[1]=2, 1+2=3 >= 3 ✓ destination=1
         i=0: nums[0]=3, 0+3=3 >= 1 ✓ destination=0
         destination == 0 → True!
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     destination = len(nums) - 1
 
@@ -86,9 +86,6 @@ def min_jumps(nums: list[int]) -> int:
         2
         # Jump 1 step (0→1), then 3 steps (1→4)
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     BFS-like greedy: track the "edge" of current jump.
     When we reach the edge, we must jump. Pick the farthest we've seen.
 
@@ -97,6 +94,9 @@ def min_jumps(nums: list[int]) -> int:
         i=1: farthest=max(2, 1+3)=4, not at edge yet
         i=2: farthest=max(4, 2+1)=4, i==edge(2) → JUMP! edge=4, jumps=2
         edge=4 >= last index, done! Answer: 2
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     if len(nums) <= 1:
         return 0
@@ -157,14 +157,22 @@ def gas_stations(gas: list[int], cost: list[int]) -> int:
         1
         # Start at 1: tank=5-2=3 → +1-1=3 → +3-4=2 → +2-3=1 ✓
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Two key insights:
         1. If total gas < total cost → impossible (return -1)
         2. If tank goes negative at station i, none of 0..i can be the start.
            Why? If we couldn't make it FROM any of those stations TO i,
            starting earlier doesn't help. Reset start to i+1.
+
+    Example gas=[2, 5, 1, 3], cost=[3, 2, 1, 4]:
+        total gas=11, total cost=10, 11 >= 10 → solution exists
+        i=0: tank=0+(2-3)=-1 < 0 → reset! start=1, tank=0
+        i=1: tank=0+(5-2)=3
+        i=2: tank=3+(1-1)=3
+        i=3: tank=3+(3-4)=2
+        No more resets. start=1 ✓
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
 
     Proof by contradiction that start is correct:
         1. sum(gas) >= sum(cost) → a valid starting point must exist
@@ -230,9 +238,6 @@ def candies(ratings: list[int]) -> int:
         12
         # Candies: [3, 2, 1, 2, 3, 1]
 
-    Time Complexity: O(n) - two passes
-    Space Complexity: O(n) - candies array
-
     Two-pass approach:
         1. Left to right: if rating goes UP, give one more than left neighbor
         2. Right to left: if rating goes UP (looking right), take max of
@@ -243,6 +248,9 @@ def candies(ratings: list[int]) -> int:
         Left pass:   [1, 1, 1, 2, 3, 1]  (only 4>2 and 5>4 go up)
         Right pass:  [3, 2, 1, 2, 3, 1]  (4>3, 3>2 going right-to-left)
         Sum: 3+2+1+2+3+1 = 12
+
+    Time Complexity: O(n) - two passes
+    Space Complexity: O(n) - candies array
     """
     n = len(ratings)
     candy = [1] * n
@@ -303,9 +311,6 @@ def max_profit(prices: list[int]) -> int:
         5
         # Buy at 1, sell at 6
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Track the minimum price seen so far. At each price, check if
     selling now would beat our best profit.
 
@@ -317,6 +322,9 @@ def max_profit(prices: list[int]) -> int:
         price=6: min=1, profit=6-1=5 ★
         price=4: min=1, profit=5
         Answer: 5
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     min_price = float('inf')
     best = 0
@@ -369,11 +377,19 @@ def max_profit_ii(prices: list[int]) -> int:
         7
         # Buy at 1, sell at 5 (profit 4). Buy at 3, sell at 6 (profit 3).
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Greedy: capture every upward movement.
     If price goes up tomorrow, buy today and sell tomorrow.
+
+    Example [7, 1, 5, 3, 6, 4]:
+        i=1: prices[1]=1 < prices[0]=7 → skip
+        i=2: prices[2]=5 > prices[1]=1 → profit += 5-1 = 4
+        i=3: prices[3]=3 < prices[2]=5 → skip
+        i=4: prices[4]=6 > prices[3]=3 → profit += 6-3 = 3
+        i=5: prices[5]=4 < prices[4]=6 → skip
+        Total profit: 4+3 = 7
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
 
     Why this works: sum of small gains = one big gain
         prices [1, 2, 3, 4]:

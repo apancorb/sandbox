@@ -20,9 +20,6 @@ def sort_array(nums: list[int]) -> list[int]:
         >>> sort_array([6, 8, 4, 2, 7, 3, 1, 5])
         [1, 2, 3, 4, 5, 6, 7, 8]
 
-    Time Complexity: O(n log n) average, O(n²) worst
-    Space Complexity: O(log n) average (recursion stack)
-
     Quicksort steps:
         1. Pick a pivot (we use last element)
         2. Partition: move smaller elements left, larger right
@@ -67,6 +64,9 @@ def sort_array(nums: list[int]) -> list[int]:
                    pivot in final position!
 
         Recurse on left [4,2,3,1] and right [6,8,7]
+
+    Time Complexity: O(n log n) average, O(n²) worst
+    Space Complexity: O(log n) average (recursion stack)
     """
     def quicksort(left: int, right: int):
         if left >= right:
@@ -143,9 +143,6 @@ def merge_sorted_array(nums1: list[int], m: int, nums2: list[int], n: int) -> No
         >>> nums1
         [1, 2, 2, 3, 5, 6]
 
-    Time Complexity: O(m + n)
-    Space Complexity: O(m) - copy of nums1
-
     Two pointer merge: compare elements from both arrays,
     pick the smaller one each time.
 
@@ -158,6 +155,9 @@ def merge_sorted_array(nums1: list[int], m: int, nums2: list[int], n: int) -> No
         i=4: 5 <= 6 → take 5
         i=5: done   → take 6
         Result: [1,2,3,4,5,6]
+
+    Time Complexity: O(m + n)
+    Space Complexity: O(m) - copy of nums1
     """
     # Copy nums1's actual values (first m elements)
     copy1 = nums1[:m]
@@ -222,9 +222,6 @@ def h_index(citations: list[int]) -> int:
         # Sorted: [0, 1, 3, 5, 6]
         # 3 papers have >= 3 citations (papers with 3, 5, 6)
 
-    Time Complexity: O(n log n) - sorting
-    Space Complexity: O(n) - sorted copy
-
     Sort ascending then scan. At index i, there are (n - i) papers
     with at least citations[i] citations. If citations[i] >= (n - i),
     that's a valid h-index.
@@ -236,6 +233,9 @@ def h_index(citations: list[int]) -> int:
         i=3: citations=5, papers_left=2 → 5 >= 2? yes! h=max(3,2)=3
         i=4: citations=6, papers_left=1 → 6 >= 1? yes! h=max(3,1)=3
         Answer: 3
+
+    Time Complexity: O(n log n) - sorting
+    Space Complexity: O(n) - sorted copy
     """
     sorted_cit = sorted(citations)
     n = len(sorted_cit)

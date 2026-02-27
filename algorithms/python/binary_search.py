@@ -35,11 +35,17 @@ def find_insertion_index(nums: list[int], target: int) -> int:
         >>> find_insertion_index([1, 2, 4, 5, 7, 8, 9], 6)
         4  # 6 would go between 5 and 7
 
-    Time Complexity: O(log n) - binary search
-    Space Complexity: O(1) - only pointers
-
     Standard binary search. When target not found, left pointer ends up
     at the insertion position.
+
+    [1, 2, 4, 5, 7, 8, 9], target=6:
+        left=0, right=7, mid=3 → nums[3]=5 < 6 → left=4
+        left=4, right=7, mid=5 → nums[5]=8 >= 6 → right=5
+        left=4, right=5, mid=4 → nums[4]=7 >= 6 → right=4
+        left==right=4 → return 4 (between 5 and 7)
+
+    Time Complexity: O(log n) - binary search
+    Space Complexity: O(1) - only pointers
     """
     left = 0
     right = len(nums)
@@ -117,11 +123,21 @@ def find_first_and_last(nums: list[int], target: int) -> list[int]:
         >>> find_first_and_last([1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11], 4)
         [3, 5]
 
-    Time Complexity: O(log n) - two binary searches
-    Space Complexity: O(1) - only pointers
-
     Run binary search twice: once to find leftmost occurrence (lower bound),
     once to find rightmost occurrence (upper bound).
+
+    [1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11], target=4:
+        find_lower: narrows right when nums[mid] >= 4
+            mid=6 → 5 >= 4, right=6 → mid=3 → 4 >= 4, right=3
+            → left==right=3, nums[3]=4 ✓ → first=3
+        find_upper: narrows left when nums[mid] <= 4 (with +1 bias)
+            mid=7 → 6 > 4, right=6 → mid=3 → 4 <= 4, left=3
+            mid=5 → 4 <= 4, left=5 → mid=6 → 5 > 4, right=5
+            → left==right=5, nums[5]=4 ✓ → last=5
+        Result: [3, 5]
+
+    Time Complexity: O(log n) - two binary searches
+    Space Complexity: O(1) - only pointers
     """
     if not nums:
         return [-1, -1]
@@ -218,11 +234,18 @@ def cutting_wood(heights: list[int], k: int) -> int:
         >>> cutting_wood([2, 6, 3, 8], 7)
         3  # Cut at height 3: (6-3)+(8-3) = 3+5 = 8 >= 7
 
+    Binary search on the answer. Search for highest blade height that
+    still gives enough wood. This is monotonic: lower blade means more
+    wood, higher blade means less wood.
+
+    heights=[2, 6, 3, 8], k=7, search range [0, 8]:
+        mid=5: wood = (6-5)+(8-5) = 1+3 = 4 < 7   → right=4
+        mid=3: wood = (6-3)+(8-3) = 3+5 = 8 >= 7  → left=3
+        mid=4: wood = (6-4)+(8-4) = 2+4 = 6 < 7   → right=3
+        left==right=3 → answer is 3
+
     Time Complexity: O(n log h) - binary search on height, O(n) check each
     Space Complexity: O(1)
-
-    Binary search on the answer. Search for highest blade height that
-    still gives enough wood.
     """
     # Instead of searching for a value in an array, we search for the
     # best answer in a range [0, max_height].
@@ -298,9 +321,6 @@ def find_in_rotated_array(nums: list[int], target: int) -> int:
         >>> find_in_rotated_array([8, 9, 1, 2, 3, 4, 5, 6, 7], 1)
         2
 
-    Time Complexity: O(log n) - binary search
-    Space Complexity: O(1)
-
     Key insight: At any mid point, ONE half is always sorted:
         [8, 9, 1, 2, 3, 4, 5, 6, 7]
               ^mid
@@ -311,6 +331,9 @@ def find_in_rotated_array(nums: list[int], target: int) -> int:
         1. Find which half is sorted (compare endpoints)
         2. Check if target is in the sorted half (easy range check)
         3. If yes, search that half. If no, search the other half.
+
+    Time Complexity: O(log n) - binary search
+    Space Complexity: O(1)
     """
     if not nums:
         return -1

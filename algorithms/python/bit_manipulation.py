@@ -32,9 +32,6 @@ def hamming_weights(n: int) -> list[int]:
         0=000→0, 1=001→1, 2=010→1, 3=011→2,
         4=100→1, 5=101→2, 6=110→2, 7=111→3
 
-    Time Complexity: O(n * bits) where bits ≤ 32
-    Space Complexity: O(n)
-
     For each number, count set bits by checking last bit (& 1)
     and shifting right (>> 1) until zero.
 
@@ -44,6 +41,9 @@ def hamming_weights(n: int) -> list[int]:
         10 & 1 = 0, count=1, shift → 1
         1 & 1 = 1, count=2, shift → 0
         Done! 2 bits set
+
+    Time Complexity: O(n * bits) where bits ≤ 32
+    Space Complexity: O(n)
     """
     def count_bits(x):
         count = 0
@@ -89,9 +89,6 @@ def lonely_integer(nums: list[int]) -> int:
         >>> lonely_integer([1, 3, 3, 2, 1])
         2
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     XOR trick: a ^ a = 0 and a ^ 0 = a
     XOR all numbers together → duplicates cancel out, unique survives.
 
@@ -102,6 +99,9 @@ def lonely_integer(nums: list[int]) -> int:
         1 ^ 2 = 3  (binary: 01 ^ 10 = 11)
         3 ^ 1 = 2  (binary: 11 ^ 01 = 10)  ← 1s cancelled!
         Answer: 2
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     result = 0
     for num in nums:
@@ -144,6 +144,15 @@ def swap_odd_even_bits(n: int) -> int:
              ↓ ↑ ↓ ↑ ↓ ↑
         22 = 0 1 0 1 1 0
 
+    Use bitmasks to isolate even and odd bits separately, then shift
+    them into each other's positions and merge with OR. This swaps
+    every adjacent pair in one shot without any loops.
+
+    Example n=41 (101001):
+        even bits: 101001 & 010101 = 000001 → shift left  → 000010
+        odd bits:  101001 & 101010 = 101000 → shift right → 010100
+        merge: 000010 | 010100 = 010110 = 22 ✓
+
     Time Complexity: O(1)
     Space Complexity: O(1)
 
@@ -157,11 +166,6 @@ def swap_odd_even_bits(n: int) -> int:
         3. Shift even bits left by 1 (move to odd positions)
         4. Shift odd bits right by 1 (move to even positions)
         5. Merge with OR
-
-    Example n=41 (101001):
-        even bits: 101001 & 010101 = 000001 → shift left  → 000010
-        odd bits:  101001 & 101010 = 101000 → shift right → 010100
-        merge: 000010 | 010100 = 010110 = 22 ✓
     """
     EVEN_MASK = 0x55555555  # 0101...
     ODD_MASK = 0xAAAAAAAA   # 1010...

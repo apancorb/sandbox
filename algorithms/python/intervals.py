@@ -20,13 +20,23 @@ def merge_intervals(intervals: list[list[int]]) -> list[list[int]]:
         >>> merge_intervals([[3, 4], [7, 8], [2, 5], [6, 7], [1, 4]])
         [[1, 5], [6, 8]]
 
+    Sort intervals by start time, then iterate through. For each interval,
+    if it overlaps with the last merged interval (current start <= previous
+    end), extend the previous end. Otherwise, add it as a new interval.
+
+    Walkthrough for [[3,4], [7,8], [2,5], [6,7], [1,4]]:
+        After sorting: [[1,4], [2,5], [3,4], [6,7], [7,8]]
+
+        merged = [[1,4]]
+        [2,5]: 2 <= 4 → overlap, extend → [[1,5]]
+        [3,4]: 3 <= 5 → overlap, max(5,4)=5 → [[1,5]]
+        [6,7]: 6 > 5 → no overlap → [[1,5], [6,7]]
+        [7,8]: 7 <= 7 → overlap, extend → [[1,5], [6,8]]
+
+        Answer: [[1,5], [6,8]]
+
     Time Complexity: O(n log n) - dominated by sorting
     Space Complexity: O(n) - for the result
-
-    Strategy:
-        1. Sort intervals by start time
-        2. For each interval, either merge with previous or add new
-        3. Merge if current.start <= previous.end
     """
     # Sort by start time
     intervals.sort(key=lambda x: x[0])
@@ -96,15 +106,12 @@ def max_overlapping(intervals: list[list[int]]) -> int:
         >>> max_overlapping([[1, 3], [2, 6], [4, 8], [6, 7], [5, 7]])
         3
 
-    Time Complexity: O(n log n) - sorting the events
-    Space Complexity: O(n) - storing events
+    Line Sweep Algorithm: convert each interval to two events (START and
+    END), sort by time, then sweep through counting active intervals. At
+    each start event add one, at each end event subtract one. The maximum
+    count seen during the sweep is the answer.
 
-    Line Sweep Algorithm:
-        1. Convert each interval to two events: START and END
-        2. Sort events by time (END before START at same time for half-open)
-        3. Sweep through: +1 for START, -1 for END
-        4. Track maximum active intervals
-    Example walkthrough for [[1,3], [2,6], [4,8]]:
+    Walkthrough for [[1,3], [2,6], [4,8]]:
         Events: [(1,'S'), (2,'S'), (3,'E'), (4,'S'), (6,'E'), (8,'E')]
 
         Time 1, S: current=1  ← [1,3] starts
@@ -115,6 +122,9 @@ def max_overlapping(intervals: list[list[int]]) -> int:
         Time 8, E: current=0  ← [4,8] ends
 
         Max was 2 (at times 2-3 and 4-6)
+
+    Time Complexity: O(n log n) - sorting the events
+    Space Complexity: O(n) - storing events
     """
     events = []
 
@@ -185,13 +195,29 @@ def find_overlaps(intervals1: list[list[int]], intervals2: list[list[int]]) -> l
         >>> find_overlaps([[1, 4], [5, 6], [9, 10]], [[2, 7], [8, 9]])
         [[2, 4], [5, 6], [9, 9]]
 
+    Use two pointers, one for each list. Compare the current intervals: if
+    they overlap, record the intersection as [max(starts), min(ends)]. Then
+    advance whichever pointer's interval ends first, since that interval
+    can't overlap with anything further in the other list.
+
+    Walkthrough for intervals1=[[1,4],[5,6],[9,10]], intervals2=[[2,7],[8,9]]:
+        i=0, j=0: [1,4] vs [2,7] → overlap? 1<=7 and 2<=4 → yes
+                   intersection = [max(1,2), min(4,7)] = [2,4]
+                   4 <= 7 → advance i
+        i=1, j=0: [5,6] vs [2,7] → overlap? 5<=7 and 2<=6 → yes
+                   intersection = [max(5,2), min(6,7)] = [5,6]
+                   6 <= 7 → advance i
+        i=2, j=0: [9,10] vs [2,7] → overlap? 9<=7? no
+                   7 <= 10 → advance j
+        i=2, j=1: [9,10] vs [8,9] → overlap? 9<=9 and 8<=10 → yes
+                   intersection = [max(9,8), min(10,9)] = [9,9]
+                   9 <= 10 → advance j
+        j=2: out of bounds → done
+
+        Answer: [[2,4], [5,6], [9,9]]
+
     Time Complexity: O(n + m) - single pass through both lists
     Space Complexity: O(k) - where k is number of overlaps
-
-    Two Pointer Strategy:
-        1. Compare current intervals from both lists
-        2. If they overlap, add the intersection [max(starts), min(ends)]
-        3. Advance the pointer whose interval ends first
     """
     i, j = 0, 0
     result = []

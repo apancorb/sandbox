@@ -32,9 +32,6 @@ def has_cycle(head: ListNode | None) -> bool:
             |_________|
         → True (node 4 points back to node 2)
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     Floyd's Cycle Detection:
         - slow moves 1 step, fast moves 2 steps
         - If no cycle: fast reaches None → return False
@@ -55,6 +52,9 @@ def has_cycle(head: ListNode | None) -> bool:
         Actually: fast moves 2 steps: 3→4, 4→2 → fast=2
         Step 2: slow=3, fast=2
         Step 3: slow=4, fast=4 → MATCH! cycle detected
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     slow = head
     fast = head
@@ -131,9 +131,6 @@ def find_middle(head: ListNode | None) -> ListNode | None:
         >>> 1 → 2 → 3 → 4 → 5 → 6
         Middle = 4 (second of the two middles)
 
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-
     When fast reaches the end, slow is at the middle.
     Fast moves 2x speed, so when fast travels n steps, slow travels n/2.
 
@@ -149,6 +146,9 @@ def find_middle(head: ListNode | None) -> ListNode | None:
         Step 2: slow=3, fast=5
         Step 3: slow=4, fast=None (5.next=6, 6.next=None)
         fast is None → stop. slow=4 ✓ (second middle)
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
     """
     slow = head
     fast = head
@@ -217,9 +217,6 @@ def is_happy_number(n: int) -> bool:
         False
         # 4 → 16 → 37 → 58 → 89 → 145 → 42 → 20 → 4 (cycle!)
 
-    Time Complexity: O(log n) per step, O(log n) steps
-    Space Complexity: O(1)
-
     Key insight: if a number isn't happy, the sequence CYCLES.
     This is just cycle detection! Use Floyd's algorithm:
         - slow computes one step
@@ -233,6 +230,9 @@ def is_happy_number(n: int) -> bool:
             123 % 10 = 3, 123 // 10 = 12
             12 % 10 = 2,  12 // 10 = 1
             1 % 10 = 1,   1 // 10 = 0 → done
+
+    Time Complexity: O(log n) per step, O(log n) steps
+    Space Complexity: O(1)
     """
     def digit_square_sum(num):
         total = 0

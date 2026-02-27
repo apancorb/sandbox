@@ -20,12 +20,18 @@ def pair_sum(nums: list[int], target: int) -> list[int]:
         >>> pair_sum([1, 1, 1], 2)  # Any valid pair like [0, 1], [0, 2], [1, 2]
         [0, 1]
 
-    Time Complexity: O(n) - single pass through the array with two pointers
-    Space Complexity: O(1) - only using two pointer variables
-
     The two pointers start at opposite ends. If sum is too small, move left
     pointer right (increase sum). If sum is too large, move right pointer
     left (decrease sum). Works because the array is sorted.
+
+    Example walkthrough for nums=[-5, -2, 3, 4, 6], target=7:
+        left=0, right=4: -5 + 6 = 1 < 7 → move left
+        left=1, right=4: -2 + 6 = 4 < 7 → move left
+        left=2, right=4:  3 + 6 = 9 > 7 → move right
+        left=2, right=3:  3 + 4 = 7 = 7 ✓ → return [2, 3]
+
+    Time Complexity: O(n) - single pass through the array with two pointers
+    Space Complexity: O(1) - only using two pointer variables
     """
     if len(nums) < 2:
         return []
@@ -99,13 +105,29 @@ def triplet_sum(nums: list[int]) -> list[list[int]]:
         >>> triplet_sum([0, -1, 2, -3, 1])
         [[-3, 1, 2], [-1, 0, 1]]
 
+    For each element, we use two pointers to find pairs that sum to its
+    negation. Skip duplicates at each level to avoid duplicate triplets.
+
+    Example walkthrough for nums=[0, -1, 2, -3, 1]:
+        sorted: [-3, -1, 0, 1, 2]
+
+        i=0, nums[i]=-3, target=3:
+            left=1, right=4: -1 + 2 = 1 < 3 → move left
+            left=2, right=4:  0 + 2 = 2 < 3 → move left
+            left=3, right=4:  1 + 2 = 3 = 3 ✓ → found [-3, 1, 2]
+
+        i=1, nums[i]=-1, target=1:
+            left=2, right=4: 0 + 2 = 2 > 1 → move right
+            left=2, right=3: 0 + 1 = 1 = 1 ✓ → found [-1, 0, 1]
+
+        i=2, nums[i]=0 > 0 → break
+
+        Answer: [[-3, 1, 2], [-1, 0, 1]]
+
     Time Complexity: O(n^2) - sorting is O(n log n), then for each element
         we do a two-pointer search O(n), giving O(n^2) total
     Space Complexity: O(1) - excluding the output, only using pointers
         (sorting may use O(n) depending on implementation)
-
-    For each element, we use two pointers to find pairs that sum to its
-    negation. Skip duplicates at each level to avoid duplicate triplets.
     """
     if len(nums) < 3:
         return []
@@ -197,11 +219,20 @@ def is_palindrome_valid(s: str) -> bool:
         >>> is_palindrome_valid("abc123")
         False
 
-    Time Complexity: O(n) - single pass with two pointers
-    Space Complexity: O(1) - only pointer variables
-
     Use two pointers from both ends, skip non-alphanumeric chars,
     compare case-insensitively.
+
+    Example walkthrough for s="a dog, a panic in a pagoda":
+        left=0 'a', right=25 'a' → match, move inward
+        left=1 ' ' → skip, left=2 'd'
+        right=24 'd' → match, move inward
+        left=3 'o', right=23 'o' → match
+        left=4 'g', right=22 'g' → match
+        ... continues matching all alphanumeric chars symmetrically ...
+        All pairs match → True
+
+    Time Complexity: O(n) - single pass with two pointers
+    Space Complexity: O(1) - only pointer variables
     """
     if not s:
         return True
@@ -282,12 +313,22 @@ def largest_container(heights: list[int]) -> int:
         >>> largest_container([2, 7, 8, 3, 7, 6])
         24
 
-    Time Complexity: O(n) - single pass with two pointers
-    Space Complexity: O(1) - only pointer variables
-
     Start pointers at both ends. The area is min(height) * width. Move the
     pointer with the smaller height inward, since moving the taller one
     can only decrease the area.
+
+    Example walkthrough for heights=[2, 7, 8, 3, 7, 6]:
+        left=0, right=5: min(2,6)*5 = 10, 2 < 6 → move left
+        left=1, right=5: min(7,6)*4 = 24 ★, 7 > 6 → move right
+        left=1, right=4: min(7,7)*3 = 21, 7 >= 7 → move right
+        left=1, right=3: min(7,3)*2 = 6, 7 > 3 → move right
+        left=1, right=2: min(7,8)*1 = 7, 7 < 8 → move left
+        left=2, right=2: done
+
+        Answer: 24
+
+    Time Complexity: O(n) - single pass with two pointers
+    Space Complexity: O(1) - only pointer variables
     """
     if len(heights) < 2:
         return 0
@@ -358,11 +399,19 @@ def remove_element(nums: list[int], val: int) -> int:
         >>> k, sorted(nums[:k])
         (5, [0, 0, 1, 3, 4])
 
-    Time Complexity: O(n) - single pass through the array
-    Space Complexity: O(1) - in-place modification
-
     Use two pointers: one from start, one from end. When we find val at
     left pointer, swap with right pointer's element and shrink right.
+
+    Example walkthrough for nums=[3, 2, 2, 3], val=3:
+        left=0, right=3: nums[0]=3 == val → copy nums[3]=3, right=2
+        left=0, right=2: nums[0]=3 == val → copy nums[2]=2, right=1
+        left=0, right=1: nums[0]=2 != val → left=1
+        left=1, right=1: nums[1]=2 != val → left=2
+        left=2 > right=1 → done, k=2
+        nums[:2] = [2, 2] ✓
+
+    Time Complexity: O(n) - single pass through the array
+    Space Complexity: O(1) - in-place modification
     """
     if not nums:
         return 0
@@ -433,11 +482,24 @@ def remove_duplicates(nums: list[int]) -> int:
         >>> k, nums[:k]
         (5, [0, 1, 2, 3, 4])
 
-    Time Complexity: O(n) - single pass through the array
-    Space Complexity: O(1) - in-place modification
-
     Use slow/fast pointers. Slow marks where to write next unique value.
     Fast scans ahead. When fast finds a new value, write it at slow position.
+
+    Example walkthrough for nums=[0, 0, 1, 1, 1, 2, 2, 3, 3, 4]:
+        slow=1
+        fast=1: nums[1]=0 == nums[0]=0 → skip
+        fast=2: nums[2]=1 != nums[1]=0 → write 1 at slow=1, slow=2
+        fast=3: nums[3]=1 == nums[2]=1 → skip
+        fast=4: nums[4]=1 == nums[3]=1 → skip
+        fast=5: nums[5]=2 != nums[4]=1 → write 2 at slow=2, slow=3
+        fast=6: nums[6]=2 == nums[5]=2 → skip
+        fast=7: nums[7]=3 != nums[6]=2 → write 3 at slow=3, slow=4
+        fast=8: nums[8]=3 == nums[7]=3 → skip
+        fast=9: nums[9]=4 != nums[8]=3 → write 4 at slow=4, slow=5
+        Answer: k=5, nums[:5] = [0, 1, 2, 3, 4]
+
+    Time Complexity: O(n) - single pass through the array
+    Space Complexity: O(1) - in-place modification
     """
     if not nums:
         return 0
@@ -510,11 +572,17 @@ def rotate(nums: list[int], k: int) -> None:
         >>> nums = [-1, -100, 3, 99]; rotate(nums, 2); nums
         [3, 99, -1, -100]
 
+    Reverse entire array, then reverse first k elements, then reverse rest.
+    This works because reversing twice puts elements in the right order,
+    just shifted by k positions.
+
+    Example walkthrough for nums=[1,2,3,4,5,6,7], k=3:
+        Step 1 - reverse all:    [7, 6, 5, 4, 3, 2, 1]
+        Step 2 - reverse [0:3]:  [5, 6, 7, 4, 3, 2, 1]
+        Step 3 - reverse [3:7]:  [5, 6, 7, 1, 2, 3, 4] ✓
+
     Time Complexity: O(n) - reverse three times, each O(n)
     Space Complexity: O(1) - in-place reversal
-
-    Reverse entire array, then reverse first k elements, then reverse rest.
-    Example: [1,2,3,4,5,6,7] k=3 -> [7,6,5,4,3,2,1] -> [5,6,7,4,3,2,1] -> [5,6,7,1,2,3,4]
     """
     if not nums:
         return
@@ -588,10 +656,20 @@ def remove_duplicates_ii(nums: list[int]) -> int:
         >>> k, nums[:k]
         (7, [0, 0, 1, 1, 2, 3, 3])
 
+    Track count of current value. Only write when count <= 2.
+    Use slow/fast pointers where slow marks the write position.
+
+    Example walkthrough for nums=[1, 1, 1, 2, 2, 3]:
+        slow=1, count=1
+        fast=1: 1 == 1, count=1 < 2 → write, slow=2, count=2
+        fast=2: 1 == 1, count=2, not < 2 → skip
+        fast=3: 2 != 1 → write, slow=3, count=1
+        fast=4: 2 == 2, count=1 < 2 → write, slow=4, count=2
+        fast=5: 3 != 2 → write, slow=5, count=1
+        Answer: k=5, nums[:5] = [1, 1, 2, 2, 3]
+
     Time Complexity: O(n) - single pass through the array
     Space Complexity: O(1) - in-place modification
-
-    Track count of current value. Only write when count <= 2.
     """
     if not nums:
         return 0
@@ -672,12 +750,25 @@ def trap(height: list[int]) -> int:
         >>> trap([4, 2, 0, 3, 2, 5])
         9
 
-    Time Complexity: O(n) - single pass with two pointers
-    Space Complexity: O(1) - only pointer variables
-
     Water at each position = min(max_left, max_right) - height.
     Use two pointers tracking max heights from each side. Process the
     smaller side since it's the bottleneck for water level.
+
+    Example walkthrough for height=[4, 2, 0, 3, 2, 5]:
+        left=0, right=5, left_max=4, right_max=5
+        left_max(4) < right_max(5) → process left side
+            left=1, left_max=max(4,2)=4, water += 4-2 = 2
+            left=2, left_max=max(4,0)=4, water += 4-0 = 4 (total=6)
+            left=3, left_max=max(4,3)=4, water += 4-3 = 1 (total=7)
+        left_max(4) < right_max(5) → process left side
+            left=4, left_max=max(4,2)=4, water += 4-2 = 2 (total=9)
+        left_max(4) < right_max(5) → process left side
+            left=5, left=right → done
+
+        Answer: 9
+
+    Time Complexity: O(n) - single pass with two pointers
+    Space Complexity: O(1) - only pointer variables
     """
     if len(height) < 3:
         return 0
