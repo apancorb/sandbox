@@ -11,7 +11,7 @@ In Python, linked lists use a simple node class:
 
 Common techniques:
 - Dummy node: create a fake head to simplify edge cases (empty list, head removal)
-- Two pointers: fast/slow for finding midpoints, kth from end
+- Two pointers: fast/slow for finding midpoints, kth from end, cycle detection
 - In-place reversal: prev/curr/next pointer juggling
 
 Helper functions:
@@ -849,6 +849,188 @@ def test_copy_random_list_with_random():
     assert copied.random is copied.next       # 1's random → copied 2
     assert copied.next.random is copied.next   # 2's random → itself
     assert copied is not node1                 # deep copy
+
+
+# =============================================================================
+# Fast and Slow Pointers
+# =============================================================================
+
+
+def has_cycle(head: ListNode | None) -> bool:
+    """
+    Linked List Loop
+
+    Determine if a linked list contains a cycle.
+
+    Example:
+        1 → 2 → 3 → 4
+            ^         |
+            |_________|
+        → True (node 4 points back to node 2)
+
+    Floyd's Cycle Detection:
+        - slow moves 1 step, fast moves 2 steps
+        - If no cycle: fast reaches None → return False
+        - If cycle: fast gains 1 step per iteration on slow
+          gap closes: k → k-1 → k-2 → ... → 0 (they meet!)
+
+    Analogy: two runners on a circular track.
+    The faster one always laps the slower one.
+
+    Example 1→2→3→4→(back to 2):
+        slow=1, fast=1
+        Step 1: slow=2, fast=3
+        Step 2: slow=3, fast=3 (4→2, then 2→3)...
+        Actually: fast moves 2 steps: 3→4, 4→2 → fast=2
+        Step 2: slow=3, fast=2
+        Step 3: slow=4, fast=4 → MATCH! cycle detected
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    """
+    slow = head
+    fast = head
+
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast:
+            return True
+
+    return False
+
+
+# -----------------------------------------------------------------------------
+# Tests for has_cycle
+# -----------------------------------------------------------------------------
+
+def test_has_cycle_with_cycle():
+    n1, n2, n3, n4 = ListNode(1), ListNode(2), ListNode(3), ListNode(4)
+    n1.next, n2.next, n3.next, n4.next = n2, n3, n4, n2  # 4→2 cycle
+    assert has_cycle(n1) == True
+
+
+def test_has_cycle_no_cycle():
+    n1, n2, n3 = ListNode(1), ListNode(2), ListNode(3)
+    n1.next, n2.next = n2, n3
+    assert has_cycle(n1) == False
+
+
+def test_has_cycle_single_no_cycle():
+    assert has_cycle(ListNode(1)) == False
+
+
+def test_has_cycle_single_self_loop():
+    n1 = ListNode(1)
+    n1.next = n1
+    assert has_cycle(n1) == True
+
+
+def test_has_cycle_empty():
+    assert has_cycle(None) == False
+
+
+def test_has_cycle_two_nodes_cycle():
+    n1, n2 = ListNode(1), ListNode(2)
+    n1.next, n2.next = n2, n1  # 2→1 cycle
+    assert has_cycle(n1) == True
+
+
+def test_has_cycle_two_nodes_no_cycle():
+    n1, n2 = ListNode(1), ListNode(2)
+    n1.next = n2
+    assert has_cycle(n1) == False
+
+
+def test_has_cycle_long_list_cycle_at_end():
+    nodes = [ListNode(i) for i in range(1, 6)]
+    for i in range(4):
+        nodes[i].next = nodes[i + 1]
+    nodes[4].next = nodes[2]  # 5→3 cycle
+    assert has_cycle(nodes[0]) == True
+
+
+def find_middle(head: ListNode | None) -> ListNode | None:
+    """
+    Linked List Midpoint
+
+    Find the middle node. If two middles, return the second one.
+
+    Example:
+        >>> 1 → 2 → 3 → 4 → 5 → 6 → 7
+        Middle = 4
+
+        >>> 1 → 2 → 3 → 4 → 5 → 6
+        Middle = 4 (second of the two middles)
+
+    When fast reaches the end, slow is at the middle.
+    Fast moves 2x speed, so when fast travels n steps, slow travels n/2.
+
+    Example [1, 2, 3, 4, 5]:
+        slow=1, fast=1
+        Step 1: slow=2, fast=3
+        Step 2: slow=3, fast=5
+        fast.next is None → stop. slow=3 ✓
+
+    Example [1, 2, 3, 4, 5, 6]:
+        slow=1, fast=1
+        Step 1: slow=2, fast=3
+        Step 2: slow=3, fast=5
+        Step 3: slow=4, fast=None (5.next=6, 6.next=None)
+        fast is None → stop. slow=4 ✓ (second middle)
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    """
+    slow = head
+    fast = head
+
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+
+    return slow
+
+
+# -----------------------------------------------------------------------------
+# Tests for find_middle
+# -----------------------------------------------------------------------------
+
+def test_find_middle_odd():
+    nodes = [ListNode(i) for i in range(1, 8)]  # 1-7
+    for i in range(6):
+        nodes[i].next = nodes[i + 1]
+    assert find_middle(nodes[0]).val == 4
+
+
+def test_find_middle_even():
+    nodes = [ListNode(i) for i in range(1, 7)]  # 1-6
+    for i in range(5):
+        nodes[i].next = nodes[i + 1]
+    assert find_middle(nodes[0]).val == 4
+
+
+def test_find_middle_single():
+    assert find_middle(ListNode(42)).val == 42
+
+
+def test_find_middle_two():
+    n1, n2 = ListNode(1), ListNode(2)
+    n1.next = n2
+    assert find_middle(n1).val == 2
+
+
+def test_find_middle_three():
+    n1, n2, n3 = ListNode(1), ListNode(2), ListNode(3)
+    n1.next, n2.next = n2, n3
+    assert find_middle(n1).val == 2
+
+
+def test_find_middle_four():
+    nodes = [ListNode(i) for i in range(1, 5)]  # 1-4
+    for i in range(3):
+        nodes[i].next = nodes[i + 1]
+    assert find_middle(nodes[0]).val == 3
 
 
 if __name__ == "__main__":
