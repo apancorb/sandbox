@@ -1,24 +1,34 @@
 use std::collections::HashMap;
 
-/// Climbing Stairs
+/// Climbing Stairs (Top-Down)
 ///
-/// Determine the number of distinct ways to climb a staircase of n steps by taking either 1 or
-/// 2 steps at a time.
+/// Count distinct ways to climb n steps, taking 1 or 2 steps at a time.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: n = 4
-///
 /// Output: 5
-///
-/// Explanation: The 5 ways are:
-/// - 1 + 1 + 1 + 1
-/// - 1 + 1 + 2
-/// - 1 + 2 + 1
-/// - 2 + 1 + 1
-/// - 2 + 2
+/// Ways: 1+1+1+1, 1+1+2, 1+2+1, 2+1+1, 2+2
 /// ```
+///
+/// Recurrence: ways(n) = ways(n-1) + ways(n-2)
+/// From step n, you could have come from n-1 (took 1 step) or n-2 (took 2 steps).
+/// Same as Fibonacci!
+///
+/// Example walkthrough for n=4:
+///
+/// ```text
+/// ways(4) = ways(3) + ways(2)
+/// ways(3) = ways(2) + ways(1) = 2 + 1 = 3
+/// ways(2) = 2 (base case)
+/// ways(4) = 3 + 2 = 5
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n) for memo + recursion stack
 pub fn climbing_stairs(n: usize) -> usize {
     fn climbing_stairs_helper(n: usize, memo: &mut HashMap<usize, usize>) -> usize {
         if n == 1 {
@@ -39,6 +49,34 @@ pub fn climbing_stairs(n: usize) -> usize {
     climbing_stairs_helper(n, &mut HashMap::new())
 }
 
+/// Climbing Stairs (Bottom-Up)
+///
+/// Same problem, iterative approach. Build a dp table from base cases
+/// instead of using recursion.
+///
+/// # Examples
+///
+/// ```text
+/// Input: n = 4
+/// Output: 5
+/// ```
+///
+/// Build dp table from base cases. Each step count is the sum of the
+/// two previous, since you can arrive by taking 1 or 2 steps.
+///
+/// Example walkthrough for n=4:
+///
+/// ```text
+/// dp[1] = 1 (one way: take 1 step)
+/// dp[2] = 2 (two ways: 1+1 or 2)
+/// dp[3] = dp[2] + dp[1] = 2 + 1 = 3
+/// dp[4] = dp[3] + dp[2] = 3 + 2 = 5
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n)
 pub fn climbing_stairs_bottom_up(n: usize) -> usize {
     if n <= 2 {
         return n;
@@ -55,29 +93,40 @@ pub fn climbing_stairs_bottom_up(n: usize) -> usize {
     dp[n]
 }
 
-/// Minimum Coin Combination
+/// Minimum Coin Combination (Top-Down)
 ///
-/// You are given an array of coin values and a target amount of money. Return the minimum
-/// number of coins needed to total the target amount. If this isn't possible, return -1.
-/// You may assume there's an unlimited supply of each coin.
+/// Return minimum coins needed to make target. Return -1 if impossible.
+/// Unlimited supply of each coin.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: coins = [1, 2, 3], target = 5
-///
-/// Output: 2
-///
-/// Explanation: Use one 2-dollar coin and one 3-dollar coin to make 5 dollars.
+/// Output: 2  (use 2 + 3 = 5, two coins)
 /// ```
-///
-/// # Example 2
 ///
 /// ```text
 /// Input: coins = [2, 4], target = 5
-///
 /// Output: -1
 /// ```
+///
+/// For each amount, try every coin and take the minimum. The key insight
+/// is that after using one coin, you have a smaller subproblem of the
+/// same type. Recurrence: dp(t) = 1 + min(dp(t - coin) for each coin <= t).
+///
+/// Example walkthrough for coins=[1,2,3], target=5:
+///
+/// ```text
+/// dp(5) = 1 + min(dp(4), dp(3), dp(2))
+/// dp(3) = 1 + min(dp(2), dp(1), dp(0)) = 1 + 0 = 1  (use coin 3)
+/// dp(2) = 1 + min(dp(1), dp(0)) = 1 + 0 = 1         (use coin 2)
+/// dp(5) = 1 + min(dp(4), 1, 1) = 1 + 1 = 2          (use 2+3)
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(target * len(coins))
+/// - Space: O(target) for memo
 pub fn min_coin_combination(coins: &[usize], target: usize) -> i32 {
     fn min_coin_combination_helper(
         coins: &[usize],
@@ -110,6 +159,35 @@ pub fn min_coin_combination(coins: &[usize], target: usize) -> i32 {
     if res == usize::MAX { -1 } else { res as i32 }
 }
 
+/// Minimum Coin Combination (Bottom-Up)
+///
+/// Same problem, iterative approach. Build up from amount 0 to target.
+///
+/// # Examples
+///
+/// ```text
+/// Input: coins = [1, 2, 3], target = 5
+/// Output: 2  (use 2 + 3 = 5, two coins)
+/// ```
+///
+/// Fill a dp table where dp[t] = min coins to make amount t. For each
+/// amount from 1 to target, try every coin and keep the minimum.
+///
+/// Example walkthrough for coins=[1,2,3], target=5:
+///
+/// ```text
+/// dp[0] = 0 (base case)
+/// dp[1] = 1 (coin 1)
+/// dp[2] = 1 (coin 2)
+/// dp[3] = 1 (coin 3)
+/// dp[4] = 2 (coin 1 + dp[3], or coin 2 + dp[2])
+/// dp[5] = 2 (coin 2 + dp[3], or coin 3 + dp[2])
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(target * len(coins))
+/// - Space: O(target)
 pub fn min_coin_combination_bottom_up(coins: &[usize], target: usize) -> i32 {
     // The DP array will store the minimum number of coins needed for
     // each amount. Set each element to a large number initially.
@@ -133,21 +211,33 @@ pub fn min_coin_combination_bottom_up(coins: &[usize], target: usize) -> i32 {
 
 /// Matrix Pathways
 ///
-/// You are positioned at the top-left corner of a m x n matrix, and can only move downward
-/// or rightward through the matrix. Determine the number of unique pathways you can take
-/// to reach the bottom-right corner of the matrix.
+/// Count unique paths from top-left to bottom-right of an m x n grid.
+/// Can only move down or right.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: m = 3, n = 3
-///
 /// Output: 6
 /// ```
 ///
-/// # Constraints
+/// dp[i][j] = number of ways to reach cell (i, j).
+/// First row and first column are all 1 (only one way: straight line).
+/// For other cells: dp[i][j] = dp[i-1][j] + dp[i][j-1]
+/// (came from above or from left)
 ///
-/// - m, n >= 1
+/// Example walkthrough for 3x3 grid:
+///
+/// ```text
+/// 1  1  1
+/// 1  2  3
+/// 1  3  6  ← answer
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(m * n)
+/// - Space: O(m * n)
 pub fn matrix_pathways(m: usize, n: usize) -> usize {
     let mut dp = vec![vec![1; n]; m];
 
@@ -162,20 +252,32 @@ pub fn matrix_pathways(m: usize, n: usize) -> usize {
 
 /// Neighborhood Burglary
 ///
-/// You plan to rob houses in a street where each house stores a certain amount of money.
-/// The neighborhood has a security system that sets off an alarm when two adjacent houses
-/// are robbed. Return the maximum amount of cash that can be stolen without triggering the
-/// alarms.
+/// Max money from non-adjacent houses. Can't rob two houses in a row.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: houses = [200, 300, 200, 50]
-///
-/// Output: 400
-///
-/// Explanation: Stealing from the houses at indexes 0 and 2 yields 200 + 200 = 400 dollars.
+/// Output: 400  (rob houses 0 and 2: 200 + 200 = 400)
 /// ```
+///
+/// dp[i] = max money robbing from houses[0..i].
+/// At each house: rob it (houses[i] + dp[i-2]) or skip it (dp[i-1]).
+/// dp[i] = max(dp[i-1], houses[i] + dp[i-2])
+///
+/// Example walkthrough for [200, 300, 200, 50]:
+///
+/// ```text
+/// dp[0] = 200
+/// dp[1] = max(200, 300) = 300
+/// dp[2] = max(300, 200+200) = 400  ← rob 0 and 2
+/// dp[3] = max(400, 50+300) = 400   ← skip house 3
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n)
 pub fn neighborhood_burglary(houses: &[usize]) -> usize {
     if houses.is_empty() {
         return 0;
@@ -196,17 +298,38 @@ pub fn neighborhood_burglary(houses: &[usize]) -> usize {
 
 /// Longest Common Subsequence
 ///
-/// Given two strings, find the length of their longest common subsequence (LCS). A subsequence
-/// is a sequence of characters that can be derived from a string by deleting zero or more
-/// elements, without changing the order of the remaining elements.
+/// Find the length of the longest common subsequence of two strings.
+/// A subsequence keeps order but can skip characters.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: s1 = "acabac", s2 = "aebab"
-///
-/// Output: 3
+/// Output: 3  (LCS is "aba")
 /// ```
+///
+/// dp[i][j] = LCS length of s1[0..i] and s2[0..j].
+///
+/// If chars match:  dp[i][j] = 1 + dp[i-1][j-1]  (use both chars)
+/// If they don't:   dp[i][j] = max(dp[i-1][j], dp[i][j-1])  (skip one)
+///
+/// Example walkthrough — table for "acabac" vs "aebab":
+///
+/// ```text
+///       ""  a  e  b  a  b
+/// ""  [  0  0  0  0  0  0 ]
+/// a   [  0  1  1  1  1  1 ]
+/// c   [  0  1  1  1  1  1 ]
+/// a   [  0  1  1  1  2  2 ]
+/// b   [  0  1  1  2  2  3 ]
+/// a   [  0  1  1  2  3  3 ]
+/// c   [  0  1  1  2  3  3 ]  ← answer: 3
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(m * n) where m, n = lengths of s1, s2
+/// - Space: O(m * n)
 pub fn longest_common_subsequence(s1: &str, s2: &str) -> usize {
     let s1: Vec<char> = s1.chars().collect();
     let s2: Vec<char> = s2.chars().collect();
@@ -227,15 +350,34 @@ pub fn longest_common_subsequence(s1: &str, s2: &str) -> usize {
 
 /// Longest Palindrome in a String
 ///
-/// Return the longest palindromic substring within a given string.
+/// Return the longest palindromic substring.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: s = "abccbaba"
-///
 /// Output: "abccba"
 /// ```
+///
+/// dp[i][j] = True if s[i..j] is a palindrome. Start with base cases
+/// (single chars and pairs), then expand to longer lengths. If the outer
+/// characters match and the inner substring is already a palindrome, the
+/// whole thing is a palindrome.
+///
+/// Example walkthrough for "abccbaba":
+///
+/// ```text
+/// Base: each char is a palindrome, "cc" is a pair palindrome
+/// Length 3: "bcc" no, "ccb" no, "bab" yes (b==b and "a" is palindrome)
+/// Length 4: "bccb" yes (b==b and "cc" is palindrome)
+/// Length 5: "abccb" no (a!=b)
+/// Length 6: "abccba" yes (a==a and "bccb" is palindrome) ← answer
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n^2)
+/// - Space: O(n^2)
 pub fn longest_palindrome(s: &str) -> String {
     let s: Vec<char> = s.chars().collect();
     let n = s.len();
@@ -273,23 +415,37 @@ pub fn longest_palindrome(s: &str) -> String {
     s[start_index..start_index + max_len].iter().collect()
 }
 
-/// Maximum Subarray Sum
+/// Maximum Subarray Sum (Kadane's Algorithm)
 ///
-/// Given an array of integers, return the sum of the subarray with the largest sum.
+/// Return the largest sum of any contiguous subarray.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [3, 1, -6, 2, -1, 4, -9]
-///
-/// Output: 5
-///
-/// Explanation: subarray [2, -1, 4] has the largest sum of 5.
+/// Output: 5  (subarray [2, -1, 4] has sum 5)
 /// ```
 ///
-/// # Constraints
+/// Kadane's: at each element, decide: extend current subarray or start fresh?
+/// curr = max(num, curr + num)
+/// If curr + num < num, previous subarray is dragging us down → start new.
 ///
-/// - The input array contains at least one element.
+/// Example walkthrough for [3, 1, -6, 2, -1, 4, -9]:
+///
+/// ```text
+///  3:  curr=3,  best=3
+///  1:  curr=4,  best=4
+/// -6:  curr=-2, best=4
+///  2:  curr=2,  best=4   ← started fresh (2 > -2+2)
+/// -1:  curr=1,  best=4
+///  4:  curr=5,  best=5   ← new best!
+/// -9:  curr=-4, best=5
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn max_subarray_sum(nums: &[i32]) -> i32 {
     // Kadane's Algorithm:
     // At each position, decide: start a new subarray here, or extend the previous one?
@@ -308,6 +464,38 @@ pub fn max_subarray_sum(nums: &[i32]) -> i32 {
     max_sum
 }
 
+/// Maximum Subarray Sum (DP Array)
+///
+/// Same problem using explicit dp array. dp[i] = max subarray sum ending
+/// at index i.
+///
+/// # Examples
+///
+/// ```text
+/// Input: nums = [3, 1, -6, 2, -1, 4, -9]
+/// Output: 5  (subarray [2, -1, 4] has sum 5)
+/// ```
+///
+/// At each index, either extend the previous subarray or start fresh.
+/// dp[i] = max(nums[i], dp[i-1] + nums[i]). The answer is max(dp).
+///
+/// Example walkthrough for [3, 1, -6, 2, -1, 4, -9]:
+///
+/// ```text
+/// dp[0] = 3
+/// dp[1] = max(1, 3+1) = 4
+/// dp[2] = max(-6, 4-6) = -2
+/// dp[3] = max(2, -2+2) = 2   ← start fresh
+/// dp[4] = max(-1, 2-1) = 1
+/// dp[5] = max(4, 1+4) = 5    ← best!
+/// dp[6] = max(-9, 5-9) = -4
+/// Answer: max(dp) = 5
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n)
 pub fn max_subarray_sum_dp(nums: &[i32]) -> i32 {
     if nums.is_empty() {
         return 0;
@@ -331,23 +519,38 @@ pub fn max_subarray_sum_dp(nums: &[i32]) -> i32 {
 
 /// 0/1 Knapsack
 ///
-/// You are a thief planning to rob a store. However, you can only carry a knapsack with a
-/// maximum capacity of `cap` units. Each item (i) in the store has a weight (weights[i]) and
-/// a value (values[i]).
+/// Given items with weights and values, find max value that fits in capacity.
+/// Each item can be taken at most once (0/1 = take or skip).
 ///
-/// Find the maximum total value of items you can carry in your knapsack.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: cap = 7, weights = [5, 3, 4, 1], values = [70, 50, 40, 10]
-///
-/// Output: 90
-///
-/// Explanation: The most valuable combination of items that can fit in the knapsack together
-/// are items 1 and 2. These items have a combined value of 50 + 40 = 90 and a total weight of
-/// 3 + 4 = 7, which fits within the knapsack's capacity.
+/// Output: 90  (take items 1 and 2: weight 3+4=7, value 50+40=90)
 /// ```
+///
+/// dp[i][c] = max value using items i..n-1 with capacity c. For each item,
+/// either skip it or take it (if it fits). Fill bottom-up from the last
+/// item to the first.
+///
+/// Example walkthrough for cap=7, weights=[5,3,4,1], values=[70,50,40,10]:
+///
+/// ```text
+/// Start from item 3 (w=1, v=10):
+///     dp[3][1..7] = 10 (always fits)
+/// Item 2 (w=4, v=40):
+///     dp[2][4] = max(skip=10, take=40) = 40
+///     dp[2][5] = max(10, 40+10) = 50
+/// Item 1 (w=3, v=50):
+///     dp[1][3] = max(dp[2][3], 50+dp[2][0]) = max(10, 50) = 50
+///     dp[1][7] = max(dp[2][7], 50+dp[2][4]) = max(50, 50+40) = 90 ★
+/// Answer: dp[0][7] = 90
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n * cap)
+/// - Space: O(n * cap)
 pub fn knapsack(cap: usize, weights: &[usize], values: &[usize]) -> usize {
     let n = values.len();
     if n == 0 || cap == 0 {

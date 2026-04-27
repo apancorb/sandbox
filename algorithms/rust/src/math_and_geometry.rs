@@ -1,8 +1,8 @@
 /// Spiral Traversal
 ///
-/// Return the elements of a matrix in clockwise spiral order.
+/// Return elements of a matrix in clockwise spiral order.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input:
@@ -11,8 +11,25 @@
 ///    [10, 11, 12, 13, 14],
 ///    [15, 16, 17, 18, 19]]
 ///
-/// Output: [0, 1, 2, 3, 4, 9, 14, 19, 18, 17, 16, 15, 10, 5, 6, 7, 8, 13, 12, 11]
+/// Output: [0,1,2,3,4, 9,14,19, 18,17,16,15, 10,5, 6,7,8, 13, 12,11]
 /// ```
+///
+/// Use four boundaries: top, bottom, left, right.
+/// Each pass walks one edge and shrinks that boundary inward.
+///
+/// ```text
+/// → → → → →     top row (left to right), then top++
+///         ↓     right col (top to bottom), then right--
+/// ← ← ← ← ←     bottom row (right to left), then bottom--
+/// ↑               left col (bottom to top), then left++
+/// ```
+///
+/// Repeat until boundaries cross.
+///
+/// # Complexity
+///
+/// - Time: O(m*n) — visit every cell
+/// - Space: O(1) — besides output
 pub fn spiral_traversal(matrix: &[Vec<i32>]) -> Vec<i32> {
     if matrix.is_empty() {
         return Vec::new();
@@ -62,26 +79,36 @@ pub fn spiral_traversal(matrix: &[Vec<i32>]) -> Vec<i32> {
 
 /// Reverse 32-Bit Integer
 ///
-/// Reverse the digits of a signed 32-bit integer. If the reversed integer overflows
-/// (i.e., is outside the range [-2^31, 2^31 - 1]), return 0. Assume the environment
-/// only allows you to store integers within the signed 32-bit integer range.
+/// Reverse digits. Return 0 if result overflows 32-bit signed range.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: n = 420
 /// Output: 24
 /// ```
 ///
-/// # Example 2
-///
 /// ```text
 /// Input: n = -15
 /// Output: -51
 /// ```
-// Time: O(log n) - we process each digit once, and n has log₁₀(n) digits.
-//       For 32-bit integers (max 10 digits), this is effectively O(1).
-// Space: O(1) - only a few variables, no extra data structures.
+///
+/// Extract digits with % 10 and // 10, build reversed number.
+/// Python ints are unbounded, so check overflow at the end. In Rust we
+/// use checked arithmetic to detect overflow during construction.
+///
+/// Example walkthrough for 420:
+///
+/// ```text
+/// 420 % 10 = 0, 420 // 10 = 42 → reversed = 0
+/// 42 % 10 = 2,  42 // 10 = 4   → reversed = 2
+/// 4 % 10 = 4,   4 // 10 = 0    → reversed = 24
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(log n) — process each digit
+/// - Space: O(1)
 pub fn reverse_integer(mut n: i32) -> i32 {
     let mut reversed_n: i32 = 0;
 
@@ -103,27 +130,38 @@ pub fn reverse_integer(mut n: i32) -> i32 {
 
 /// Maximum Collinear Points
 ///
-/// Given a set of points in a two-dimensional plane, determine the maximum number
-/// of points that lie along the same straight line.
+/// Find the maximum number of points that lie on the same straight line.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-///   Y
-/// 4 |       •
-/// 3 | •   •
-/// 2 |   •
-/// 1 | •   •
-///   +----------→ X
-///     1 2 3 4
-///
-/// Input: points = [[1, 1], [1, 3], [2, 2], [3, 1], [3, 3], [4, 4]]
-/// Output: 4
+/// Input: points = [[1,1],[1,3],[2,2],[3,1],[3,3],[4,4]]
+/// Output: 4  (the diagonal: (1,1),(2,2),(3,3),(4,4))
 /// ```
 ///
-/// # Constraints
+/// For each "focal" point, calculate slope to every other point.
+/// Points with the same slope from the focal point are collinear.
 ///
-/// - The input won't contain duplicate points.
+/// Slope trick: use reduced fraction (rise/gcd, run/gcd) instead of
+/// float division to avoid precision errors.
+/// Normalize sign so (-1,-2) and (1,2) are treated the same.
+/// Vertical lines: use (1, 0) as special marker.
+///
+/// Example walkthrough — focal point (1,1), slopes to others:
+///
+/// ```text
+/// (1,3): rise=2, run=0 → vertical (1,0)
+/// (2,2): rise=1, run=1 → slope (1,1)
+/// (3,1): rise=0, run=2 → slope (0,1)
+/// (3,3): rise=2, run=2 → slope (1,1)  ← same as (2,2)!
+/// (4,4): rise=3, run=3 → slope (1,1)  ← same again!
+/// Slope (1,1) has count 3, so 3+1 = 4 collinear points.
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n^2)
+/// - Space: O(n) — slope map per focal point
 pub fn max_collinear_points(points: &[[i32; 2]]) -> usize {
     let mut res = 0;
 
@@ -190,29 +228,37 @@ fn get_slope(p1: &[i32; 2], p2: &[i32; 2]) -> (i32, i32) {
 
 /// Roman to Integer
 ///
-/// Convert a Roman numeral string to an integer.
+/// Convert Roman numeral string to integer.
+/// I=1, V=5, X=10, L=50, C=100, D=500, M=1000
 ///
-/// Symbol values: I=1, V=5, X=10, L=50, C=100, D=500, M=1000
-///
-/// Subtraction rules:
-/// - I before V (5) or X (10) makes 4 or 9
-/// - X before L (50) or C (100) makes 40 or 90
-/// - C before D (500) or M (1000) makes 400 or 900
-///
-/// # Example 1
-///
-/// ```text
-/// Input: "III"
-/// Output: 3
-/// ```
-///
-/// # Example 2
+/// # Examples
 ///
 /// ```text
 /// Input: "MCMXCIV"
 /// Output: 1994
-/// Explanation: M=1000, CM=900, XC=90, IV=4
+/// (M=1000, CM=900, XC=90, IV=4)
 /// ```
+///
+/// Rule: if current value < next value, it's a subtraction pair.
+/// IV → 5-1=4,  IX → 10-1=9,  XL → 50-10=40, etc.
+/// Otherwise just add.
+///
+/// Example walkthrough for "MCMXCIV":
+///
+/// ```text
+/// M(1000) < C(100)? no  → +1000, total=1000
+/// C(100) < M(1000)? yes → -100,  total=900
+/// M(1000) < X(10)? no   → +1000, total=1900
+/// X(10) < C(100)? yes   → -10,   total=1890
+/// C(100) < I(1)? no     → +100,  total=1990
+/// I(1) < V(5)? yes      → -1,    total=1989
+/// V(5) is last           → +5,    total=1994
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn roman_to_int(s: &str) -> i32 {
     fn value(c: char) -> i32 {
         match c {
@@ -249,35 +295,34 @@ pub fn roman_to_int(s: &str) -> i32 {
 
 /// Integer to Roman
 ///
-/// Convert an integer to a Roman numeral string.
+/// Convert integer to Roman numeral string.
 ///
-/// # Example 1
-///
-/// ```text
-/// Input: 3749
-/// Output: "MMMDCCXLIX"
-/// ```
-///
-/// # Example 2
+/// # Examples
 ///
 /// ```text
 /// Input: 1994
 /// Output: "MCMXCIV"
-/// Explanation: M=1000, CM=900, XC=90, IV=4
+/// (1000=M, 900=CM, 90=XC, 4=IV)
 /// ```
-//
-// Greedy approach: include subtractive forms in lookup table.
-// Walk through with 1994:
-//
-//   remaining = 1994, result = ""
-//
-//   1000: 1994 >= 1000? YES → result = "M", remaining = 994
-//   900:  994 >= 900?   YES → result = "MCM", remaining = 94
-//   90:   94 >= 90?     YES → result = "MCMXC", remaining = 4
-//   4:    4 >= 4?       YES → result = "MCMXCIV", remaining = 0
-//
-//   Result: "MCMXCIV"
-//
+///
+/// Greedy: include subtractive forms (CM, CD, XC, XL, IX, IV)
+/// in the lookup table. Walk through largest to smallest,
+/// subtracting and appending.
+///
+/// Example walkthrough for 1994:
+///
+/// ```text
+/// 1994 >= 1000 → "M",    remaining=994
+/// 994 >= 900   → "CM",   remaining=94
+/// 94 >= 90     → "XC",   remaining=4
+/// 4 >= 4       → "IV",   remaining=0
+/// Result: "MCMXCIV"
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(1) — bounded by 3999
+/// - Space: O(1)
 pub fn int_to_roman(num: i32) -> String {
     let symbols = [
         (1000, "M"),
@@ -310,43 +355,61 @@ pub fn int_to_roman(num: i32) -> String {
 
 /// Length of Last Word
 ///
-/// Given a string consisting of words and spaces, return the length of the last word.
+/// Return the length of the last word in a string.
 ///
-/// # Example 1
-///
-/// ```text
-/// Input: "Hello World"
-/// Output: 5
-/// ```
-///
-/// # Example 2
+/// # Examples
 ///
 /// ```text
 /// Input: "   fly me   to   the moon  "
 /// Output: 4
 /// ```
+///
+/// Split the string on whitespace, which automatically handles leading,
+/// trailing, and multiple spaces. The last element of the split result
+/// is the last word, so just return its length.
+///
+/// Example walkthrough for "   fly me   to   the moon  ":
+///
+/// ```text
+/// split() → ["fly", "me", "to", "the", "moon"]
+/// last word → "moon"
+/// len("moon") → 4
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn length_of_last_word(s: &str) -> usize {
     s.split_whitespace().last().map_or(0, |w| w.len())
 }
 
 /// Longest Common Prefix
 ///
-/// Find the longest common prefix string amongst an array of strings.
-/// Return empty string if no common prefix.
+/// Find the longest common prefix among an array of strings.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: ["flower", "flow", "flight"]
 /// Output: "fl"
 /// ```
 ///
-/// # Example 2
+/// Compare char by char using the first string as reference.
+/// Stop when any string differs or runs out of characters.
+///
+/// Example walkthrough for ["flower", "flow", "flight"]:
 ///
 /// ```text
-/// Input: ["dog", "racecar", "car"]
-/// Output: ""
+/// i=0: 'f' == 'f' == 'f' → match
+/// i=1: 'l' == 'l' == 'l' → match
+/// i=2: 'o' == 'o' != 'i' → stop, return "fl"
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n * m) — n strings, m = shortest length
+/// - Space: O(1)
 pub fn longest_common_prefix(strs: &[&str]) -> String {
     if strs.is_empty() {
         return String::new();
@@ -367,34 +430,43 @@ pub fn longest_common_prefix(strs: &[&str]) -> String {
 
 /// Reverse Words in a String
 ///
-/// Reverse the order of words in a string. Words are separated by spaces.
-/// Remove leading/trailing spaces and reduce multiple spaces to single space.
+/// Reverse word order. Strip extra spaces.
 ///
-/// # Example 1
-///
-/// ```text
-/// Input: "the sky is blue"
-/// Output: "blue is sky the"
-/// ```
-///
-/// # Example 2
+/// # Examples
 ///
 /// ```text
 /// Input: "  hello world  "
 /// Output: "world hello"
 /// ```
+///
+/// Split the string on whitespace to get a list of words, then reverse
+/// the list and join with single spaces. Python's split() handles all
+/// the edge cases with multiple and trailing spaces automatically.
+///
+/// Example walkthrough for "  hello world  ":
+///
+/// ```text
+/// split() → ["hello", "world"]
+/// [::-1]  → ["world", "hello"]
+/// join    → "world hello"
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n)
 pub fn reverse_words(s: &str) -> String {
     s.split_whitespace().rev().collect::<Vec<_>>().join(" ")
 }
 
 /// Zigzag Conversion
 ///
-/// Write a string in a zigzag pattern across numRows rows, then read line by line.
+/// Write string in zigzag pattern across num_rows, then read line by line.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: s = "PAYPALISHIRING", numRows = 3
+/// Input: s = "PAYPALISHIRING", num_rows = 3
 ///
 /// P   A   H   N
 /// A P L S I I G
@@ -403,18 +475,27 @@ pub fn reverse_words(s: &str) -> String {
 /// Output: "PAHNAPLSIIGYIR"
 /// ```
 ///
-/// # Example 2
+/// Simulate: bounce a row index up and down.
+/// Row goes 0,1,2,1,0,1,2,1,0... for num_rows=3.
+/// Collect chars into each row, then concatenate.
+///
+/// Example walkthrough for "PAYPALISHIRING" with num_rows=3:
 ///
 /// ```text
-/// Input: s = "PAYPALISHIRING", numRows = 4
-///
-/// P     I    N
-/// A   L S  I G
-/// Y A   H R
-/// P     I
-///
-/// Output: "PINALSIGYAHRPI"
+/// P → row 0 (down)    row 0: [P]
+/// A → row 1 (down)    row 1: [A]
+/// Y → row 2 (bounce)  row 2: [Y]
+/// P → row 1 (up)      row 1: [A,P]
+/// A → row 0 (bounce)  row 0: [P,A]
+/// L → row 1 (down)    row 1: [A,P,L]
+/// ...continues...
+/// Result: "PAHN" + "APLSIIG" + "YIR" = "PAHNAPLSIIGYIR"
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n)
 pub fn zigzag_convert(s: &str, num_rows: usize) -> String {
     if num_rows == 1 || num_rows >= s.len() {
         return s.to_string();
@@ -446,27 +527,113 @@ pub fn zigzag_convert(s: &str, num_rows: usize) -> String {
     rows.concat()
 }
 
-/// Find the Index of the First Occurrence in a String
+/// Find First Occurrence in String
 ///
-/// Return the index of the first occurrence of needle in haystack,
-/// or -1 if needle is not part of haystack.
+/// Return index of first occurrence of needle in haystack, or -1.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: haystack = "sadbutsad", needle = "sad"
 /// Output: 0
-/// Explanation: "sad" occurs at index 0 and 6. First occurrence is at 0.
 /// ```
-///
-/// # Example 2
 ///
 /// ```text
 /// Input: haystack = "leetcode", needle = "leeto"
 /// Output: -1
 /// ```
+///
+/// Use the built-in string find method, which slides a window of
+/// the needle's length across the haystack checking for a match. This
+/// is the simplest approach and handles all edge cases cleanly.
+///
+/// Example walkthrough:
+///
+/// ```text
+/// "sadbutsad", needle="sad":
+///     i=0: "sad" == "sad"? yes → return 0
+///
+/// "leetcode", needle="leeto":
+///     i=0: "leetc" == "leeto"? no
+///     i=1: "eetco" == "leeto"? no
+///     ...no match found → return -1
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n * m) worst case
+/// - Space: O(1)
 pub fn str_str(haystack: &str, needle: &str) -> i32 {
     haystack.find(needle).map_or(-1, |i| i as i32)
+}
+
+// =============================================================================
+// Number Theory
+// =============================================================================
+
+/// Happy Number
+///
+/// A happy number eventually reaches 1 when you repeatedly sum the
+/// squares of its digits. An unhappy number loops forever.
+///
+/// # Examples
+///
+/// ```text
+/// Input: n = 23
+/// Output: true
+/// 2² + 3² = 13 → 1² + 3² = 10 → 1² + 0² = 1 ✓
+/// ```
+///
+/// ```text
+/// Input: n = 4
+/// Output: false
+/// 4 → 16 → 37 → 58 → 89 → 145 → 42 → 20 → 4 (cycle!)
+/// ```
+///
+/// Key insight: if a number isn't happy, the sequence CYCLES.
+/// This is just cycle detection! Use Floyd's algorithm:
+/// - slow computes one step
+/// - fast computes two steps
+/// - If fast hits 1 → happy
+/// - If slow == fast → cycle → unhappy
+///
+/// digit_square_sum examples:
+///
+/// ```text
+/// 123 → 1² + 2² + 3² = 1 + 4 + 9 = 14
+/// Get digits with % 10 and // 10:
+///     123 % 10 = 3, 123 // 10 = 12
+///     12 % 10 = 2,  12 // 10 = 1
+///     1 % 10 = 1,   1 // 10 = 0 → done
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(log n) per step, O(log n) steps
+/// - Space: O(1)
+pub fn is_happy_number(num: u32) -> bool {
+    let get_next_num = |mut curr_num: u32| -> u32 {
+        let mut next_num = 0;
+        while curr_num > 0 {
+            let digit = curr_num % 10;
+            curr_num = curr_num / 10;
+            next_num += digit * digit;
+        }
+        next_num
+    };
+
+    let mut slow = num;
+    let mut fast = num;
+
+    loop {
+        slow = get_next_num(slow);
+        fast = get_next_num(get_next_num(fast));
+        if fast == 1 {
+            return true;
+        } else if slow == fast {
+            return false;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -765,5 +932,53 @@ mod tests {
     #[test]
     fn test_str_str_full_match() {
         assert_eq!(str_str("abc", "abc"), 0);
+    }
+
+    // -------------------------------------------------------------------------
+    // Number Theory tests
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_is_happy_number_23() {
+        assert!(is_happy_number(23));
+    }
+
+    #[test]
+    fn test_is_happy_number_1() {
+        assert!(is_happy_number(1));
+    }
+
+    #[test]
+    fn test_is_happy_number_7() {
+        // 7 -> 49 -> 97 -> 130 -> 10 -> 1
+        assert!(is_happy_number(7));
+    }
+
+    #[test]
+    fn test_is_happy_number_19() {
+        // 19 -> 82 -> 68 -> 100 -> 1
+        assert!(is_happy_number(19));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_2() {
+        assert!(!is_happy_number(2));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_4() {
+        // 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 (cycle)
+        assert!(!is_happy_number(4));
+    }
+
+    #[test]
+    fn test_is_unhappy_number_20() {
+        assert!(!is_happy_number(20));
+    }
+
+    #[test]
+    fn test_is_happy_number_100() {
+        // 100 -> 1
+        assert!(is_happy_number(100));
     }
 }

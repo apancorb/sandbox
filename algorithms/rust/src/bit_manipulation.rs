@@ -1,26 +1,35 @@
 /// Hamming Weights of Integers
 ///
-/// The Hamming weight of a number is the number of set bits (1-bits) in its binary
-/// representation. Given a positive integer n, return an array where the ith element
-/// is the Hamming weight of integer i for all integers from 0 to n.
+/// Return array where element i = number of 1-bits in binary of i,
+/// for all integers 0 to n.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: n = 7
-///
+/// Input: hamming_weights(7)
 /// Output: [0, 1, 1, 2, 1, 2, 2, 3]
 ///
-/// Explanation:
-/// 0 = 000 → 0 ones
-/// 1 = 001 → 1 one
-/// 2 = 010 → 1 one
-/// 3 = 011 → 2 ones
-/// 4 = 100 → 1 one
-/// 5 = 101 → 2 ones
-/// 6 = 110 → 2 ones
-/// 7 = 111 → 3 ones
+/// 0=000→0, 1=001→1, 2=010→1, 3=011→2,
+/// 4=100→1, 5=101→2, 6=110→2, 7=111→3
 /// ```
+///
+/// For each number, count set bits by checking last bit (& 1)
+/// and shifting right (>> 1) until zero.
+///
+/// Example count_bits(5):
+///
+/// ```text
+/// 5 = 101
+/// 101 & 1 = 1, count=1, shift → 10
+/// 10 & 1 = 0, count=1, shift → 1
+/// 1 & 1 = 1, count=2, shift → 0
+/// Done! 2 bits set
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n * bits) where bits ≤ 32
+/// - Space: O(n)
 pub fn hamming_weights(n: usize) -> Vec<u32> {
     fn count_set_bits(mut x: usize) -> u32 {
         let mut count = 0;
@@ -43,20 +52,33 @@ pub fn hamming_weights(n: usize) -> Vec<u32> {
 
 /// Lonely Integer
 ///
-/// Given an integer array where each number occurs twice except for one of them,
-/// find the unique number.
+/// Every number appears twice except one. Find it.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [1, 3, 3, 2, 1]
-///
 /// Output: 2
 /// ```
 ///
-/// # Constraints
+/// XOR trick: a ^ a = 0 and a ^ 0 = a.
+/// XOR all numbers together → duplicates cancel out, unique survives.
 ///
-/// - nums contains at least one element.
+/// Example [1, 3, 3, 2, 1]:
+///
+/// ```text
+/// 0 ^ 1 = 1
+/// 1 ^ 3 = 2  (binary: 01 ^ 11 = 10)
+/// 2 ^ 3 = 1  (binary: 10 ^ 11 = 01)  ← 3s cancelled!
+/// 1 ^ 2 = 3  (binary: 01 ^ 10 = 11)
+/// 3 ^ 1 = 2  (binary: 11 ^ 01 = 10)  ← 1s cancelled!
+/// Answer: 2
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass XOR
+/// - Space: O(1) — constant extra storage
 pub fn lonely_integer(nums: &[i32]) -> i32 {
     let mut res = 0;
 
@@ -73,30 +95,52 @@ pub fn lonely_integer(nums: &[i32]) -> i32 {
 
 /// Swap Odd and Even Bits
 ///
-/// Given an unsigned 32-bit integer n, return an integer where all of n's even bits
-/// are swapped with their adjacent odd bits.
+/// Swap every pair of adjacent bits in a 32-bit integer.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// 1 0 1 0 0 1  (41)
-/// ↓ ↑ ↓ ↑ ↓ ↑
-/// 0 1 0 1 1 0  (22)
+/// 41 = 1 0 1 0 0 1
+///      ↓ ↑ ↓ ↑ ↓ ↑
+/// 22 = 0 1 0 1 1 0
 ///
 /// Input: n = 41
 /// Output: 22
 /// ```
 ///
-/// # Example 2
+/// Use bitmasks to isolate even and odd bits separately, then shift
+/// them into each other's positions and merge with OR. This swaps
+/// every adjacent pair in one shot without any loops.
+///
+/// Masks (32-bit):
 ///
 /// ```text
-/// 0 1 0 1 1 1  (23)
-/// ↓ ↑ ↓ ↑ ↓ ↑
-/// 1 0 1 0 1 1  (43)
-///
-/// Input: n = 23
-/// Output: 43
+/// EVEN_MASK = 0x55555555 = 0101 0101 ... (selects even bits)
+/// ODD_MASK  = 0xAAAAAAAA = 1010 1010 ... (selects odd bits)
 /// ```
+///
+/// Steps:
+///
+/// ```text
+/// 1. Extract even bits: n & EVEN_MASK
+/// 2. Extract odd bits:  n & ODD_MASK
+/// 3. Shift even bits left by 1 (move to odd positions)
+/// 4. Shift odd bits right by 1 (move to even positions)
+/// 5. Merge with OR
+/// ```
+///
+/// Example walkthrough for n=41 (101001):
+///
+/// ```text
+/// even bits: 101001 & 010101 = 000001 → shift left  → 000010
+/// odd bits:  101001 & 101010 = 101000 → shift right → 010100
+/// merge: 000010 | 010100 = 010110 = 22 ✓
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(1) — fixed bitwise operations
+/// - Space: O(1) — constant extra storage
 pub fn swap_odd_even_bits(n: u32) -> u32 {
     const EVEN_MASK: u32 = 0x55555555;
     const ODD_MASK: u32 = 0xAAAAAAAA;

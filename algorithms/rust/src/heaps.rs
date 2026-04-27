@@ -29,17 +29,86 @@ impl PartialOrd for Node {
     }
 }
 
-/// Combine Sorted Linked Lists
+/// Kth Largest Integer
 ///
-/// Given k singly linked lists, each sorted in ascending order, combine them into one sorted
-/// linked list.
+/// Return the kth largest integer in an array.
 ///
-/// # Example
+/// # Examples
+///
+/// ```text
+/// Input: nums = [5, 2, 4, 3, 1, 6], k = 3
+/// Output: 4
+/// // Sorted desc: [6, 5, 4, 3, 2, 1] -> 3rd largest is 4
+/// ```
+///
+/// Keep a min heap of size k (the "top k" bucket).
+/// The smallest in the bucket = kth largest overall.
+///
+/// Example walkthrough for k=3 on [5, 2, 4, 3, 1, 6]:
+///
+/// ```text
+/// 5 -> bucket: [5]           not full yet
+/// 2 -> bucket: [2, 5]        not full yet
+/// 4 -> bucket: [2, 4, 5]     full! (size k=3)
+/// 3 -> 3 > min(2)? yes -> kick 2, add 3 -> bucket: [3, 4, 5]
+/// 1 -> 1 > min(3)? no -> skip
+/// 6 -> 6 > min(3)? yes -> kick 3, add 6 -> bucket: [4, 5, 6]
+/// Answer: min of bucket = 4
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n log k) - heap operations
+/// - Space: O(k) - heap size
+pub fn kth_largest(nums: &[i32], k: usize) -> i32 {
+    let mut min_heap: BinaryHeap<Reverse<i32>> = BinaryHeap::new();
+
+    for &num in nums {
+        if min_heap.len() < k {
+            min_heap.push(Reverse(num));
+        } else if num > min_heap.peek().unwrap().0 {
+            min_heap.pop();
+            min_heap.push(Reverse(num));
+        }
+    }
+
+    min_heap.peek().unwrap().0
+}
+
+/// Combine K Sorted Lists
+///
+/// Given k sorted lists, combine them into one sorted list.
+///
+/// # Examples
 ///
 /// ```text
 /// Input: lists = [[1, 3, 5], [2, 4, 6], [0, 7, 8]]
 /// Output: [0, 1, 2, 3, 4, 5, 6, 7, 8]
 /// ```
+///
+/// Push first element of each list into min heap.
+/// Pop smallest, push the next element from that same list.
+/// Heap entries are (value, list_index, element_index) to break ties.
+///
+/// Example walkthrough for [[1,3,5], [2,4,6], [0,7,8]]:
+///
+/// ```text
+/// Init heap: [(1,0,0), (2,1,0), (0,2,0)]
+/// Pop (0,2,0) -> result=[0], push (7,2,1)
+/// Pop (1,0,0) -> result=[0,1], push (3,0,1)
+/// Pop (2,1,0) -> result=[0,1,2], push (4,1,1)
+/// Pop (3,0,1) -> result=[0,1,2,3], push (5,0,2)
+/// Pop (4,1,1) -> result=[0,1,2,3,4], push (6,1,2)
+/// Pop (5,0,2) -> result=[0,1,2,3,4,5], list 0 exhausted
+/// Pop (6,1,2) -> result=[0,1,2,3,4,5,6], list 1 exhausted
+/// Pop (7,2,1) -> result=[0,1,2,3,4,5,6,7], push (8,2,2)
+/// Pop (8,2,2) -> result=[0,1,2,3,4,5,6,7,8], list 2 exhausted
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n log k) - n total elements, k lists
+/// - Space: O(k) - heap holds one element per list
 pub fn combine_sorted_lists(lists: Vec<ListNode>) -> ListNode {
     if lists.is_empty() {
         return None;
@@ -85,28 +154,52 @@ impl PartialOrd for Pair {
 
 /// Median of an Integer Stream
 ///
-/// Design a data structure that supports adding integers from a data stream and retrieving the
-/// median of all elements received at any point.
+/// Design a data structure that supports:
+///     - add(num): adds an integer
+///     - get_median(): returns the median of all integers so far
 ///
-/// - `add(num: i32)`: adds an integer to the data structure.
-/// - `get_median() -> f64`: returns the median of all integers so far.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: [add(3), add(6), get_median(), add(1), get_median()]
 /// Output: [4.5, 3.0]
-/// Explanation:
-///   add(3)        # data structure contains [3] when sorted
-///   add(6)        # data structure contains [3, 6] when sorted
-///   get_median()  # median is (3 + 6) / 2 = 4.5
-///   add(1)        # data structure contains [1, 3, 6] when sorted
-///   get_median()  # median is 3.0
 /// ```
 ///
-/// # Constraints
+/// Two heaps split the data into smaller and larger halves:
 ///
-/// - At least one value will have been added before get_median is called.
+/// ```text
+/// left (max heap): smaller half    right (min heap): larger half
+///
+/// Example after adding [1, 3, 6]:
+///     left: [1, 3]   right: [6]
+///     max=3           min=6
+///
+/// The median is always at the boundary between the two heaps!
+///
+/// Rules:
+///     - left.size == right.size  OR  left.size == right.size + 1
+///     - Everything in left <= everything in right
+///     - Median = top of left (odd count), avg of both tops (even)
+/// ```
+///
+/// Example walkthrough: add(3), add(6), add(1)
+///
+/// ```text
+/// add(3): left=[-3], right=[]          -> left has 3
+/// add(6): 6 > 3, goes right            -> left=[-3], right=[6]
+/// add(1): 1 <= max(left)=3 -> push to left
+///         left=[-3,-1] (max heap: 3,1), right=[6]
+///         left.size(2) - right.size(1) = 1, ok no rebalance
+///         median = top of left = 3 ✓
+/// ```
+///
+/// Python only has min heap, so left uses NEGATED values for max heap.
+/// push -5 into min heap -> acts like pushing 5 into max heap.
+///
+/// # Complexity
+///
+/// - Time: O(log n) per add, O(1) per get_median
+/// - Space: O(n)
 struct MedianFinder {
     left: BinaryHeap<i32>,
     right: BinaryHeap<Reverse<i32>>,
@@ -145,22 +238,35 @@ impl MedianFinder {
 
 /// K Most Frequent Strings
 ///
-/// Find the k most frequently occurring strings in an array, and return them sorted by
-/// frequency in descending order. If two strings have the same frequency, sort them in
-/// lexicographical order.
+/// Find the k most frequent strings. Sort by frequency (desc),
+/// then lexicographically for ties.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: strs = ["go", "coding", "byte", "byte", "go", "interview", "go"], k = 2
+/// Input: strs = ["go","coding","byte","byte","go","interview","go"], k = 2
 /// Output: ["go", "byte"]
-/// Explanation: The strings "go" and "byte" appear the most frequently, with frequencies of
-/// 3 and 2, respectively.
+/// // go: 3 times, byte: 2 times
 /// ```
 ///
-/// # Constraints
+/// Count frequencies with a Counter, then use a min heap with negated
+/// counts so the highest frequency pops first. For ties, the tuple
+/// comparison naturally falls through to lexicographic order on the name.
 ///
-/// - k <= n, where n denotes the length of the array.
+/// Example walkthrough for ["go","coding","byte","byte","go","interview","go"], k=2:
+///
+/// ```text
+/// Counter: {"go": 3, "byte": 2, "coding": 1, "interview": 1}
+/// Heap entries: [(-3,"go"), (-2,"byte"), (-1,"coding"), (-1,"interview")]
+/// Pop 1: (-3,"go")    -> "go"
+/// Pop 2: (-2,"byte")  -> "byte"
+/// Result: ["go", "byte"]
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n log n) - heap/sort
+/// - Space: O(n) - counter
 pub fn k_most_frequent_strings(strs: &[&str], k: usize) -> Vec<String> {
     let mut counter = HashMap::new();
     for &s in strs {
@@ -198,6 +304,36 @@ mod tests {
             head = node.next;
         }
         result
+    }
+
+    #[test]
+    fn test_kth_largest_example() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 3), 4);
+    }
+
+    #[test]
+    fn test_kth_largest_first() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 1), 6);
+    }
+
+    #[test]
+    fn test_kth_largest_last() {
+        assert_eq!(kth_largest(&[5, 2, 4, 3, 1, 6], 6), 1);
+    }
+
+    #[test]
+    fn test_kth_largest_single() {
+        assert_eq!(kth_largest(&[42], 1), 42);
+    }
+
+    #[test]
+    fn test_kth_largest_duplicates() {
+        assert_eq!(kth_largest(&[3, 2, 3, 1, 2, 4, 5, 5, 6], 4), 4);
+    }
+
+    #[test]
+    fn test_kth_largest_negative() {
+        assert_eq!(kth_largest(&[-1, -5, 0, 3, -2], 2), 0);
     }
 
     #[test]

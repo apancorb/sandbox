@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 /// Singly linked list node
 #[derive(Debug, PartialEq, Clone)]
@@ -43,12 +39,40 @@ impl ListNode {
 ///
 /// Reverse a singly linked list.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: 1 -> 2 -> 3 -> 4 -> 5 -> None
+/// Input:  1 -> 2 -> 3 -> 4 -> 5 -> None
 /// Output: 5 -> 4 -> 3 -> 2 -> 1 -> None
 /// ```
+///
+/// Use three pointers: prev, curr, next. At each step, flip curr's pointer to
+/// point backwards.
+///
+/// Example walkthrough for [1, 2, 3]:
+///
+/// ```text
+/// Start:  prev=None, curr=1->2->3
+///
+/// Step 1: save next=2->3
+///         flip: 1->None (curr.next = prev)
+///         advance: prev=1, curr=2->3
+///
+/// Step 2: save next=3
+///         flip: 2->1->None
+///         advance: prev=2->1, curr=3
+///
+/// Step 3: save next=None
+///         flip: 3->2->1->None
+///         advance: prev=3->2->1, curr=None
+///
+/// Done! return prev = 3->2->1
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the list
+/// - Space: O(1) — only three pointer variables
 pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     if head.is_none() {
         return head;
@@ -73,23 +97,38 @@ pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
 
 /// Reverse Linked List II
 ///
-/// Given the head of a singly linked list and two integers `left` and `right`
-/// where `left <= right`, reverse the nodes from position `left` to `right`,
-/// and return the reversed list. Positions are 1-indexed.
+/// Reverse nodes from position left to right (1-indexed).
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: head = [1, 2, 3, 4, 5], left = 2, right = 4
+/// Input:  head = [1, 2, 3, 4, 5], left = 2, right = 4
 /// Output: [1, 4, 3, 2, 5]
 /// ```
 ///
-/// # Example 2
+/// Three phases:
+///   1. Walk to node before position left
+///   2. Reverse the sublist from left to right
+///   3. Reconnect: before -> reversed, tail of reversed -> rest
+///
+/// Example walkthrough for [1, 2, 3, 4, 5], left=2, right=4:
 ///
 /// ```text
-/// Input: head = [5], left = 1, right = 1
-/// Output: [5]
+/// Phase 1: walk to node 1 (before position 2)
+///     before -> [1]
+///
+/// Phase 2: reverse positions 2-4 (nodes 2,3,4)
+///     [2, 3, 4] becomes [4, 3, 2]
+///
+/// Phase 3: reconnect
+///     [1] -> [4, 3, 2] -> [5]
+///     Result: [1, 4, 3, 2, 5]
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the list
+/// - Space: O(1) — pointers only
 pub fn reverse_between(
     head: Option<Box<ListNode>>,
     left: usize,
@@ -127,17 +166,38 @@ pub fn reverse_between(
     dummy.next
 }
 
-/// Remove the Kth Last Node From a Linked List
+/// Remove the Kth Last Node
 ///
-/// Return the head of a singly linked list after removing the kth node from the end of it.
+/// Remove the kth node from the end of the list.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: 1 -> 2 -> 3 -> 4 -> 5, k = 2
+/// Input:  1 -> 2 -> 3 -> 4 -> 5, k = 2
 /// Output: 1 -> 2 -> 3 -> 5
-/// Explanation: Removed the 2nd node from the end (which is 4)
+/// (Removed 4, which is the 2nd from end)
 /// ```
+///
+/// Two approaches:
+///   1. Count length, then walk to (len - k - 1) to find node before target
+///   2. Two pointers: advance fast by k, then move both until fast hits end
+///
+/// This implementation uses approach 1 with a dummy node.
+///
+/// Example walkthrough for [1, 2, 3, 4, 5], k=2:
+///
+/// ```text
+/// len = 5
+/// target is at position (5 - 2) = 3 (0-indexed)
+/// walk to position 2 (node before target): node 3
+/// skip: 3.next = 3.next.next (skip node 4)
+/// Result: [1, 2, 3, 5]
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — two passes through the list
+/// - Space: O(1) — pointers only
 pub fn remove_kth_from_end(head: Option<Box<ListNode>>, k: usize) -> Option<Box<ListNode>> {
     let mut dummy = Box::new(ListNode { val: 0, next: head });
 
@@ -163,22 +223,38 @@ pub fn remove_kth_from_end(head: Option<Box<ListNode>>, k: usize) -> Option<Box<
 
 /// Remove Duplicates from Sorted List II
 ///
-/// Given the head of a sorted linked list, delete all nodes that have duplicate
-/// numbers, leaving only distinct numbers. Return the linked list sorted.
+/// Given a sorted linked list, delete ALL nodes that have duplicate values.
+/// Only keep nodes with unique values.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: [1, 2, 3, 3, 4, 4, 5]
+/// Input:  [1, 2, 3, 3, 4, 4, 5]
 /// Output: [1, 2, 5]
 /// ```
 ///
-/// # Example 2
+/// Use a dummy node. For each group of nodes, check if it's a duplicate run.
+/// If yes, skip the entire group. If no, keep it and advance.
+///
+/// Example walkthrough for [1, 2, 3, 3, 4, 4, 5]:
 ///
 /// ```text
-/// Input: [1, 1, 1, 2, 3]
-/// Output: [2, 3]
+/// dummy -> 1 -> 2 -> 3 -> 3 -> 4 -> 4 -> 5
+/// ^prev
+///
+/// prev=dummy: curr=1, next=2 (different) -> keep 1, prev=1
+/// prev=1:     curr=2, next=3 (different) -> keep 2, prev=2
+/// prev=2:     curr=3, next=3 (SAME!) -> skip all 3s -> prev.next=4
+/// prev=2:     curr=4, next=4 (SAME!) -> skip all 4s -> prev.next=5
+/// prev=2:     curr=5, next=None       -> keep 5, prev=5
+///
+/// Result: [1, 2, 5]
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the list
+/// - Space: O(1) — pointers only
 pub fn delete_duplicates(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
     let mut dummy = Box::new(ListNode { val: 0, next: head });
     let mut prev = &mut dummy;
@@ -205,35 +281,35 @@ pub fn delete_duplicates(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
 
 /// Rotate List
 ///
-/// Given the head of a linked list, rotate the list to the right by k places.
+/// Rotate the list to the right by k places.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: head = [1, 2, 3, 4, 5], k = 2
+/// Input:  head = [1, 2, 3, 4, 5], k = 2
 /// Output: [4, 5, 1, 2, 3]
 /// ```
 ///
-/// # Example 2
+/// Steps:
+///   1. Count length, reduce k by len (k % len handles k > len)
+///   2. Find new tail at position (len - k - 1)
+///   3. Split: new_head = new_tail.next
+///   4. Connect old tail to old head
+///
+/// Example walkthrough for [1, 2, 3, 4, 5], k=2:
 ///
 /// ```text
-/// Input: head = [0, 1, 2], k = 4
-/// Output: [2, 0, 1]
+/// len=5, k=2%5=2
+/// new_tail at position (5-2-1)=2 -> node 3
+/// Split: [1, 2, 3] | [4, 5]
+/// Connect: [4, 5] -> [1, 2, 3]
+/// Result: [4, 5, 1, 2, 3]
 /// ```
-//
-// Walk through [1, 2, 3, 4, 5], k = 2:
-//
-// 1. Count len = 5, k % len = 2
-//
-// 2. Find new_tail at position (5-2-1) = 2 → node 3
-//    [1, 2, 3] | [4, 5]
-//          ^new_tail
-//
-// 3. Split: new_head = [4, 5], old head = [1, 2, 3]
-//
-// 4. Connect tail of [4, 5] to [1, 2, 3]
-//    [4, 5, 1, 2, 3]
-//
+///
+/// # Complexity
+///
+/// - Time: O(n) — count length plus walk to new tail
+/// - Space: O(1) — pointers only
 pub fn rotate_list(mut head: Option<Box<ListNode>>, k: usize) -> Option<Box<ListNode>> {
     if head.is_none() {
         return None;
@@ -275,23 +351,37 @@ pub fn rotate_list(mut head: Option<Box<ListNode>>, k: usize) -> Option<Box<List
 
 /// Partition List
 ///
-/// Given the head of a linked list and a value x, partition it such that all
-/// nodes less than x come before nodes greater than or equal to x.
-/// Preserve the original relative order in each partition.
+/// Rearrange so all nodes < x come before nodes >= x.
+/// Preserve original relative order within each group.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: head = [1, 4, 3, 2, 5, 2], x = 3
+/// Input:  head = [1, 4, 3, 2, 5, 2], x = 3
 /// Output: [1, 2, 2, 4, 3, 5]
 /// ```
 ///
-/// # Example 2
+/// Build two separate chains: "less" and "greater or equal".
+/// Then connect less_tail -> greater_head.
+///
+/// Example walkthrough for [1, 4, 3, 2, 5, 2], x=3:
 ///
 /// ```text
-/// Input: head = [2, 1], x = 2
-/// Output: [1, 2]
+/// 1 < 3  -> less:    [1]
+/// 4 >= 3 -> greater: [4]
+/// 3 >= 3 -> greater: [4, 3]
+/// 2 < 3  -> less:    [1, 2]
+/// 5 >= 3 -> greater: [4, 3, 5]
+/// 2 < 3  -> less:    [1, 2, 2]
+///
+/// Connect: [1, 2, 2] -> [4, 3, 5]
+/// Result: [1, 2, 2, 4, 3, 5]
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the list
+/// - Space: O(1) — reuse existing nodes
 pub fn partition(mut head: Option<Box<ListNode>>, x: i32) -> Option<Box<ListNode>> {
     let mut less_dummy = Box::new(ListNode::new(0));
     let mut greater_dummy = Box::new(ListNode::new(0));
@@ -319,14 +409,34 @@ pub fn partition(mut head: Option<Box<ListNode>>, x: i32) -> Option<Box<ListNode
 
 /// Merge Two Sorted Lists
 ///
-/// Merge two sorted linked lists and return it as a new sorted list.
+/// Merge two sorted linked lists into one sorted list.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: 1 -> 2 -> 4, 1 -> 3 -> 4
+/// Input:  l1 = 1 -> 2 -> 4, l2 = 1 -> 3 -> 4
 /// Output: 1 -> 1 -> 2 -> 3 -> 4 -> 4
 /// ```
+///
+/// Use a dummy node and compare heads of both lists.
+/// Always pick the smaller value and advance that pointer.
+///
+/// Example walkthrough for l1=[1, 2, 4], l2=[1, 3, 4]:
+///
+/// ```text
+/// Compare 1 vs 1 -> take l1's 1
+/// Compare 2 vs 1 -> take l2's 1
+/// Compare 2 vs 3 -> take l1's 2
+/// Compare 4 vs 3 -> take l2's 3
+/// Compare 4 vs 4 -> take l1's 4
+/// l1 exhausted   -> append l2's [4]
+/// Result: [1, 1, 2, 3, 4, 4]
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n + m) — single pass through both lists
+/// - Space: O(1) — reuse existing nodes
 pub fn merge_two_lists(
     mut list1: Option<Box<ListNode>>,
     mut list2: Option<Box<ListNode>>,
@@ -355,66 +465,47 @@ pub fn merge_two_lists(
     dummy.next
 }
 
-/// Linked List Intersection
-///
-/// Return the value of the node where two singly linked lists intersect. If the linked lists
-/// don't intersect, return None. Intersection is determined by pointer address (same memory location).
-///
-/// # Example
-///
-/// ```text
-/// List A: 1 -> 2 -> 3 \
-///                      -> 6 -> 7 -> None
-/// List B:      4 -> 5 /
-///
-/// Output: 6
-/// ```
-pub fn linked_list_intersection(
-    head_a: &Option<Box<ListNode>>,
-    head_b: &Option<Box<ListNode>>,
-) -> Option<i32> {
-    let mut seen = HashSet::<i32>::new();
-    let mut curr = head_a;
-
-    while let Some(node) = curr {
-        seen.insert(node.val);
-        curr = &node.next;
-    }
-
-    curr = head_b;
-    while let Some(node) = curr {
-        if seen.contains(&node.val) {
-            return Some(node.val);
-        }
-        curr = &node.next;
-    }
-
-    None
-}
-
 /// LRU Cache
 ///
-/// Design and implement a data structure for the Least Recently Used (LRU) cache that
-/// supports the following operations:
+/// Design a Least Recently Used cache with get and put operations.
+/// When capacity is exceeded, evict the least recently used key.
 ///
-/// - `LRUCache::new(capacity)`: Initialize an LRU cache with the specified capacity.
-/// - `get(key) -> Option<i32>`: Return the value associated with a key. Return None if the key doesn't exist.
-/// - `put(key, value)`: Add a key and its value to the cache. If adding the key would result in
-///   the cache exceeding its capacity, evict the least recently used element. If the key already
-///   exists in the cache, update its value.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// let mut cache = LRUCache::new(3);
-/// cache.put(1, 100);  // cache is [1: 100]
-/// cache.put(2, 250);  // cache is [1: 100, 2: 250]
-/// cache.get(2);       // returns Some(250)
-/// cache.put(4, 300);  // cache is [1: 100, 2: 250, 4: 300]
-/// cache.put(3, 200);  // cache is [2: 250, 4: 300, 3: 200], evicts key 1
-/// cache.get(4);       // returns Some(300)
-/// cache.get(1);       // returns None (was evicted)
+/// Input:  cache = LRUCache(3); cache.put(1, 100); cache.put(2, 250)
+///         cache.get(2)
+/// Output: Some(250)
+///
+/// Input:  cache.put(4, 300); cache.put(3, 200)  // evicts key 1
+///         cache.get(1)
+/// Output: None
 /// ```
+///
+/// Implementation: doubly linked list + hash map. The list tracks recency
+/// (head = LRU, tail = most recent), and the map gives O(1) node lookup.
+///
+/// How it works:
+/// - get(key): if exists, move node to tail (most recent), return value
+/// - put(key, val): if exists, update + move to tail
+///                  if new + full, remove head node (least recent)
+///                  add at tail (most recent)
+///
+/// Example walkthrough for cap=3:
+///
+/// ```text
+/// put(1,100): list = [1]
+/// put(2,250): list = [1, 2]
+/// get(2):     list = [1, 2] (2 already at tail), returns 250
+/// put(4,300): list = [1, 2, 4]
+/// put(3,200): full! evict head (key 1), list = [2, 4, 3]
+/// get(1):     not in map, returns None
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(1) for both get and put
+/// - Space: O(capacity) — one node and one map entry per key
 struct LRUCache {
     capacity: usize,
     map: HashMap<i32, Rc<RefCell<Node>>>,
@@ -538,24 +629,42 @@ impl LRUCache {
 
 /// Add Two Numbers
 ///
-/// Given two non-empty linked lists representing two non-negative integers,
-/// where digits are stored in reverse order, add the two numbers and return
-/// the sum as a linked list.
+/// Two linked lists store digits in reverse order.
+/// Add the numbers and return the sum as a linked list.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
-/// Input: l1 = [2, 4, 3], l2 = [5, 6, 4]
+/// Input:  l1 = [2, 4, 3], l2 = [5, 6, 4]
 /// Output: [7, 0, 8]
-/// Explanation: 342 + 465 = 807
+/// (342 + 465 = 807, stored as 7 -> 0 -> 8)
 /// ```
 ///
-/// # Example 2
+/// Walk both lists simultaneously, adding digits + carry.
+/// Like grade school addition, right to left (but lists are already reversed).
+///
+/// Example walkthrough for [2,4,3] + [5,6,4]:
 ///
 /// ```text
-/// Input: l1 = [9, 9, 9, 9, 9, 9, 9], l2 = [9, 9, 9, 9]
-/// Output: [8, 9, 9, 9, 0, 0, 0, 1]
+/// 2+5+0 = 7,  carry=0 -> 7
+/// 4+6+0 = 10, carry=1 -> 0
+/// 3+4+1 = 8,  carry=0 -> 8
+/// Result: [7, 0, 8]
 /// ```
+///
+/// Example walkthrough for [9,9] + [1]:
+///
+/// ```text
+/// 9+1+0 = 10, carry=1 -> 0
+/// 9+0+1 = 10, carry=1 -> 0
+/// 0+0+1 = 1,  carry=0 -> 1
+/// Result: [0, 0, 1]  (99 + 1 = 100)
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(max(m, n)) — single pass through the longer list
+/// - Space: O(max(m, n)) — new list of digits
 pub fn add_two_numbers(
     mut l1: Option<Box<ListNode>>,
     mut l2: Option<Box<ListNode>>,
@@ -601,17 +710,36 @@ impl RandomNode {
 
 /// Copy List with Random Pointer
 ///
-/// Given a linked list where each node has a `next` pointer and a `random` pointer
-/// (which can point to any node or null), create a deep copy of the list.
+/// Each node has val, next, and a random pointer (can point to any node or None).
+/// Create a deep copy of the list.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: [[7,null],[13,0],[11,4],[10,2],[1,0]]
-/// Output: [[7,null],[13,0],[11,4],[10,2],[1,0]]
+/// Input:  A(random->C) -> B(random->A) -> C(random->B)
+/// Output: deep copy with same structure, no shared nodes
 /// ```
-// Uses HashMap to map original nodes to cloned nodes.
-// Two passes: 1) create all nodes, 2) wire up next and random pointers.
+///
+/// Two-pass approach: first create all new nodes and build a map from old to
+/// new, then wire up next and random pointers using the map. This avoids the
+/// chicken-and-egg problem of needing nodes to exist before you can point to
+/// them.
+///
+/// Example walkthrough for A(random->C) -> B(random->A) -> C(random->B):
+///
+/// ```text
+/// Pass 1: create A', B', C'
+///         map = {A: A', B: B', C: C'}
+/// Pass 2: A'.next = map[A.next] = B'
+///         A'.random = map[A.random] = C'
+///         B'.next = C', B'.random = A'
+///         C'.next = None, C'.random = B'
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — two passes through the list
+/// - Space: O(n) — hash map of old->new nodes
 pub fn copy_random_list(head: Option<Rc<RefCell<RandomNode>>>) -> Option<Rc<RefCell<RandomNode>>> {
     if head.is_none() {
         return None;
@@ -650,6 +778,151 @@ pub fn copy_random_list(head: Option<Rc<RefCell<RandomNode>>>) -> Option<Rc<RefC
     }
 
     map.get(&Rc::as_ptr(&head.unwrap())).cloned()
+}
+
+// =============================================================================
+// Fast and Slow Pointers
+// =============================================================================
+
+/// Node for linked list with potential cycles.
+/// Using Rc<RefCell<>> to allow multiple references (needed for cycles).
+#[derive(Debug)]
+pub struct CycleNode {
+    pub val: i32,
+    pub next: Option<Rc<RefCell<CycleNode>>>,
+}
+
+impl CycleNode {
+    pub fn new(val: i32) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(CycleNode { val, next: None }))
+    }
+}
+
+/// Linked List Loop
+///
+/// Determine if a linked list contains a cycle.
+///
+/// # Examples
+///
+/// ```text
+/// Input:  1 -> 2 -> 3 -> 4
+///              ^         |
+///              |_________|
+/// Output: true (node 4 points back to node 2)
+/// ```
+///
+/// Floyd's Cycle Detection:
+/// - slow moves 1 step, fast moves 2 steps
+/// - If no cycle: fast reaches None -> return False
+/// - If cycle: fast gains 1 step per iteration on slow
+///   gap closes: k -> k-1 -> k-2 -> ... -> 0 (they meet!)
+///
+/// Analogy: two runners on a circular track. The faster one always laps the
+/// slower one.
+///
+/// Example walkthrough for 1 -> 2 -> 3 -> 4 -> (back to 2):
+///
+/// ```text
+/// slow=1, fast=1
+/// Step 1: slow=2, fast=3
+/// Step 2: slow=3, fast=3 (4->2, then 2->3)...
+/// Actually: fast moves 2 steps: 3->4, 4->2 -> fast=2
+/// Step 2: slow=3, fast=2
+/// Step 3: slow=4, fast=4 -> MATCH! cycle detected
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — at most 2 full traversals
+/// - Space: O(1) — just two pointers
+pub fn has_cycle(head: Option<Rc<RefCell<CycleNode>>>) -> bool {
+    if head.is_none() {
+        return false;
+    }
+
+    let mut slow = head.clone();
+    let mut fast = head.clone();
+
+    while let Some(fast_node) = fast {
+        // Move fast one step
+        let next = fast_node.borrow().next.clone();
+
+        // Check if fast can move another step
+        if let Some(fast_node_next) = next {
+            fast = fast_node_next.borrow().next.clone();
+        } else {
+            // End of linked list, there is no cycle
+            return false;
+        }
+
+        // Move slow one step
+        slow = slow.unwrap().borrow().next.clone();
+
+        // Check if they meet
+        if let (Some(s), Some(f)) = (&slow, &fast) {
+            if s.borrow().val == f.borrow().val {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+/// Linked List Midpoint
+///
+/// Find the middle node. If two middles, return the second one.
+///
+/// # Examples
+///
+/// ```text
+/// Input:  1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
+/// Output: 4
+///
+/// Input:  1 -> 2 -> 3 -> 4 -> 5 -> 6
+/// Output: 4 (second of the two middles)
+/// ```
+///
+/// When fast reaches the end, slow is at the middle. Fast moves 2x speed,
+/// so when fast travels n steps, slow travels n/2.
+///
+/// Example walkthrough for [1, 2, 3, 4, 5]:
+///
+/// ```text
+/// slow=1, fast=1
+/// Step 1: slow=2, fast=3
+/// Step 2: slow=3, fast=5
+/// fast.next is None -> stop. slow=3 ✓
+/// ```
+///
+/// Example walkthrough for [1, 2, 3, 4, 5, 6]:
+///
+/// ```text
+/// slow=1, fast=1
+/// Step 1: slow=2, fast=3
+/// Step 2: slow=3, fast=5
+/// Step 3: slow=4, fast=None (5.next=6, 6.next=None)
+/// fast is None -> stop. slow=4 ✓ (second middle)
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the list
+/// - Space: O(1) — two pointers
+pub fn find_middle(head: Option<Rc<RefCell<CycleNode>>>) -> Option<Rc<RefCell<CycleNode>>> {
+    let mut slow = head.clone();
+    let mut fast = head.clone();
+
+    while let Some(fast_node) = fast {
+        if let Some(fast_node_next) = fast_node.borrow().next.clone() {
+            fast = fast_node_next.borrow().next.clone();
+        } else {
+            break;
+        }
+        slow = slow.unwrap().borrow().next.clone();
+    }
+
+    slow
 }
 
 #[cfg(test)]
@@ -783,38 +1056,6 @@ mod tests {
         let list2 = ListNode::from_vec(vec![3, 4, 5, 6]);
         let result = merge_two_lists(list1, list2);
         assert_eq!(ListNode::to_vec(&result), vec![1, 2, 3, 4, 5, 6]);
-    }
-
-    #[test]
-    fn test_linked_list_intersection_no_intersection() {
-        let head_a = ListNode::from_vec(vec![1, 2, 3]);
-        let head_b = ListNode::from_vec(vec![4, 5, 6]);
-        let result = linked_list_intersection(&head_a, &head_b);
-        assert!(result.is_none());
-    }
-
-    #[test]
-    fn test_linked_list_intersection_both_empty() {
-        let head_a: Option<Box<ListNode>> = None;
-        let head_b: Option<Box<ListNode>> = None;
-        let result = linked_list_intersection(&head_a, &head_b);
-        assert!(result.is_none());
-    }
-
-    #[test]
-    fn test_linked_list_intersection_one_empty() {
-        let head_a = ListNode::from_vec(vec![1, 2, 3]);
-        let head_b: Option<Box<ListNode>> = None;
-        let result = linked_list_intersection(&head_a, &head_b);
-        assert!(result.is_none());
-    }
-
-    #[test]
-    fn test_linked_list_intersection_same_list() {
-        // When both pointers point to the same list, intersection is at head
-        let head = ListNode::from_vec(vec![1, 2, 3]);
-        let result = linked_list_intersection(&head, &head);
-        assert_eq!(result, Some(1));
     }
 
     #[test]
@@ -1113,5 +1354,145 @@ mod tests {
         let head = ListNode::from_vec(vec![1]);
         let result = partition(head, 2);
         assert_eq!(ListNode::to_vec(&result), vec![1]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Fast and Slow Pointers tests
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_has_cycle_with_cycle() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+        let node3 = CycleNode::new(3);
+        let node4 = CycleNode::new(4);
+
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        node2.borrow_mut().next = Some(Rc::clone(&node3));
+        node3.borrow_mut().next = Some(Rc::clone(&node4));
+        node4.borrow_mut().next = Some(Rc::clone(&node2)); // cycle back to node2
+
+        assert!(has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_no_cycle() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+        let node3 = CycleNode::new(3);
+
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        node2.borrow_mut().next = Some(Rc::clone(&node3));
+
+        assert!(!has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_single_node_no_cycle() {
+        let node1 = CycleNode::new(1);
+        assert!(!has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_single_node_self_loop() {
+        let node1 = CycleNode::new(1);
+        node1.borrow_mut().next = Some(Rc::clone(&node1)); // self loop
+
+        assert!(has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_empty_list() {
+        assert!(!has_cycle(None));
+    }
+
+    #[test]
+    fn test_has_cycle_two_nodes_with_cycle() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        node2.borrow_mut().next = Some(Rc::clone(&node1)); // cycle back to node1
+
+        assert!(has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_two_nodes_no_cycle() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+
+        assert!(!has_cycle(Some(node1)));
+    }
+
+    #[test]
+    fn test_has_cycle_long_list_cycle_at_end() {
+        let nodes: Vec<Rc<RefCell<CycleNode>>> = (1..=5).map(|i| CycleNode::new(i)).collect();
+
+        for i in 0..4 {
+            nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
+        }
+        nodes[4].borrow_mut().next = Some(Rc::clone(&nodes[2])); // cycle to node 3
+
+        assert!(has_cycle(Some(Rc::clone(&nodes[0]))));
+    }
+
+    #[test]
+    fn test_find_middle_odd_length() {
+        let nodes: Vec<Rc<RefCell<CycleNode>>> = (1..=7).map(|i| CycleNode::new(i)).collect();
+        for i in 0..6 {
+            nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
+        }
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 4);
+    }
+
+    #[test]
+    fn test_find_middle_even_length() {
+        let nodes: Vec<Rc<RefCell<CycleNode>>> = (1..=6).map(|i| CycleNode::new(i)).collect();
+        for i in 0..5 {
+            nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
+        }
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 4);
+    }
+
+    #[test]
+    fn test_find_middle_single_node() {
+        let node = CycleNode::new(42);
+        let middle = find_middle(Some(node));
+        assert_eq!(middle.unwrap().borrow().val, 42);
+    }
+
+    #[test]
+    fn test_find_middle_two_nodes() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        let middle = find_middle(Some(node1));
+        assert_eq!(middle.unwrap().borrow().val, 2);
+    }
+
+    #[test]
+    fn test_find_middle_three_nodes() {
+        let node1 = CycleNode::new(1);
+        let node2 = CycleNode::new(2);
+        let node3 = CycleNode::new(3);
+        node1.borrow_mut().next = Some(Rc::clone(&node2));
+        node2.borrow_mut().next = Some(Rc::clone(&node3));
+        let middle = find_middle(Some(node1));
+        assert_eq!(middle.unwrap().borrow().val, 2);
+    }
+
+    #[test]
+    fn test_find_middle_four_nodes() {
+        let nodes: Vec<Rc<RefCell<CycleNode>>> = (1..=4).map(|i| CycleNode::new(i)).collect();
+        for i in 0..3 {
+            nodes[i].borrow_mut().next = Some(Rc::clone(&nodes[i + 1]));
+        }
+        let middle = find_middle(Some(Rc::clone(&nodes[0])));
+        assert_eq!(middle.unwrap().borrow().val, 3);
     }
 }

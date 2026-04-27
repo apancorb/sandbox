@@ -2,31 +2,36 @@ use std::collections::HashMap;
 
 /// Design a Trie
 ///
-/// Design and implement a trie data structure that supports the following operations:
-/// - `insert(word)`: Inserts a word into the trie.
-/// - `search(word)`: Returns true if a word exists in the trie, and false if not.
-/// - `has_prefix(prefix)`: Returns true if the trie contains a word with the given prefix,
-///   and false if not.
+/// Support insert, search, and has_prefix.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: [insert("top"), insert("bye"), has_prefix("to"), search("to"), insert("to"), search("to")]
 /// Output: [true, false, true]
-///
-/// Explanation:
-/// insert("top")      // trie has: "top"
-/// insert("bye")      // trie has: "top" and "bye"
-/// has_prefix("to")   // prefix "to" exists in the string "top": return true
-/// search("to")       // trie does not contain the word "to": return false
-/// insert("to")       // trie has: "top", "bye", and "to"
-/// search("to")       // trie contains the word "to": return true
 /// ```
 ///
-/// # Constraints
+/// The key idea is to store strings character by character in a tree.
+/// Each node holds a dictionary of children and a boolean flag marking
+/// whether it completes a word. Insert walks/creates nodes, search walks
+/// and checks the flag, and has_prefix just walks without checking the flag.
 ///
-/// - The words and prefixes consist only of lowercase English letters.
-/// - The length of each word and prefix is at least one character.
+/// Walkthrough of insert("top") then search("to"):
+///
+/// ```text
+/// insert("top"):
+///     root -> 't' (create) -> 'o' (create) -> 'p' (create, is_word=True)
+/// search("to"):
+///     root -> 't' (exists) -> 'o' (exists) -> is_word=False -> return False
+/// ```
+///
+/// Each node is a dict of children + is_word flag.
+/// Simplification: use a dict for children, a separate flag for is_word.
+///
+/// # Complexity
+///
+/// - Time: O(m) per operation, where m is the word length
+/// - Space: O(total characters across all inserted words)
 
 #[derive(Default)]
 pub struct TrieNode {
@@ -87,29 +92,33 @@ impl Trie {
 
 /// Insert and Search Words with Wildcards
 ///
-/// Design and implement a data structure that supports the following operations:
-/// - `insert(word)`: Inserts a word into the data structure.
-/// - `search(word)`: Returns true if a word exists in the data structure and false if not.
-///   The word may contain wildcards (`.`) that can represent any letter.
+/// Like Trie but search supports '.' as wildcard (matches any single char).
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: [insert("band"), insert("rat"), search("ra."), search("b.."), insert("ran"), search(".an")]
 /// Output: [true, false, true]
-///
-/// Explanation:
-/// insert("band")   // data structure has: "band"
-/// insert("rat")    // data structure has: "band" and "rat"
-/// search("ra.")    // "ra." matches "rat": return true
-/// search("b..")    // no three-letter word starting with 'b': return false
-/// insert("ran")    // data structure has: "band", "rat", and "ran"
-/// search(".an")    // ".an" matches "ran": return true
+/// // search("ra.") matches "rat"
+/// // search("b..") no 3-letter word starting with 'b'
+/// // search(".an") matches "ran"
 /// ```
 ///
-/// # Constraints
+/// When we hit '.', we must try ALL children (branching search).
+/// Normal chars follow one path. This is why wildcards are expensive.
 ///
-/// - Words will only contain lowercase English letters and (`.`) characters.
+/// Walkthrough of search("ra.") with words ["band", "rat"]:
+///
+/// ```text
+/// 'r' -> exact match, go to child 'r'
+/// 'a' -> exact match, go to child 'a'
+/// '.' -> wildcard, try all children: 't' -> is_word=True -> return True
+/// ```
+///
+/// # Complexity
+///
+/// - Time: insert: O(m); search: O(m) without wildcards, O(26^w * m) worst case with w wildcards
+/// - Space: O(total characters across all inserted words)
 
 pub struct WildcardTrie {
     root: TrieNode,
@@ -163,34 +172,47 @@ impl WildcardTrie {
 
 /// Find All Words on a Board
 ///
-/// Given a 2D board of characters and an array of words, find all the words in the array that
-/// can be formed by tracing a path through adjacent cells in the board. Adjacent cells are those
-/// which horizontally or vertically neighbor each other. We can't use the same cell more than
-/// once for a single word.
+/// Given a 2D board and a list of words, find all words that can be formed
+/// by tracing a path through adjacent cells (up/down/left/right).
+/// Each cell can only be used once per word.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: board = [['b', 'y', 's'],
-///                 ['r', 't', 'e'],
-///                 ['a', 'i', 'n']],
-///        words = ["byte", "bytes", "rat", "rain", "trait", "train"]
-///
+/// Input: board = [['b','y','s'],
+///                 ['r','t','e'],
+///                 ['a','i','n']]
+///        words = ["byte","bytes","rat","rain","trait","train"]
 /// Output: ["byte", "bytes", "rain", "train"]
-///
-/// Explanation:
-/// - "byte": b(0,0) -> y(0,1) -> t(1,1) -> e(1,2) ✓
-/// - "bytes": b(0,0) -> y(0,1) -> t(1,1) -> e(1,2) -> s(0,2) ✓
-/// - "rat": no valid path
-/// - "rain": r(1,0) -> a(2,0) -> i(2,1) -> n(2,2) ✓
-/// - "trait": no valid path
-/// - "train": t(1,1) -> r(1,0) -> a(2,0) -> i(2,1) -> n(2,2) ✓
 /// ```
 ///
-/// # Constraints
+/// Approach: Build a trie from all words, then DFS from each cell.
+/// The trie lets us prune early: if no word starts with the current
+/// path, stop exploring.
 ///
-/// - The board contains only lowercase English letters.
-/// - Words contain only lowercase English letters.
+/// Without trie: search each word separately -> O(words * cells * 4^len)
+/// With trie: search all words simultaneously, sharing common prefixes.
+///
+/// Steps:
+///     1. Build trie from words, store full word at leaf nodes
+///     2. For each cell, if it matches a trie child, start DFS
+///     3. DFS: mark cell visited, explore 4 directions, unmark
+///     4. When we reach a leaf with a word, add it to results
+///
+/// Example walkthrough for the board above with "byte":
+///
+/// ```text
+/// start at b(0,0) (matches root child 'b')
+/// dfs to y(0,1) (matches 'b' child 'y')
+/// dfs to t(1,1) (matches 'y' child 't')
+/// dfs to e(1,2) (matches 't' child 'e') -> word "byte" found!
+/// continue to s(0,2) (matches 'e' child 's') -> word "bytes" found!
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(w*m + rows*cols*4^max_word_len)
+/// - Space: O(w*m) for trie + O(max_word_len) recursion
 
 #[derive(Default)]
 pub struct TrieNodeWithWord {

@@ -23,26 +23,39 @@ impl Node {
 
 /// Invert Binary Tree
 ///
-/// Invert a binary tree and return its root. When a binary tree is inverted, it becomes the
-/// mirror image of itself.
+/// Mirror a binary tree (swap every left and right child).
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input:
-///        1
-///       / \
-///      2   3
-///     / \
-///    4   5
-///
-/// Output:
-///        1
-///       / \
-///      3   2
-///         / \
-///        5   4
+/// Input:        Output:
+///     1             1
+///    / \           / \
+///   2   3         3   2
+///  / \               / \
+/// 4   5             5   4
 /// ```
+///
+/// At each node, swap left and right, then recurse. The key insight is
+/// that inverting is just swapping children at every level. You don't
+/// need to think about it globally — just swap locally and let
+/// recursion handle the rest.
+///
+/// Example walkthrough for tree (1, (2, 4, 5), 3):
+///
+/// ```text
+/// at node 1: swap children → left=3, right=2
+/// recurse left (node 3): no children to swap
+/// recurse right (node 2): swap → left=5, right=4
+/// Result: 1(3, 2(5, 4))
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — visit every node
+/// - Space: O(h) — recursion stack (h = height). Each recursive call stays
+///   on the stack until it returns. The deepest the stack gets = longest
+///   root-to-leaf path = height. Balanced tree: h = log n. Skewed tree: h = n.
 pub fn invert_tree(root: TreeNode) -> TreeNode {
     // 1st solution:
     //
@@ -84,26 +97,39 @@ pub fn invert_tree(root: TreeNode) -> TreeNode {
 
 /// Balanced Binary Tree Validation
 ///
-/// Determine if a binary tree is height-balanced, meaning no node's left subtree and right
-/// subtree have a height difference greater than 1.
+/// A tree is balanced if no node's subtrees differ in height by more than 1.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Balanced:
-///        1
-///       / \
-///      2   3
-///     / \
-///    4   5
-///
-/// Not Balanced:
-///        1
-///       /
-///      2
-///     /
-///    3
+/// Balanced:       Not balanced:
+///     1               1
+///    / \             /
+///   2   3           2
+///  / \             /
+/// 4   5           3
 /// ```
+///
+/// Return height from each subtree. If any subtree is unbalanced,
+/// propagate -1 up as a "poisoned" signal.
+///
+/// helper(node) returns:
+/// - -1   → unbalanced somewhere below
+/// - >= 0 → height of this subtree
+///
+/// Example walkthrough for balanced tree (1, (2, 4, 5), 3):
+///
+/// ```text
+/// helper(4)=0, helper(5)=0
+/// helper(2): |0-0|=0 ≤1 ✓ → return 1
+/// helper(3)=0
+/// helper(1): |1-0|=1 ≤1 ✓ → return 2 → balanced!
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(h)
 pub fn is_balanced(root: TreeNode) -> bool {
     fn helper(node: &TreeNode) -> i32 {
         let Some(node) = node else {
@@ -127,23 +153,39 @@ pub fn is_balanced(root: TreeNode) -> bool {
     helper(&root) != -1
 }
 
-/// Rightmost Nodes of a Binary Tree
+/// Rightmost Nodes of a Binary Tree (Right Side View)
 ///
-/// Return an array containing the values of the rightmost nodes at each level of a binary tree.
+/// Return the last node value at each level.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input:
-///        1
-///       / \
-///      2   3
-///     / \   \
-///    4   5   6
+///     1
+///    / \
+///   2   3
+///  / \   \
+/// 4   5   6
 ///
 /// Output: [1, 3, 6]
-/// Explanation: The rightmost nodes at each level are 1 (level 0), 3 (level 1), and 6 (level 2).
 /// ```
+///
+/// BFS level by level. The last node in each level is the rightmost.
+///
+/// Use a queue. Process one level at a time:
+///
+/// ```text
+/// level_size = len(queue)
+/// for i in range(level_size):
+///     node = queue.popleft()
+///     if i == level_size - 1: → this is the rightmost!
+///     add children to queue
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — visit every node
+/// - Space: O(w) — max width of tree (queue)
 pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
     let Some(root) = root else {
         return Vec::new();
@@ -178,26 +220,45 @@ pub fn rightmost_nodes(root: TreeNode) -> Vec<i32> {
 
 /// Binary Search Tree Validation
 ///
-/// Verify whether a binary tree is a valid binary search tree (BST). A BST is a binary tree where
-/// each node meets the following criteria:
-/// - A node's left subtree contains only nodes of lower values than the node's value.
-/// - A node's right subtree contains only nodes of greater values than the node's value.
+/// Check if a binary tree is a valid BST:
+/// - Left subtree values < node value
+/// - Right subtree values > node value
+/// - This must hold for ALL ancestors, not just the parent
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input:
-///        5
-///       / \
-///      3   7
-///     / \ / \
-///    2  6 7  8
+///     5
+///    / \
+///   3   7       → True (all constraints satisfied)
+///  / \ / \
+/// 2  4 6  8
 ///
-/// Output: false
-/// Explanation: This tree has two violations of the BST criteria:
-/// - Node 5's left subtree contains node 6, and node 6's value is greater than 5.
-/// - Node 7 has a left child with the same value of 7.
+///     5
+///    / \
+///   3   7       → False (6 in left subtree of 5!)
+///  / \ / \
+/// 2  6 7  8
 /// ```
+///
+/// Pass bounds down: each node must be in range (lower, upper).
+/// Go left  → update upper bound to current val
+/// Go right → update lower bound to current val
+///
+/// Example walkthrough for valid tree:
+///
+/// ```text
+/// check(5, -inf, inf): 5 in range ✓
+///   check(3, -inf, 5): 3 in range ✓
+///     check(2, -inf, 3): 2 in range ✓
+///     check(4, 3, 5):    4 in range ✓
+///   check(7, 5, inf): 7 in range ✓
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(h)
 pub fn is_valid_bst(root: TreeNode) -> bool {
     fn helper(node: &TreeNode, lower_bound: i32, upper_bound: i32) -> bool {
         let Some(node) = node else {
@@ -215,36 +276,44 @@ pub fn is_valid_bst(root: TreeNode) -> bool {
     helper(&root, i32::MIN, i32::MAX)
 }
 
-/// Lowest Common Ancestor
+/// Lowest Common Ancestor (LCA)
 ///
-/// Return the lowest common ancestor (LCA) of two nodes, p and q, in a binary tree. The LCA is
-/// defined as the lowest node that has both p and q as descendants. A node can be considered an
-/// ancestor of itself.
+/// Find the lowest node that has both p and q as descendants.
+/// A node can be its own ancestor.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input:
-///        1
-///       / \
-///      2   3
-///     / \
-///    4   5
+///     1
+///    / \
+///   2   3
+///  / \
+/// 4   5
 ///
-/// p = 4, q = 5
-/// Output: 2
-/// Explanation: The LCA of nodes 4 and 5 is node 2.
-///
-/// p = 4, q = 3
-/// Output: 1
-/// Explanation: The LCA of nodes 4 and 3 is node 1.
+/// LCA(4, 5) = 2    (both under 2)
+/// LCA(4, 3) = 1    (split across root)
+/// LCA(2, 4) = 2    (2 is ancestor of 4)
 /// ```
 ///
-/// # Constraints
+/// Post-order DFS: search left and right subtrees.
+/// - If current node is p or q → return it
+/// - If left AND right both found something → current node is the LCA
+/// - If only one side found → propagate that result up
 ///
-/// - The tree contains at least two nodes.
-/// - All node values are unique.
-/// - p and q represent different nodes in the tree.
+/// Example walkthrough for LCA(4, 5) on tree above:
+///
+/// ```text
+/// at node 4: val==4 → return 4
+/// at node 5: val==5 → return 5
+/// at node 2: left=4, right=5 → BOTH found → return 2 (LCA!)
+/// at node 3: left=None, right=None → return None
+/// at node 1: left=2, right=None → return 2
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(h)
 pub fn lowest_common_ancestor(root: TreeNode, p: i32, q: i32) -> TreeNode {
     fn helper(node: &TreeNode, p: i32, q: i32) -> TreeNode {
         let Some(n) = node else {
@@ -267,27 +336,48 @@ pub fn lowest_common_ancestor(root: TreeNode, p: i32, q: i32) -> TreeNode {
     helper(&root, p, q)
 }
 
-/// Build a Binary Tree From Preorder and Inorder Traversals
+/// Build Binary Tree from Preorder and Inorder Traversals
 ///
-/// Construct a binary tree using arrays of values obtained after a preorder traversal and an
-/// inorder traversal of the tree.
+/// Given preorder and inorder traversal arrays, reconstruct the original
+/// binary tree. Each value is unique.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: preorder = [5, 9, 2, 3, 4, 7], inorder = [2, 9, 5, 4, 3, 7]
+/// Input:
+///   preorder = [5, 9, 2, 3, 4, 7]
+///   inorder  = [2, 9, 5, 4, 3, 7]
 ///
 /// Output:
-///        5
-///       / \
-///      9   3
-///     /   / \
-///    2   4   7
+///       5
+///      / \
+///     9   3
+///    /   / \
+///   2   4   7
 /// ```
 ///
-/// # Constraints
+/// Key insight: preorder[0] is always the root. Find that root in the
+/// inorder array — everything to its left is the left subtree, everything
+/// to its right is the right subtree. Then recurse on each side. Use a
+/// hash map for O(1) lookup of inorder indices. Use a shared preorder
+/// index that increments as we consume elements.
 ///
-/// - The tree consists of unique values.
+/// Example walkthrough for preorder=[5,9,2,3,4,7], inorder=[2,9,5,4,3,7]:
+///
+/// ```text
+/// root = preorder[0] = 5
+/// find 5 in inorder at index 2
+/// left subtree inorder:  [2, 9]     (indices 0..1)
+/// right subtree inorder: [4, 3, 7]  (indices 3..5)
+/// next preorder element for left subtree: 9
+/// next preorder element for right subtree: 3
+/// Recurse on each side...
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(n) — hash map + recursion
 pub fn build_tree(preorder: &[i32], inorder: &[i32]) -> TreeNode {
     if preorder.is_empty() {
         return None;
@@ -352,31 +442,48 @@ pub fn build_tree(preorder: &[i32], inorder: &[i32]) -> TreeNode {
     )
 }
 
-/// Maximum Sum of a Continuous Path in a Binary Tree
+/// Maximum Path Sum in a Binary Tree
 ///
-/// Return the maximum sum of a continuous path in a binary tree. A path is defined by the
-/// following characteristics:
-/// - Consists of a sequence of nodes that can begin and end at any node in the tree
-/// - Each consecutive pair of nodes in the sequence is connected by an edge
-/// - The path must be a single continuous sequence of nodes that doesn't split into multiple paths
+/// Find the maximum sum along any path (any node to any node).
+/// Path = connected sequence of nodes, no splits.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input:
-///        5
-///       / \
-///      3   8
-///     / \   \
-///    4  -2   6
+///     5
+///    / \
+///   3   8
+///  / \   \
+/// 4  -2   6
 ///
-/// Output: 22
-/// Explanation: The path 4 -> 3 -> 5 -> 8 -> 6 = 26? Or 3 + 5 + 8 + 6 = 22
+/// Best path: 4 → 3 → 5 → 8 → 6 = 26
 /// ```
 ///
-/// # Constraints
+/// At each node, we decide:
+/// - left_gain = max(0, best path going left)   ← 0 if negative (skip)
+/// - right_gain = max(0, best path going right)
+/// - path_through = val + left_gain + right_gain ← path using this node as "turn"
+/// - Update global max with path_through
 ///
-/// - The tree contains at least one node.
+/// Return to parent: val + max(left_gain, right_gain)
+/// (can only extend in ONE direction, not both, when going up)
+///
+/// Example walkthrough:
+///
+/// ```text
+/// at node 4:  return 4,  path_through=4
+/// at node -2: return 0 (capped), path_through=-2
+/// at node 3:  left=4, right=0 → path_through=3+4+0=7, return 3+4=7
+/// at node 6:  return 6,  path_through=6
+/// at node 8:  left=0, right=6 → path_through=8+0+6=14, return 8+6=14
+/// at node 5:  left=7, right=14 → path_through=5+7+14=26 ★, return 5+14=19
+/// Answer: 26
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(h)
 pub fn max_path_sum(root: TreeNode) -> i32 {
     fn max_path_sum_helper(node: &TreeNode, max_path_sum: &mut i32) -> i32 {
         let Some(node) = node else {
@@ -398,24 +505,40 @@ pub fn max_path_sum(root: TreeNode) -> i32 {
 
 /// Widest Binary Tree Level
 ///
-/// Return the width of the widest level in a binary tree, where the width of a level is defined
-/// as the distance between its leftmost and rightmost non-null nodes.
+/// Return the width of the widest level, including null gaps.
 ///
-/// The width includes any null nodes that would be between the leftmost and rightmost nodes.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input:
-///        1
-///       / \
-///      2   3
-///     /     \
-///    4       5
+///     1
+///    / \
+///   2   3
+///  /     \
+/// 4       5
 ///
-/// Output: 4
-/// Explanation: Level 2 has nodes 4 and 5. The width is 4 (positions: 4, null, null, 5).
+/// Level 2 has nodes at positions 0 and 3 → width = 4
+/// (positions: 4, null, null, 5)
 /// ```
+///
+/// Assign position indices like a heap array:
+/// - root = 0
+/// - left child = 2*i + 1
+/// - right child = 2*i + 2
+///
+/// Width of a level = rightmost_pos - leftmost_pos + 1
+///
+/// Example walkthrough:
+///
+/// ```text
+/// Level 0: node 1 at pos 0           → width = 1
+/// Level 1: node 2 at pos 1, 3 at pos 2  → width = 2
+/// Level 2: node 4 at pos 3, 5 at pos 6  → width = 6-3+1 = 4 ★
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(w) — max width (queue)
 pub fn widest_level(root: TreeNode) -> usize {
     let Some(root) = root else {
         return 0;

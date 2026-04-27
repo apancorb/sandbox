@@ -1,25 +1,42 @@
 /// Valid Parenthesis Expression
 ///
-/// Given a string representing an expression of parentheses containing the characters '(', ')',
-/// '[', ']', '{', or '}', determine if the expression forms a valid sequence of parentheses.
+/// Given a string representing an expression of parentheses containing the
+/// characters '(', ')', '[', ']', '{', or '}', determine if the expression
+/// forms a valid sequence of parentheses.
 ///
-/// A sequence of parentheses is valid if every opening parenthesis has a corresponding closing
-/// parenthesis, and no closing parenthesis appears before its matching opening parenthesis.
+/// A sequence of parentheses is valid if every opening parenthesis has a
+/// corresponding closing parenthesis, and no closing parenthesis appears
+/// before its matching opening parenthesis.
 ///
 /// # Examples
 ///
-/// Example 1:
 /// ```text
 /// Input: s = "([]{})"
 /// Output: true
-/// ```
 ///
-/// Example 2:
-/// ```text
 /// Input: s = "([]{)}"
 /// Output: false
-/// Explanation: The '(' parenthesis is closed before its nested '{' parenthesis is closed.
 /// ```
+///
+/// Push opening brackets onto stack. For closing brackets, check if top
+/// of stack matches. If not, or stack empty, invalid.
+///
+/// Example "([]{})" step by step:
+///
+/// ```text
+/// '(' → push, stack=['(']
+/// '[' → push, stack=['(', '[']
+/// ']' → pop '[', matches → stack=['(']
+/// '{' → push, stack=['(', '{']
+/// '}' → pop '{', matches → stack=['(']
+/// ')' → pop '(', matches → stack=[]
+/// Stack empty → True ✓
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the string
+/// - Space: O(n) — stack can hold up to n/2 opening brackets
 pub fn is_valid_parentheses(s: &str) -> bool {
     let mut stack = Vec::new();
 
@@ -50,16 +67,36 @@ pub fn is_valid_parentheses(s: &str) -> bool {
 
 /// Next Largest Number to the Right
 ///
-/// Given an integer array nums, return an output array res where, for each value nums[i],
-/// res[i] is the first number to the right that's larger than nums[i]. If no larger number exists
-/// to the right of nums[i], set res[i] to -1.
+/// Given an integer array nums, return an output array res where, for each
+/// value nums[i], res[i] is the first number to the right that's larger than
+/// nums[i]. If no larger number exists to the right of nums[i], set res[i] to -1.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [5, 2, 4, 6, 1]
 /// Output: [6, 4, 6, -1, -1]
 /// ```
+///
+/// Iterate from right to left. Maintain a stack of candidates. Pop smaller
+/// elements (they can't be the answer for any future element). Top of stack
+/// is the answer.
+///
+/// Example [5, 2, 4, 6, 1]:
+///
+/// ```text
+/// i=4 (1): stack=[], no answer → res[4]=-1, push 1, stack=[1]
+/// i=3 (6): pop 1 (1 <= 6), stack=[], no answer → res[3]=-1, push 6, stack=[6]
+/// i=2 (4): stack=[6], top=6 > 4 → res[2]=6, push 4, stack=[6, 4]
+/// i=1 (2): stack=[6, 4], top=4 > 2 → res[1]=4, push 2, stack=[6, 4, 2]
+/// i=0 (5): pop 2 (2 <= 5), pop 4 (4 <= 5), top=6 > 5 → res[0]=6, push 5
+/// Result: [6, 4, 6, -1, -1] ✓
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — each element pushed/popped at most once
+/// - Space: O(n) — stack and result array
 pub fn next_largest_to_right(nums: &[i32]) -> Vec<i32> {
     let mut res = vec![-1; nums.len()];
     let mut stack = Vec::new();
@@ -85,15 +122,42 @@ pub fn next_largest_to_right(nums: &[i32]) -> Vec<i32> {
 
 /// Evaluate Expression
 ///
-/// Given a string representing a mathematical expression containing integers, parentheses,
-/// addition, and subtraction operators, evaluate and return the result of the expression.
+/// Given a string representing a mathematical expression containing integers,
+/// parentheses, addition, and subtraction operators, evaluate and return the
+/// result of the expression.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: s = "18-(7+(2-4))"
 /// Output: 13
 /// ```
+///
+/// Track current result and sign. When hitting '(', push result and sign
+/// onto stack and reset. When hitting ')', pop and combine with outer context.
+///
+/// Example "18-(7+(2-4))":
+///
+/// ```text
+/// '1' → curr_num=1
+/// '8' → curr_num=18
+/// '-' → res=18, sign=-1, curr_num=0
+/// '(' → push res=18, push sign=-1, stack=[18, -1], res=0, sign=1
+/// '7' → curr_num=7
+/// '+' → res=7, sign=1, curr_num=0
+/// '(' → push res=7, push sign=1, stack=[18, -1, 7, 1], res=0, sign=1
+/// '2' → curr_num=2
+/// '-' → res=2, sign=-1, curr_num=0
+/// '4' → curr_num=4
+/// ')' → res=2+4*(-1)=-2, pop sign=1, pop prev=7, res=7+(-2)*1=5
+/// ')' → res=5+0*1=5, pop sign=-1, pop prev=18, res=18+5*(-1)=13
+/// Answer: 13 ✓
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) — single pass through the string
+/// - Space: O(n) — stack for nested parentheses
 pub fn evaluate_expression(s: &str) -> i32 {
     let mut res: i32 = 0;
     let mut curr_num: i32 = 0;

@@ -4,32 +4,33 @@ use std::rc::Rc;
 
 /// Graph Deep Copy
 ///
-/// Given a reference to a node within an undirected graph, create a deep copy (clone) of the
-/// graph. The copied graph must be completely independent of the original one. This means
-/// you need to make new nodes for the copied graph instead of reusing any nodes from the
-/// original graph.
+/// Deep copy an undirected graph. Each node has val and neighbors list.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Original Graph:
-///     1 --- 2
-///     |     |
-///     4 --- 3 1
-///
-/// Cloned Graph:
-///     1' --- 2'
-///     |      |
-///     4' --- 3'
-///
-/// All nodes are deep copies: no references to the original graph.
+/// Input:  1 --- 2
+///         |     |
+///         4 --- 3
+/// Output: deep copy with same structure, no shared nodes
 /// ```
 ///
-/// # Constraints
+/// DFS: clone current node, recursively clone neighbors. Use a map to avoid
+/// cloning the same node twice (handles cycles).
 ///
-/// - The value of each node is unique.
-/// - Every node in the graph is reachable from the given node.
-
+/// Example walkthrough on a graph 1--2--3:
+///
+/// ```text
+/// dfs(1): create copy1, recurse on neighbor 2
+/// dfs(2): create copy2, recurse on neighbor 1 -> already cloned, return copy1
+///         recurse on neighbor 3 -> create copy3, done
+/// copy2.neighbors = [copy1, copy3], copy1.neighbors = [copy2]
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(V + E) — visit each node and edge once
+/// - Space: O(V) — hash map of old->new
 type GraphNode = Option<Rc<RefCell<Node>>>;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -78,24 +79,35 @@ pub fn clone_graph(node: GraphNode) -> GraphNode {
 
 /// Count Islands
 ///
-/// Given a binary matrix representing 1s as land and 0s as water, return the number of islands.
-/// An island is formed by connecting adjacent lands 4-directionally (up, down, left, and right).
+/// Count the number of islands in a binary grid (1=land, 0=water).
+/// Adjacent = up/down/left/right (not diagonal).
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: matrix = [[1, 1, 0, 0],
-///                  [1, 1, 0, 0],
-///                  [0, 0, 1, 1],
-///                  [0, 0, 1, 1]]
-///
+/// Input:  [[1,1,0,0],
+///          [1,1,0,0],
+///          [0,0,1,1],
+///          [0,0,1,1]]
 /// Output: 2
-///
-/// Explanation:
-/// There are two islands:
-/// - Top-left 2x2 block of 1s
-/// - Bottom-right 2x2 block of 1s
 /// ```
+///
+/// For each unvisited land cell, DFS to mark the whole island as visited.
+/// Each DFS = one island found.
+///
+/// Example walkthrough on the example grid:
+///
+/// ```text
+/// Scan (0,0): land, DFS marks (0,0),(0,1),(1,0),(1,1) -> count=1
+/// Scan (0,2): water, skip
+/// Scan (2,2): land, DFS marks (2,2),(2,3),(3,2),(3,3) -> count=2
+/// All other cells already visited or water -> return 2
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(rows * cols) — each cell visited at most once
+/// - Space: O(rows * cols) — worst case recursion depth
 pub fn count_islands(matrix: &mut [&mut [i32]]) -> i32 {
     fn count_islands_helper(matrix: &mut [&mut [i32]], r: usize, c: usize) {
         const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
@@ -129,31 +141,36 @@ pub fn count_islands(matrix: &mut [&mut [i32]]) -> i32 {
     counter
 }
 
-/// Matrix Infection
+/// Matrix Infection (Rotting Oranges)
 ///
-/// You are given a matrix where each cell is either:
-/// - 0: Empty
-/// - 1: Uninfected
-/// - 2: Infected
+/// 0=empty, 1=uninfected, 2=infected. Each second, infected cells spread to
+/// adjacent uninfected cells. Return seconds to infect all, or -1 if impossible.
 ///
-/// With each passing second, every infected cell (2) infects its uninfected neighboring cells
-/// (1) that are 4-directionally adjacent. Determine the number of seconds required for all
-/// uninfected cells to become infected. If this is impossible, return -1.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: matrix = [[1, 1, 1, 0],
-///                  [0, 0, 2, 1],
-///                  [0, 1, 1, 0]]
-///
-/// Second 0:    Second 1:    Second 2:    Second 3:
-/// 1 1 1 0      1 1 2 0      1 2 2 0      2 2 2 0
-/// 0 0 2 1  ->  0 0 2 2  ->  0 0 2 2  ->  0 0 2 2
-/// 0 1 1 0      0 1 2 0      0 2 2 0      0 2 2 0
-///
+/// Input:  [[1,1,1,0],
+///          [0,0,2,1],
+///          [0,1,1,0]]
 /// Output: 3
 /// ```
+///
+/// Multi-source BFS: start from ALL infected cells simultaneously.
+/// Each BFS level = one second. Count remaining uninfected at end.
+///
+/// Example walkthrough on the example grid:
+///
+/// ```text
+/// Initial: queue=[(1,2)], uninfected=6: (0,0),(0,1),(0,2),(1,3),(2,1),(2,2)
+/// t=1: (1,2) infects (0,2),(1,3),(2,2) -> uninfected=3
+/// t=2: (0,2) infects (0,1), (2,2) infects (2,1) -> uninfected=1
+/// t=3: (0,1) infects (0,0) -> uninfected=0 -> return 3
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(rows * cols) — each cell processed at most once
+/// - Space: O(rows * cols) — queue can hold all cells
 pub fn matrix_infection(matrix: &mut [&mut [i32]]) -> i32 {
     const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
     let mut ones = 0;
@@ -199,24 +216,34 @@ pub fn matrix_infection(matrix: &mut [&mut [i32]]) -> i32 {
 
 /// Bipartite Graph Validation
 ///
-/// Given an undirected graph, determine if it's bipartite. A graph is bipartite if the nodes can
-/// be colored in one of two colors, so that no two adjacent nodes are the same color.
+/// Can nodes be colored with 2 colors so no adjacent nodes share a color?
 ///
-/// The input is presented as an adjacency list, where graph[i] is a list of all nodes adjacent to
-/// node i.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: graph = [[1, 4], [0, 2], [1], [4], [0, 3]]
-///
-///     0 (blue) --- 1 (orange) --- 2 (blue)
-///     |
-///     4 (orange) --- 3 (blue)
-///
-/// Output: true
-/// Explanation: Nodes can be colored with two colors such that no adjacent nodes share a color.
+/// Input:  graph = [[1,4],[0,2],[1],[4],[0,3]]
+///         0 -- 1 -- 2
+///         |
+///         4 -- 3
+/// Output: true (two-colorable)
 /// ```
+///
+/// DFS coloring: assign color +1 to a node, -1 to its neighbors. If a neighbor
+/// already has the SAME color, it's not bipartite. A graph is bipartite iff it
+/// has no odd-length cycles.
+///
+/// Example walkthrough on the example graph:
+///
+/// ```text
+/// color[0]=+1 -> neighbor 1: color[1]=-1 -> neighbor 2: color[2]=+1
+/// back to 0 -> neighbor 4: color[4]=-1 -> neighbor 3: color[3]=+1
+/// No conflicts found -> return True
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(V + E) — visit each node and edge once
+/// - Space: O(V) — color array
 pub fn is_bipartite(graph: &[Vec<usize>]) -> bool {
     fn is_bipartite_helper(
         graph: &[Vec<usize>],
@@ -249,30 +276,39 @@ pub fn is_bipartite(graph: &[Vec<usize>]) -> bool {
     true
 }
 
-/// Longest Increasing Path
+/// Longest Increasing Path in a Matrix
 ///
-/// Find the longest strictly increasing path in a matrix of positive integers. A path is a
-/// sequence of cells where each one is 4-directionally adjacent (up, down, left, or right) to
-/// the previous one.
+/// Find the longest strictly increasing path (4-directional moves).
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: matrix = [[2, 7, 9],
-///                  [5, 4, 3],
-///                  [6, 1, 8]]
-///
-/// Output: 4
-/// Explanation:
-///   Positions:
-///     2(0,0) 7(0,1) 9(0,2)
-///     5(1,0) 4(1,1) 3(1,2)
-///     6(2,0) 1(2,1) 8(2,2)
-///
-///   Longest paths of length 4:
-///   - 1 -> 4 -> 5 -> 6
-///   - 1 -> 4 -> 7 -> 9
+/// Input:  [[2,7,9],
+///          [5,4,3],
+///          [6,1,8]]
+/// Output: 4 (1 -> 4 -> 5 -> 6 or 1 -> 4 -> 7 -> 9)
 /// ```
+///
+/// DFS + memoization: from each cell, try all 4 directions where the neighbor
+/// is strictly larger. Cache results to avoid recomputation.
+///
+/// Why memoization works: if we already know the longest path starting from
+/// cell (r,c), we don't need to recompute it.
+///
+/// Example walkthrough starting from cell (2,1)=1:
+///
+/// ```text
+/// dfs(2,1)=1: neighbors 4>(1) yes -> dfs(1,1)
+/// dfs(1,1)=4: neighbors 7>4 yes -> dfs(0,1), 5>4 yes -> dfs(1,0)
+/// dfs(0,1)=7: neighbor 9>7 yes -> dfs(0,2)=1, so dfs(0,1)=2
+/// dfs(1,0)=5: neighbor 6>5 yes -> dfs(2,0)=1, so dfs(1,0)=2
+/// dfs(1,1)=max(1+2, 1+2)=3, dfs(2,1)=1+3=4
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(rows * cols) — each cell computed once
+/// - Space: O(rows * cols) — memo table
 pub fn longest_increasing_path(matrix: &[&[i32]]) -> i32 {
     const DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
@@ -322,31 +358,36 @@ pub fn longest_increasing_path(matrix: &[&[i32]]) -> i32 {
     res
 }
 
-/// Shortest Transformation Sequence
+/// Shortest Transformation Sequence (Word Ladder)
 ///
-/// Given two words, start and end, and a dictionary containing an array of words, return the
-/// length of the shortest transformation sequence to transform start to end. A transformation
-/// sequence is a series of words in which:
-/// - Each word differs from the preceding word by exactly one letter.
-/// - Each word in the sequence exists in the dictionary.
+/// Find length of shortest sequence from start to end where each step changes
+/// exactly one letter and the resulting word is in the dictionary.
 ///
-/// If no such transformation sequence exists, return 0.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: start = "red", end = "hit", dictionary = ["red", "rod", "rad", "rat", "hat", "bad", "bat", "hit"]
-///
-/// Transformation: red -> rad -> rat -> hat -> hit
-///
-/// Output: 5
+/// Input:  start="red", end="hit",
+///         dictionary=["red","rod","rad","rat","hat","bad","bat","hit"]
+/// Output: 5  (red -> rad -> rat -> hat -> hit)
 /// ```
 ///
-/// # Constraints
+/// BFS level by level: try changing each character to a-z. If the new word is
+/// in the dictionary and unvisited, add to queue. BFS guarantees shortest path.
 ///
-/// - All words are the same length.
-/// - All words contain only lowercase English letters.
-/// - The dictionary contains no duplicate words.
+/// Example walkthrough on the example:
+///
+/// ```text
+/// dist=1: queue=["red"]
+/// dist=2: "red" -> try all 1-char changes -> "rad" in dict -> queue=["rad"]
+/// dist=3: "rad" -> "rat" in dict -> queue=["rat"]
+/// dist=4: "rat" -> "hat" in dict -> queue=["hat"]
+/// dist=5: "hat" -> "hit" == end -> return 5
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n * m * 26) — n words, m word length
+/// - Space: O(n) — visited set + queue
 pub fn shortest_transformation(start: &str, end: &str, dictionary: &[&str]) -> i32 {
     if start == end {
         return 1;
@@ -395,26 +436,35 @@ pub fn shortest_transformation(start: &str, end: &str, dictionary: &[&str]) -> i
     0
 }
 
-/// Prerequisites
+/// Prerequisites (Course Schedule)
 ///
-/// Given an integer n representing the number of courses labeled from 0 to n - 1, and an
-/// array of prerequisite pairs, determine if it's possible to enroll in all courses.
+/// Can you take all n courses given prerequisite pairs [a, b] meaning
+/// "a must be taken before b"? Basically: does the graph have a cycle?
 ///
-/// Each prerequisite is represented as a pair [a, b], indicating that course a must be taken
-/// before course b.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: n = 3, prerequisites = [[0, 1], [1, 2], [2, 1]]
-///
-/// Output: false
-/// Explanation: Course 1 cannot be taken without first completing course 2, and vice versa.
+/// Input:  n=3, prereqs=[[0,1],[1,2],[2,1]]
+/// Output: false (cycle: 1 <-> 2)
 /// ```
 ///
-/// # Constraints
+/// Topological sort using Kahn's algorithm: start with courses that have no
+/// prerequisites (in-degree 0), process them, and reduce the in-degree of
+/// their dependents. If we process all n courses there's no cycle.
 ///
-/// - For any prerequisite [a, b], a will not equal b.
+/// Example walkthrough on the example:
+///
+/// ```text
+/// graph: 0->[1], 1->[2], 2->[1]
+/// in-degree: [0, 1+1, 1] = [0, 2, 1]
+/// queue=[0] -> process 0, decrement in-degree[1] -> [0, 1, 1]
+/// queue=[]: no more 0-degree nodes, enrolled=1 != 3 -> return False
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(V + E) — visit each node and edge once
+/// - Space: O(V + E) — adjacency list and in-degree array
 pub fn can_finish(n: usize, prerequisites: &[[usize; 2]]) -> bool {
     let mut graph: HashMap<usize, Vec<usize>> = HashMap::new();
     let mut in_degrees = vec![0; n];
@@ -452,31 +502,46 @@ pub fn can_finish(n: usize, prerequisites: &[[usize; 2]]) -> bool {
     enrolled_courses == n
 }
 
-/// Merging Communities
+/// Union-Find (Disjoint Set)
 ///
-/// There are n people numbered from 0 to n - 1, with each person initially belonging to
-/// a separate community. When two people from different communities connect, their
-/// communities merge into a single community.
+/// Track connected components. Support connect and get_community_size.
 ///
-/// Your goal is to write two functions:
-/// - `connect(x, y)`: Connects person x with person y and merges their communities.
-/// - `get_community_size(x)`: Returns the size of the community which person x belongs to.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
-/// Input: n = 5, [connect(0, 1), connect(1, 2), get_community_size(3),
-///                get_community_size(0), connect(3, 4), get_community_size(4)]
+/// Input:  uf = UnionFind(5); uf.connect(0,1); uf.connect(1,2)
+///         uf.get_community_size(0)
+/// Output: 3
 ///
-/// connect(0, 1):          {0, 1}, {2}, {3}, {4}
-/// connect(1, 2):          {0, 1, 2}, {3}, {4}
-/// get_community_size(3):  1
-/// get_community_size(0):  3
-/// connect(3, 4):          {0, 1, 2}, {3, 4}
-/// get_community_size(4):  2
-///
-/// Output: [1, 3, 2]
+/// Input:  uf.get_community_size(3)
+/// Output: 1
 /// ```
+///
+/// The idea is to maintain a forest of trees where each tree is a component.
+/// To check connectivity, find the root of each node. To merge, attach one
+/// root under the other.
+///
+/// Two optimizations:
+/// - Path compression: in find(), point nodes directly to root
+/// - Union by size: attach smaller tree under larger tree
+///
+/// Without these: O(n) per operation (degenerate chain).
+/// With both: O(a(n)) where a = inverse Ackermann ~ constant.
+///
+/// Example walkthrough on the example:
+///
+/// ```text
+/// init:       parent=[0,1,2,3,4], size=[1,1,1,1,1]
+/// connect(0,1): root(0)=0, root(1)=1 -> parent=[0,0,2,3,4], size=[2,1,1,1,1]
+/// connect(1,2): root(1)=0, root(2)=2 -> parent=[0,0,0,3,4], size=[3,1,1,1,1]
+/// get_community_size(0): root=0, size[0]=3
+/// get_community_size(3): root=3, size[3]=1
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(a(n)) ~ O(1) amortized per operation
+/// - Space: O(n) — parent and size arrays
 pub struct UnionFind {
     parent: Vec<usize>,
     size: Vec<usize>,

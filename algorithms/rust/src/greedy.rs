@@ -1,51 +1,36 @@
 /// Jump to the End
 ///
-/// You are given an integer array in which you're originally positioned at index 0. Each number
-/// in the array represents the maximum jump distance from the current index. Determine if
-/// it's possible to reach the end of the array.
+/// Given an array where nums[i] is the max jump distance from index i,
+/// determine if you can reach the last index starting from index 0.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [3, 2, 0, 2, 5]
+/// Output: true   // 0->3->4 (jump 3, then jump 2)
 ///
-/// Output: true
+/// Input: nums = [2, 1, 0, 3]
+/// Output: false  // stuck at index 2 (can't jump past the 0)
 /// ```
 ///
-/// # Example 2
+/// Work backwards: start destination at last index.
+/// If position i can reach destination, move destination to i.
+/// If destination reaches 0, we can make it!
+///
+/// Example walkthrough for [3, 2, 0, 2, 5], destination starts at index 4:
 ///
 /// ```text
-/// Input: nums = [2, 1, 0, 3]
-///
-/// Output: false
+/// i=3: nums[3]=2, 3+2=5 >= 4 ✓ destination=3
+/// i=2: nums[2]=0, 2+0=2 < 3  ✗
+/// i=1: nums[1]=2, 1+2=3 >= 3 ✓ destination=1
+/// i=0: nums[0]=3, 0+3=3 >= 1 ✓ destination=0
+/// destination == 0 -> True!
 /// ```
 ///
-/// # Constraints
+/// # Complexity
 ///
-/// - There is at least one element in nums.
-/// - All integers in nums are non-negative integers.
-//
-// Greedy approach (O(n) time, O(1) space):
-// Work backwards - if position i can reach current destination, move destination to i.
-//
-// DP approach (O(n²) time, O(n) space):
-// ```
-// let mut dp = vec![false; n];
-// dp[0] = true;  // We start at index 0
-//
-// for i in 0..n {
-//     if dp[i] {
-//         for j in 1..=nums[i] {
-//             if i + j < n {
-//                 dp[i + j] = true;
-//             }
-//         }
-//     }
-// }
-// return dp[n - 1]
-// ```
-// dp[i] = "can we reach position i?"
-// From each reachable position, mark all positions we can jump to.
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn jump_to_end(nums: &[usize]) -> bool {
     let mut destination = nums.len() - 1;
 
@@ -60,24 +45,34 @@ pub fn jump_to_end(nums: &[usize]) -> bool {
 
 /// Jump Game II
 ///
-/// Given a 0-indexed array where each element represents the maximum jump length
-/// from that position, return the minimum number of jumps to reach the last index.
-/// It's guaranteed you can reach the end.
+/// Given array where nums[i] is max jump length from position i,
+/// return minimum number of jumps to reach the last index.
+/// Guaranteed you can reach the end.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [2, 3, 1, 1, 4]
 /// Output: 2
-/// Explanation: Jump 1 step (0→1), then 3 steps (1→4)
+/// // Jump 1 step (0->1), then 3 steps (1->4)
 /// ```
 ///
-/// # Example 2
+/// BFS-like greedy: track the "edge" of current jump.
+/// When we reach the edge, we must jump. Pick the farthest we've seen.
+///
+/// Example walkthrough for [2, 3, 1, 1, 4]:
 ///
 /// ```text
-/// Input: nums = [2, 3, 0, 1, 4]
-/// Output: 2
+/// i=0: farthest=max(0, 0+2)=2, i==edge(0) -> JUMP! edge=2, jumps=1
+/// i=1: farthest=max(2, 1+3)=4, not at edge yet
+/// i=2: farthest=max(4, 2+1)=4, i==edge(2) -> JUMP! edge=4, jumps=2
+/// edge=4 >= last index, done! Answer: 2
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn min_jumps(nums: &[usize]) -> usize {
     if nums.len() <= 1 {
         return 0;
@@ -103,28 +98,48 @@ pub fn min_jumps(nums: &[usize]) -> usize {
 
 /// Gas Stations
 ///
-/// There's a circular route which contains gas stations. At each station, you can fill your car
-/// with a certain amount of gas, and moving from that station to the next one consumes some
-/// fuel.
+/// Circular route with gas stations. At each station you gain gas[i] fuel
+/// and spend cost[i] to reach the next. Find the starting index to complete
+/// the circuit, or -1 if impossible.
 ///
-/// Find the index of the gas station you would need to start at, in order to complete the circuit
-/// without running out of gas. Assume your car starts with an empty tank. If it's not possible
-/// to complete the circuit, return -1. If it's possible, assume only one solution exists.
-///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: gas = [2, 5, 1, 3], cost = [3, 2, 1, 4]
-///
 /// Output: 1
-///
-/// Explanation:
-/// Start at station 1: gain 5 gas (tank = 5), costs 2 gas to go to station 2 (tank = 3).
-/// At station 2: gain 1 gas (tank = 4), costs 1 gas to go to station 3 (tank = 3).
-/// At station 3: gain 3 gas (tank = 6), costs 4 gas to go to station 0 (tank = 2).
-/// At station 0: gain 2 gas (tank = 4), costs 3 gas to go to station 1 (tank = 1).
-/// We started and finished the circuit at station 1 without running out of gas.
+/// // Start at 1: tank=5-2=3 -> +1-1=3 -> +3-4=2 -> +2-3=1 ✓
 /// ```
+///
+/// Two key insights:
+///     1. If total gas < total cost -> impossible (return -1)
+///     2. If tank goes negative at station i, none of 0..i can be the start.
+///        Why? If we couldn't make it FROM any of those stations TO i,
+///        starting earlier doesn't help. Reset start to i+1.
+///
+/// Example walkthrough for gas=[2, 5, 1, 3], cost=[3, 2, 1, 4]:
+///
+/// ```text
+/// total gas=11, total cost=10, 11 >= 10 -> solution exists
+/// i=0: tank=0+(2-3)=-1 < 0 -> reset! start=1, tank=0
+/// i=1: tank=0+(5-2)=3
+/// i=2: tank=3+(1-1)=3
+/// i=3: tank=3+(3-4)=2
+/// No more resets. start=1 ✓
+/// ```
+///
+/// Proof by contradiction that start is correct:
+///     1. sum(gas) >= sum(cost) -> a valid starting point must exist
+///     2. We confirmed starting anywhere before start results in a deficit
+///     3. We didn't encounter any deficit from start to the last station
+///     4. Since a solution exists and all stations before start fail,
+///        start must be it. (The remaining circuit from station 0 to
+///        start-1 is guaranteed to work because total gas >= total cost,
+///        so any deficit before start is offset by surplus after.)
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn gas_stations(gas: &[i32], cost: &[i32]) -> i32 {
     let sum_gas: i32 = gas.iter().sum();
     let sum_cost: i32 = cost.iter().sum();
@@ -164,34 +179,36 @@ pub fn gas_stations(gas: &[i32], cost: &[i32]) -> i32 {
 
 /// Candies
 ///
-/// You teach a class of children sitting in a row, each of whom has a rating based on their
-/// performance. You want to distribute candies to the children while abiding by the following
-/// rules:
+/// Children sit in a row with ratings. Distribute minimum candies such that:
+///     1. Each child gets at least 1
+///     2. Higher-rated child gets more candies than their neighbor
 ///
-/// 1. Each child must receive at least one candy.
-/// 2. If two children sit next to each other, the child with the higher rating must receive more candies.
-///
-/// Determine the minimum number of candies you need to distribute to satisfy these conditions.
-///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: ratings = [4, 3, 2, 4, 5, 1]
-///
 /// Output: 12
-///
-/// Explanation: You can distribute candies to each child as follows: [3, 2, 1, 2, 3, 1].
+/// // Candies: [3, 2, 1, 2, 3, 1]
 /// ```
 ///
-/// # Example 2
+/// Two-pass approach:
+///     1. Left to right: if rating goes UP, give one more than left neighbor
+///     2. Right to left: if rating goes UP (looking right), take max of
+///        current and right neighbor + 1
+///
+/// Example walkthrough for [4, 3, 2, 4, 5, 1]:
 ///
 /// ```text
-/// Input: ratings = [1, 3, 3]
-///
-/// Output: 4
-///
-/// Explanation: You can distribute candies to each child as follows: [1, 2, 1].
+/// Start:       [1, 1, 1, 1, 1, 1]
+/// Left pass:   [1, 1, 1, 2, 3, 1]  (only 4>2 and 5>4 go up)
+/// Right pass:  [3, 2, 1, 2, 3, 1]  (4>3, 3>2 going right-to-left)
+/// Sum: 3+2+1+2+3+1 = 12
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n) - two passes
+/// - Space: O(n) - candies array
 pub fn candies(ratings: &[u32]) -> u32 {
     let mut candies = vec![1; ratings.len()];
 
@@ -212,24 +229,35 @@ pub fn candies(ratings: &[u32]) -> u32 {
 
 /// Best Time to Buy and Sell Stock
 ///
-/// Given an array where prices[i] is the stock price on day i, find the maximum
-/// profit from buying on one day and selling on a later day.
+/// Find max profit from buying on one day and selling on a later day.
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: prices = [7, 1, 5, 3, 6, 4]
 /// Output: 5
-/// Explanation: Buy at 1, sell at 6 → profit = 5
+/// // Buy at 1, sell at 6
 /// ```
 ///
-/// # Example 2
+/// Track the minimum price seen so far. At each price, check if
+/// selling now would beat our best profit.
+///
+/// Example walkthrough for [7, 1, 5, 3, 6, 4]:
 ///
 /// ```text
-/// Input: prices = [7, 6, 4, 3, 1]
-/// Output: 0
-/// Explanation: Prices only decrease, no profit possible
+/// price=7: min=7, profit=0
+/// price=1: min=1, profit=0
+/// price=5: min=1, profit=5-1=4
+/// price=3: min=1, profit=4
+/// price=6: min=1, profit=6-1=5 ★
+/// price=4: min=1, profit=5
+/// Answer: 5
 /// ```
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn max_profit(prices: &[i32]) -> i32 {
     let mut min_price = i32::MAX;
     let mut max_profit = 0;
@@ -247,44 +275,39 @@ pub fn max_profit(prices: &[i32]) -> i32 {
 
 /// Best Time to Buy and Sell Stock II
 ///
-/// Given stock prices, find max profit with unlimited transactions.
-/// You can buy/sell multiple times but only hold one share at a time.
+/// Max profit with unlimited transactions (but only hold one share at a time).
 ///
-/// # Example 1
+/// # Examples
 ///
 /// ```text
 /// Input: prices = [7, 1, 5, 3, 6, 4]
 /// Output: 7
-/// Explanation: Buy at 1, sell at 5 (profit 4). Buy at 3, sell at 6 (profit 3).
+/// // Buy at 1, sell at 5 (profit 4). Buy at 3, sell at 6 (profit 3).
 /// ```
 ///
-/// # Example 2
+/// Greedy: capture every upward movement.
+/// If price goes up tomorrow, buy today and sell tomorrow.
+///
+/// Why this works: sum of small gains = one big gain
+///     prices [1, 2, 3, 4]:
+///     (2-1) + (3-2) + (4-3) = 3 = (4-1)
+///     Capturing every +1 step equals the peak-valley difference.
+///
+/// Example walkthrough for [7, 1, 5, 3, 6, 4]:
 ///
 /// ```text
-/// Input: prices = [1, 2, 3, 4, 5]
-/// Output: 4
-/// Explanation: Buy at 1, sell at 5 (or capture each +1 step)
+/// i=1: prices[1]=1 < prices[0]=7 -> skip
+/// i=2: prices[2]=5 > prices[1]=1 -> profit += 5-1 = 4
+/// i=3: prices[3]=3 < prices[2]=5 -> skip
+/// i=4: prices[4]=6 > prices[3]=3 -> profit += 6-3 = 3
+/// i=5: prices[5]=4 < prices[4]=6 -> skip
+/// Total profit: 4+3 = 7
 /// ```
-// Greedy: capture every upward movement.
-// If price goes up tomorrow, buy today and sell tomorrow.
-//
-// Why this works - consider prices [1, 7, 2, 3, 6, 7, 6, 7]:
-//
-//     7 *       * 7   * 7
-//       |      /|    /
-//     6 |    6* |  6*
-//       |   /   |
-//       |  *3   |
-//     2 | *     |
-//       |/      |
-//     1 *       |
-//       --------|------
-//       A  B  C    D
-//
-// Sum of small gains (A + B + C) = one big gain (D)
-// e.g., (7-1) = (7-6) + (6-3) + (3-2) + (2-1) ... wait, simpler:
-// Capturing every +1 step from valley to peak equals the peak-valley difference.
-// So we don't need to find peaks/valleys - just sum all positive differences.
+///
+/// # Complexity
+///
+/// - Time: O(n)
+/// - Space: O(1)
 pub fn max_profit_ii(prices: &[i32]) -> i32 {
     let mut profit = 0;
 

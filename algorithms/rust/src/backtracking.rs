@@ -2,16 +2,34 @@ use std::collections::HashSet;
 
 /// Find All Permutations
 ///
-/// Return all possible permutations of a given array of unique integers. They can be returned
-/// in any order.
+/// Return all permutations of a list of unique integers.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [4, 5, 6]
-///
 /// Output: [[4, 5, 6], [4, 6, 5], [5, 4, 6], [5, 6, 4], [6, 4, 5], [6, 5, 4]]
 /// ```
+///
+/// At each level, try every unused number. Use a visited set to skip
+/// numbers already in the current permutation.
+///
+/// Tree for [4, 5, 6]:
+///
+/// ```text
+///                     []
+///           /          |          \
+///        [4]          [5]         [6]
+///       /   \       /   \       /   \
+///    [4,5] [4,6] [5,4] [5,6] [6,4] [6,5]
+///      |     |     |     |     |     |
+///   [4,5,6] ...   ...   ...   ...  [6,5,4]
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n! * n) — n! permutations, each takes O(n) to copy
+/// - Space: O(n) recursion depth + O(n) visited set
 pub fn permutations(nums: &[i32]) -> Vec<Vec<i32>> {
     fn permutations_helper(
         res: &mut Vec<Vec<i32>>,
@@ -46,16 +64,37 @@ pub fn permutations(nums: &[i32]) -> Vec<Vec<i32>> {
 
 /// Find All Subsets
 ///
-/// Return all possible subsets of a given set of unique integers. Each subset can be ordered
-/// in any way, and the subsets can be returned in any order.
+/// Return all subsets (the power set) of a list of unique integers.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: nums = [4, 5, 6]
-///
 /// Output: [[], [4], [4, 5], [4, 5, 6], [4, 6], [5], [5, 6], [6]]
 /// ```
+///
+/// At each index, make a binary choice: include or exclude nums[i].
+/// Then recurse to the next index. When we reach the end, save the subset.
+///
+/// Tree for [4, 5, 6]:
+///
+/// ```text
+///                       []
+///                /              \
+///           include 4          exclude 4
+///            [4]                  []
+///          /      \            /      \
+///      inc 5    exc 5      inc 5    exc 5
+///      [4,5]    [4]        [5]       []
+///      /  \    /  \      /  \    /  \
+///    +6  -6  +6  -6    +6  -6  +6  -6
+/// [4,5,6][4,5][4,6][4] [5,6][5] [6] []
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(2^n * n) — 2^n subsets, each up to O(n) to copy
+/// - Space: O(n) recursion depth
 pub fn subsets(nums: &[i32]) -> Vec<Vec<i32>> {
     fn subsets_helper(nums: &[i32], res: &mut Vec<Vec<i32>>, curr_subset: &mut Vec<i32>, i: usize) {
         if i == nums.len() {
@@ -77,17 +116,42 @@ pub fn subsets(nums: &[i32]) -> Vec<Vec<i32>> {
 
 /// N Queens
 ///
-/// There is a chessboard of size n x n. Your goal is to place n queens on the board such that
-/// no two queens attack each other. Return the number of distinct configurations where this
-/// is possible.
+/// Place n queens on an n*n board so no two attack each other.
+/// Return the number of valid configurations.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```text
 /// Input: n = 4
-///
 /// Output: 2
 /// ```
+///
+/// Place one queen per row (they can't share a row). For each row,
+/// try every column. Skip if column, diagonal, or anti-diagonal
+/// is already occupied.
+///
+/// How diagonals work:
+///
+/// ```text
+/// Diagonal (top-left to bottom-right): r - c is constant
+///     (e.g. (0,1) and (1,2) both = -1)
+/// Anti-diagonal (top-right to bottom-left): r + c is constant
+///     (e.g. (0,1) and (1,0) both = 1)
+/// ```
+///
+/// Example n=4, one solution:
+///
+/// ```text
+/// . Q . .    row 0, col 1
+/// . . . Q    row 1, col 3
+/// Q . . .    row 2, col 0
+/// . . Q .    row 3, col 2
+/// ```
+///
+/// # Complexity
+///
+/// - Time: O(n!) — pruning reduces branching at each row
+/// - Space: O(n) for the three sets + recursion
 pub fn n_queens(n: usize) -> usize {
     fn n_queens_helper(
         n: usize,
